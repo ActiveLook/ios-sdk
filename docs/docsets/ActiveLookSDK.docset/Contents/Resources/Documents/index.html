@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>ActiveLookSDK  Reference</title>
+    <link rel="stylesheet" type="text/css" href="css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="js/jquery.min.js" defer></script>
+    <script src="js/jazzy.js" defer></script>
+    
+    <script src="js/lunr.min.js" defer></script>
+    <script src="js/typeahead.jquery.js" defer></script>
+    <script src="js/jazzy.search.js" defer></script>
+  </head>
+  <body>
+    <a title="ActiveLookSDK  Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="index.html">ActiveLookSDK 0.1.0 Docs</a> (79% documented)</p>
+        <p class="header-right">
+          <form role="search" action="search.json">
+            <input type="text" placeholder="Search documentation" data-typeahead>
+          </form>
+        </p>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="index.html">ActiveLookSDK Reference</a>
+        <img id="carat" src="img/carat.png" />
+        ActiveLookSDK  Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="Classes/ActiveLookSDK.html">ActiveLookSDK</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/Configuration.html">Configuration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/DiscoveredGlasses.html">DiscoveredGlasses</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/FontData.html">FontData</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/Glasses.html">Glasses</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/ImageData.html">ImageData</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/ImageInfo.html">ImageInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/LayoutParameters.html">LayoutParameters</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/SensorParameters.html">SensorParameters</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="Enums.html">Enumerations</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="Enums/ActiveLookError.html">ActiveLookError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/FlowControlState.html">FlowControlState</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/LedState.html">LedState</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/SensorMode.html">SensorMode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/TestPattern.html">TestPattern</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/TextRotation.html">TextRotation</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="Structs/DeviceInformation.html">DeviceInformation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/GlassesSettings.html">GlassesSettings</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/GlassesVersion.html">GlassesVersion</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            
+            <h1 id='activelooksdk' class='heading'>ActiveLookSDK</h1>
+<h2 id='requirements' class='heading'>Requirements</h2>
+
+<p>In order to use the ActiveLook SDK for iOS, you should have XCode installed and a working version of CocoaPods.</p>
+<h2 id='license' class='heading'>License</h2>
+<pre class="highlight plaintext"><code>Copyright 2021 Microoled
+Licensed under the Apache License, Version 2.0 (the “License”);
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an “AS IS” BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+</code></pre>
+<h2 id='installation' class='heading'>Installation</h2>
+
+<p>ActiveLookSDK is available through <a href="https://cocoapods.org">CocoaPods</a>. To install
+it, simply add the following line to your Podfile:</p>
+<pre class="highlight ruby"><code><span class="n">pod</span> <span class="s1">'ActiveLookSDK'</span>
+</code></pre>
+<h2 id='example' class='heading'>Example</h2>
+
+<p>To run the example project, clone the repo, and run <code>pod install</code> from the Example directory first.</p>
+
+<p>Then, open ActiveLookSDK.xcworkspace in XCode and run the example project on the desired device.</p>
+
+<p>Note: BlueTooth will not work on the iOS simulator. A physical device should be used instead.</p>
+<h2 id='initialization' class='heading'>Initialization</h2>
+
+<p>To start using the SDK, first import the ActiveLookSDK module:</p>
+<pre class="highlight swift"><code><span class="kd">import</span> <span class="kt">ActiveLookSDK</span>
+</code></pre>
+
+<p>Then, use its <code>shared</code> property to access the shared singleton. This can be called from anywhere within your application.</p>
+<pre class="highlight swift"><code><span class="k">var</span> <span class="nv">activeLook</span><span class="p">:</span> <span class="kt">ActiveLookSDK</span> <span class="o">=</span> <span class="kt">ActiveLookSDK</span><span class="o">.</span><span class="n">shared</span>
+</code></pre>
+<h2 id='scanning' class='heading'>Scanning</h2>
+
+<p>To scan for available ActiveLook glasses, simply use the <code>startScanning(onGlassesDiscovered:onScanError:)</code> and <code>stopScanning()</code> methods.</p>
+
+<p>When a device is discovered, the <code>onGlassesDiscovered</code> callback will be called.
+Upon failure, the <code>onScanError</code> callback will be called instead.</p>
+
+<p>You can handle these cases by providing closures as parameters: </p>
+<pre class="highlight swift"><code><span class="n">activeLook</span><span class="o">.</span><span class="nf">startScanning</span><span class="p">(</span>
+    <span class="nv">onGlassesDiscovered</span><span class="p">:</span> <span class="p">{</span> <span class="p">[</span><span class="k">weak</span> <span class="k">self</span><span class="p">]</span> <span class="p">(</span><span class="nv">discoveredGlasses</span><span class="p">:</span> <span class="kt">DiscoveredGlasses</span><span class="p">)</span> <span class="k">in</span>
+        <span class="nf">print</span><span class="p">(</span><span class="s">"discovered glasses: </span><span class="se">\(</span><span class="n">discoveredGlasses</span><span class="o">.</span><span class="n">name</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+        <span class="k">self</span><span class="p">?</span><span class="o">.</span><span class="nf">addDiscoveredGlasses</span><span class="p">(</span><span class="n">discoveredGlasses</span><span class="p">)</span>
+
+    <span class="p">},</span> <span class="nv">onScanError</span><span class="p">:</span> <span class="p">{</span> <span class="p">(</span><span class="nv">error</span><span class="p">:</span> <span class="kt">Error</span><span class="p">)</span> <span class="k">in</span>
+        <span class="nf">print</span><span class="p">(</span><span class="s">"error while scanning: </span><span class="se">\(</span><span class="n">error</span><span class="o">.</span><span class="n">localizedDescription</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+</code></pre>
+<h2 id='connect-to-activelook-glasses' class='heading'>Connect to ActiveLook glasses</h2>
+
+<p>To connect to a pair of discovered glasses, use the <code>connect(onGlassesConnected:onGlassesDisconnected:onConnectionError:)</code> method on the <code><a href="Classes/DiscoveredGlasses.html">DiscoveredGlasses</a></code> object.</p>
+
+<p>If the connection is successful, the <code>onGlassesConnected</code> callback will be called and will return a <code><a href="Classes/Glasses.html">Glasses</a></code> object, which can then be used to get information about the connected ActiveLook glasses or send commands.</p>
+
+<p>If the connection fails, the <code>onConnectionError</code> callback will be called instead.</p>
+
+<p>Finally, if the connection to the glasses is lost at any point, later, while the app is running, the <code>onGlassesDisconnected</code> callback will be called.</p>
+<pre class="highlight swift"><code><span class="n">discoveredGlasses</span><span class="o">.</span><span class="nf">connect</span><span class="p">(</span>
+    <span class="nv">onGlassesConnected</span><span class="p">:</span> <span class="p">{</span> <span class="p">(</span><span class="nv">glasses</span><span class="p">:</span> <span class="kt">Glasses</span><span class="p">)</span> <span class="k">in</span>
+        <span class="nf">print</span><span class="p">(</span><span class="s">"glasses connected: </span><span class="se">\(</span><span class="n">glasses</span><span class="o">.</span><span class="n">name</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+<span class="p">},</span> <span class="nv">onGlassesDisconnected</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nf">print</span><span class="p">(</span><span class="s">"disconnected from glasses"</span><span class="p">)</span>
+<span class="p">},</span> <span class="nv">onConnectionError</span><span class="p">:</span> <span class="p">{</span> <span class="p">(</span><span class="nv">error</span><span class="p">:</span> <span class="kt">Error</span><span class="p">)</span> <span class="k">in</span>
+        <span class="nf">print</span><span class="p">(</span><span class="s">"error while connecting to glasses: </span><span class="se">\(</span><span class="n">error</span><span class="o">.</span><span class="n">localizedDescription</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+<span class="p">})</span>
+</code></pre>
+
+<p>If you need to share the <code><a href="Classes/Glasses.html">Glasses</a></code> object between several View Controllers, and you find it hard or inconvenient to hold onto the <code>onGlassesDisconnected</code> callback, you can reset it or provide a new one by using the <code>onDisconnect()</code> method on the <code><a href="Classes/Glasses.html">Glasses</a></code> object:</p>
+<pre class="highlight swift"><code><span class="n">glasses</span><span class="o">.</span><span class="n">onDisconnect</span> <span class="p">{</span> <span class="p">[</span><span class="k">weak</span> <span class="k">self</span><span class="p">]</span> <span class="k">in</span>
+    <span class="k">guard</span> <span class="k">let</span> <span class="nv">self</span> <span class="o">=</span> <span class="k">self</span> <span class="k">else</span> <span class="p">{</span> <span class="k">return</span> <span class="p">}</span>
+
+    <span class="k">let</span> <span class="nv">alert</span> <span class="o">=</span> <span class="kt">UIAlertController</span><span class="p">(</span><span class="nv">title</span><span class="p">:</span> <span class="s">"Glasses disconnected"</span><span class="p">,</span> <span class="nv">message</span><span class="p">:</span> <span class="s">"Connection to glasses lost"</span><span class="p">,</span> <span class="nv">preferredStyle</span><span class="p">:</span> <span class="o">.</span><span class="n">alert</span><span class="p">)</span>
+    <span class="k">self</span><span class="o">.</span><span class="nf">present</span><span class="p">(</span><span class="n">alert</span><span class="p">,</span> <span class="nv">animated</span><span class="p">:</span> <span class="kc">true</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
+<h2 id='device-information' class='heading'>Device information</h2>
+
+<p>To get information relative to discovered glasses as published over Bluetooth, you can access the following public properties:</p>
+<pre class="highlight swift"><code><span class="c1">// Print the name of the glasses</span>
+<span class="nf">print</span><span class="p">(</span><span class="n">discoveredGlasses</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+<span class="c1">// Print the glasses' manufacturer id</span>
+<span class="nf">print</span><span class="p">(</span><span class="n">discoveredGlasses</span><span class="o">.</span><span class="n">manufacturerId</span><span class="p">)</span>
+
+<span class="c1">// Print the glasses' identifier</span>
+<span class="nf">print</span><span class="p">(</span><span class="n">discoveredGlasses</span><span class="o">.</span><span class="n">identifier</span><span class="p">)</span>
+</code></pre>
+
+<p>Once connected, you can access more information about the device such as its firmware version, the model number etc&hellip; by using the <code>getDeviceInformation()</code> method:</p>
+<pre class="highlight swift"><code><span class="c1">// Print the model number</span>
+<span class="nf">print</span><span class="p">(</span><span class="n">connectedGlasses</span><span class="o">.</span><span class="nf">getDeviceInformation</span><span class="p">()</span><span class="o">.</span><span class="n">modelNumber</span><span class="p">)</span>
+</code></pre>
+<h2 id='commands' class='heading'>Commands</h2>
+
+<p>All available commands are exposed as methods in the <code><a href="Classes/Glasses.html">Glasses</a></code> class. Examples are available in the Example application.</p>
+
+<p>Most commands require parameters to be sent.</p>
+<pre class="highlight swift"><code><span class="c1">// Power on the glasses</span>
+<span class="n">glasses</span><span class="o">.</span><span class="nf">power</span><span class="p">(</span><span class="nv">on</span><span class="p">:</span> <span class="kc">true</span><span class="p">)</span>
+
+<span class="c1">// Set the display luminance level</span>
+<span class="n">glasses</span><span class="o">.</span><span class="nf">luma</span><span class="p">(</span><span class="nv">level</span><span class="p">:</span> <span class="mi">15</span><span class="p">)</span>
+
+<span class="c1">// Draw a circle at the center of the screen</span>
+<span class="n">glasses</span><span class="o">.</span><span class="nf">circ</span><span class="p">(</span><span class="nv">x</span><span class="p">:</span> <span class="mi">152</span><span class="p">,</span> <span class="nv">y</span><span class="p">:</span> <span class="mi">128</span><span class="p">,</span> <span class="nv">radius</span><span class="p">:</span> <span class="mi">50</span><span class="p">)</span>
+
+<span class="c1">// Enable gesture detection sensor</span>
+<span class="n">glasses</span><span class="o">.</span><span class="nf">gesture</span><span class="p">(</span><span class="nv">enabled</span><span class="p">:</span> <span class="kc">true</span><span class="p">)</span>
+</code></pre>
+
+<p>When a response is expected from the glasses, a closure can be provided to the callback parameter. (The callback will be called asynchronously)</p>
+<pre class="highlight swift"><code><span class="n">glasses</span><span class="o">.</span><span class="n">battery</span> <span class="p">{</span> <span class="p">(</span><span class="nv">batteryLevel</span> <span class="p">:</span> <span class="kt">Int</span><span class="p">)</span> <span class="k">in</span>
+    <span class="nf">print</span><span class="p">(</span><span class="s">"current battery level: </span><span class="se">\(</span><span class="n">batteryLevel</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
+<h2 id='notifications' class='heading'>Notifications</h2>
+
+<p>It is possible to subscribe to three types of notifications that the glasses will send over Bluetooth:</p>
+
+<ul>
+<li>Battery level updates (periodically, every 30 seconds)</li>
+<li>Gesture detection sensor triggered</li>
+<li>Flow control events (when the state of the flow control changes)</li>
+</ul>
+<pre class="highlight swift"><code><span class="n">glasses</span><span class="o">.</span><span class="nf">subscribeToBatteryLevelNotifications</span><span class="p">(</span><span class="nv">onBatteryLevelUpdate</span><span class="p">:</span> <span class="p">{</span> <span class="p">(</span><span class="nv">batteryLevel</span><span class="p">:</span> <span class="kt">Int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="kt">Void</span><span class="p">)</span> <span class="k">in</span>
+    <span class="nf">print</span><span class="p">(</span><span class="s">"battery level update: </span><span class="se">\(</span><span class="n">batteryLevel</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+<span class="p">})</span>
+
+<span class="n">glasses</span><span class="o">.</span><span class="nf">subscribeToFlowControlNotifications</span><span class="p">(</span><span class="nv">onFlowControlUpdate</span><span class="p">:</span> <span class="p">{</span> <span class="p">(</span><span class="nv">flowControlState</span><span class="p">:</span> <span class="kt">FlowControlState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="kt">Void</span><span class="p">)</span> <span class="k">in</span>
+    <span class="nf">print</span><span class="p">(</span><span class="s">"flow control state update: </span><span class="se">\(</span><span class="n">flowControlState</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+<span class="p">})</span>
+
+<span class="n">glasses</span><span class="o">.</span><span class="nf">subscribeToSensorInterfaceNotifications</span><span class="p">(</span><span class="nv">onSensorInterfaceTriggered</span><span class="p">:</span> <span class="p">{</span> <span class="p">()</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="kt">Void</span><span class="p">)</span> <span class="k">in</span>
+    <span class="nf">print</span><span class="p">(</span><span class="s">"sensor interface triggered"</span><span class="p">)</span>
+<span class="p">})</span>
+</code></pre>
+<h2 id='disconnect' class='heading'>Disconnect</h2>
+
+<p>When done interacting with ActiveLook glasses, simply call the <code>disconnect()</code> method:</p>
+<pre class="highlight swift"><code><span class="n">glasses</span><span class="o">.</span><span class="nf">disconnect</span><span class="p">()</span>
+</code></pre>
+
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2021 <a class="link" href="https://git.rwigo.com/microoled/activelook-sdk" target="_blank" rel="external"></a>. All rights reserved. (Last updated: 2021-04-09)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.6</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</div>
+</html>

@@ -1,0 +1,6 @@
+framework module ActiveLookSDK {
+  umbrella header "ActiveLookSDK-umbrella.h"
+
+  export *
+  module * { export * }
+}
