@@ -35,7 +35,7 @@ class ImageCommandsViewController : CommandsTableViewController {
             "Display image 2",
             "Display image 3",
             "Display image 4",
-            "Display image at the top of the screen",
+            "Display image at the bottom of the screen",
             "Save test image",
             "Delete image",
             "Clear"

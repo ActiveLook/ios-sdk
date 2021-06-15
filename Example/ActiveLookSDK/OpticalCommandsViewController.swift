@@ -84,7 +84,7 @@ class OpticalCommandsViewController : CommandsTableViewController {
     
     func setSensorParameters() {
         let alsArray: [UInt16] = [50, 250, 1000, 3000, 6000, 9000, 10000, 12000, 15000]
-        let sensorParameters = SensorParameters(alsArray: alsArray, alsPeriod: 100, rangingPeriod: 20)
+        let sensorParameters = SensorParameters(alsArray: alsArray, alsPeriod: 250, rangingPeriod: 250)
         glasses.setSensorParameters(mode: .ALSArray, sensorParameters: sensorParameters)
         glasses.setSensorParameters(mode: .ALSPeriod, sensorParameters: sensorParameters)
         glasses.setSensorParameters(mode: .rangingPeriod, sensorParameters: sensorParameters)
@@ -92,7 +92,7 @@ class OpticalCommandsViewController : CommandsTableViewController {
     
     func resetSensorParameters() {
         let alsArray: [UInt16] = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-        let sensorParameters = SensorParameters(alsArray: alsArray, alsPeriod: 1, rangingPeriod: 1)
+        let sensorParameters = SensorParameters(alsArray: alsArray, alsPeriod: 1000, rangingPeriod: 1000)
         glasses.setSensorParameters(mode: .ALSArray, sensorParameters: sensorParameters)
         glasses.setSensorParameters(mode: .ALSPeriod, sensorParameters: sensorParameters)
         glasses.setSensorParameters(mode: .rangingPeriod, sensorParameters: sensorParameters)

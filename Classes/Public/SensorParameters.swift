@@ -29,8 +29,8 @@ public class SensorParameters {
     
     public init(alsArray: [UInt16], alsPeriod: UInt16, rangingPeriod: UInt16) {
         self.alsArray = alsArray
-        self.alsPeriod = alsPeriod
-        self.rangingPeriod = rangingPeriod
+        self.alsPeriod = alsPeriod < 250 ? 250 : alsPeriod
+        self.rangingPeriod = rangingPeriod < 250 ? 250 : rangingPeriod
     }
     
     internal static func fromCommandResponseData(_ data: CommandResponseData) -> SensorParameters {
