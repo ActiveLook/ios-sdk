@@ -19,20 +19,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ```
 
-## Installation
-
-ActiveLookSDK is available through [CocoaPods](https://cocoapods.org). To install
-it, simply add the following line to your Podfile:
-
-```ruby
-pod 'ActiveLookSDK'
-```
-
 ## Example
 
-To run the example project, clone the repo, and run `pod install` from the Example directory first.
+To run the example project, clone the repo, and open `ActiveLookSDK.xcworkspace` in XCode.
 
-Then, open ActiveLookSDK.xcworkspace in XCode and run the example project on the desired device.
+Be carreful to open the workspace `.xcworkspace` file and not the project file (`.xcodeproj`).
 
 Note: BlueTooth will not work on the iOS simulator. A physical device should be used instead.
 
