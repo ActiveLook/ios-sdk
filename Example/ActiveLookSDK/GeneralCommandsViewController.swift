@@ -34,6 +34,7 @@ class GeneralCommandsViewController : CommandsTableViewController {
             "Set max grey level",
             "Test pattern 1",
             "Test pattern 2",
+            "Test pattern 3",
             "Get battery level",
             "Get version",
             "Enable debug mode",
@@ -52,8 +53,9 @@ class GeneralCommandsViewController : CommandsTableViewController {
             self.clear,
             self.setLowGreyLevel,
             self.setMaxGreylevel,
-            self.displayTestPattern1,
-            self.displayTestPattern2,
+            self.displayDemoPattern1,
+            self.displayDemoPattern2,
+            self.displayDemoPattern3,
             self.getBatteryLevel,
             self.getVersion,
             self.enableDebugMode,
@@ -88,12 +90,16 @@ class GeneralCommandsViewController : CommandsTableViewController {
         glasses.grey(level: 15)
     }
         
-    func displayTestPattern1() {
+    func displayDemoPattern1() {
         glasses.test(pattern: .fill)
     }
     
-    func displayTestPattern2() {
-        glasses.test(pattern: .rect)
+    func displayDemoPattern2() {
+        glasses.test(pattern: .cross)
+    }
+    
+    func displayDemoPattern3() {
+        glasses.test(pattern: .image)
     }
     
     func getBatteryLevel() {

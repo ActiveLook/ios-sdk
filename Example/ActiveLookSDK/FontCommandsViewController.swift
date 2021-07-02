@@ -51,8 +51,11 @@ class FontCommandsViewController : CommandsTableViewController {
     // MARK: - Actions
     
     func fontList() {
-        // TODO Callback when working
-        glasses.fontlist()
+        glasses.fontlist() { (fonts: [FontInfo]) in
+            let alert = UIAlertController(title: "Font count", message: "\(fonts.count)   ", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+            self.present(alert, animated: true)
+        }
     }
     
     func selectFont1() {
@@ -68,15 +71,21 @@ class FontCommandsViewController : CommandsTableViewController {
     }
     
     func saveCustomFont() {
-        glasses.writeConfigID(configuration: Configuration(number: 1, id: 0))
+        glasses.cfgWrite(name: "DemoApp", version: 1, password: "42")
         glasses.fontSave(id: 4, fontData: FontData(height: 14, data: customFontData))
     }
     
     func selectCustomFont() {
+        glasses.cfgSet(name: "DemoApp")
         glasses.fontSelect(id: 4)
+        glasses.txt(x: 100, y: 100, rotation: .leftTB, font: 0x04, color: 0x0F, string: "01")
+        glasses.txt(x: 100, y: 100, rotation: .leftBT, font: 0x04, color: 0x0F, string: "23")
+        glasses.txt(x: 100, y: 100, rotation: .rightTB, font: 0x04, color: 0x0F, string: "45")
+        glasses.txt(x: 100, y: 100, rotation: .rightBT, font: 0x04, color: 0x0F, string: "67")
     }
     
     func deleteCustomFont() {
+        glasses.cfgWrite(name: "DemoApp", version: 1, password: "42")
         glasses.fontDelete(id: 4)
     }
 }

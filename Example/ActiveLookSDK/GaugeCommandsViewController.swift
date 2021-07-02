@@ -43,20 +43,24 @@ class GaugeCommandsViewController : CommandsTableViewController {
     // MARK: - Actions
     
     func createGauge() {
+        glasses.cfgWrite(name: "DemoApp", version: 1, password: "42")
         glasses.gaugeSave(id: 1, x: 152, y: 128, externalRadius: 40, internalRadius: 20, start: 2, end: 14, clockwise: true)
     }
     
     func displayGauge30() {
+        glasses.cfgSet(name: "DemoApp")
         glasses.clear()
         glasses.gaugeDisplay(id: 1, value: 30)
     }
     
     func displayGauge70() {
+        glasses.cfgSet(name: "DemoApp")
         glasses.clear()
         glasses.gaugeDisplay(id: 1, value: 70)
     }
     
     func displayGauge100() {
+        glasses.cfgSet(name: "DemoApp")
         glasses.clear()
         glasses.gaugeDisplay(id: 1, value: 100)
     }
