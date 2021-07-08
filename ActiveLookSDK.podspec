@@ -24,13 +24,14 @@ This CocoaPod provides the ability to connect to ActiveLook glasses and send var
   s.homepage         = 'https://git.rwigo.com/microoled/activelook-sdk'
   # s.screenshots     = 'www.example.com/screenshots_1', 'www.example.com/screenshots_2'
   s.license          = { :type => 'Apache', :file => 'LICENSE' }
+  s.author           = { "Sylvain Romillon" => "sylvain.romillon@microoled.net" }
   s.source           = { :git => 'https://git.rwigo.com/microoled/activelook-sdk/demo-ios.git', :tag => s.version.to_s }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
   s.ios.deployment_target = '9.0'
 
-  s.source_files = 'ActiveLookSDK/Classes/**/*'
-  
+  s.source_files = 'Classes/**/*'
+
   s.swift_version = '5.0'
   
   # s.resource_bundles = {
