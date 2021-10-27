@@ -29,7 +29,7 @@ This CocoaPod provides the ability to connect to ActiveLook glasses and send var
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
   s.ios.deployment_target = '10.0'
-  s.watchos.deployment_target = '4.0'
+  s.watchos.deployment_target = '6.0'
 
   s.source_files = 'Classes/**/*'
 
