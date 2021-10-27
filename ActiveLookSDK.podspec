@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'ActiveLookSDK'
-  s.version          = '0.1.0'
+  s.version          = '2.1.0'
   s.summary          = 'A library to allow interaction between an iOS app and Active Look glasses'
 
 # This description is used to generate tags and improve search results.
