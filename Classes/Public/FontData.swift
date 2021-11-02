@@ -19,7 +19,7 @@ import Foundation
 public class FontData {
     
     /// The encoded data representing the font
-    public let data: [UInt8]
+    public var data: [UInt8]
     
     public init(data: [UInt8]) {
         self.data = data
