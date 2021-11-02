@@ -19,13 +19,35 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ```
 
-## Example
+## Installation
 
-To run the example project, clone the repo, and open `ActiveLookSDK.xcworkspace` in XCode.
+### CocoaPods
+CocoaPods is a dependency manager for Cocoa projects. For usage and installation instructions, visit their [website](https://cocoapods.org/). To integrate ActiveLookSDK into your Xcode project using CocoaPods, specify it in your Podfile:
+```
+pod 'ActiveLookSDK', :git => 'https://github.com/ActiveLook/ios-sdk.git', :branch => 'rc/4.0.0'
+```
+An example Podfile for the app `Example` should look like the following:
+```
+use_frameworks!
 
-Be carreful to open the workspace `.xcworkspace` file and not the project file (`.xcodeproj`).
+platform :ios, '13.0'
 
-Note: BlueTooth will not work on the iOS simulator. A physical device should be used instead.
+target 'Example' do
+  pod 'ActiveLookSDK', :git => 'https://github.com/ActiveLook/ios-sdk.git', :branch => 'rc/4.0.0'
+end
+```
+
+
+### Info.plist
+To access Core Bluetooth APIs on apps linked on or after iOS 13, include the `NSBluetoothAlwaysUsageDescription` key in your app's `Info.plist`. 
+
+## ~~Example~~ NOT WORKING
+
+~~To run the example project, clone the repo, and open `ActiveLookSDK.xcworkspace` in XCode.~~
+
+~~Be carreful to open the workspace `.xcworkspace` file and not the project file (`.xcodeproj`).~~
+
+~~Note: BlueTooth will not work on the iOS simulator. A physical device should be used instead.~~
 
 
 ## Initialization
