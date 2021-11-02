@@ -1,0 +1,3606 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Glasses Class Reference</title>
+    <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="../js/jquery.min.js" defer></script>
+    <script src="../js/jazzy.js" defer></script>
+    
+    <script src="../js/lunr.min.js" defer></script>
+    <script src="../js/typeahead.jquery.js" defer></script>
+    <script src="../js/jazzy.search.js" defer></script>
+  </head>
+  <body>
+    <a name="//apple_ref/swift/Class/Glasses" class="dashAnchor"></a>
+    <a title="Glasses Class Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="../index.html">ActiveLookSDK 0.1.0 Docs</a> (79% documented)</p>
+        <p class="header-right">
+          <form role="search" action="../search.json">
+            <input type="text" placeholder="Search documentation" data-typeahead>
+          </form>
+        </p>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="../index.html">ActiveLookSDK Reference</a>
+        <img id="carat" src="../img/carat.png" />
+        Glasses Class Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="../Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Classes/ActiveLookSDK.html">ActiveLookSDK</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Configuration.html">Configuration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DiscoveredGlasses.html">DiscoveredGlasses</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FontData.html">FontData</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Glasses.html">Glasses</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/ImageData.html">ImageData</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/ImageInfo.html">ImageInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/LayoutParameters.html">LayoutParameters</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/SensorParameters.html">SensorParameters</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Enums.html">Enumerations</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Enums/ActiveLookError.html">ActiveLookError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/FlowControlState.html">FlowControlState</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/LedState.html">LedState</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/SensorMode.html">SensorMode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/TestPattern.html">TestPattern</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/TextRotation.html">TextRotation</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Structs/DeviceInformation.html">DeviceInformation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/GlassesSettings.html">GlassesSettings</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/GlassesVersion.html">GlassesVersion</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            <h1>Glasses</h1>
+              <div class="declaration">
+                <div class="language">
+                  
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">Glasses</span></code></pre>
+
+                </div>
+              </div>
+            <p>A representation of connected ActiveLook® glasses.</p>
+
+<p>Commands can be sent directly using the corresponding method.</p>
+
+<p>If a response from the glasses is expected, it can be handled by providing a closure to the callback argument.</p>
+
+<p>It is possible to subscribe to three different types of notifications by providing a callback closure using the corresponding method.</p>
+
+<p>The glasses will send updates about the current battery level once every 30 seconds.</p>
+
+<p>They will notify about the state of the flow control whenever it changes.</p>
+
+<p>Finally, the registered callback will be triggered when a gesture is detected by the gesture detection sensor.</p>
+
+<p>To disconnect from the glasses, simply call the <code>disconnect()</code> method.</p>
+
+          </section>
+          <section class="section task-group-section">
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Public%20properties"></a>
+                <a name="//apple_ref/swift/Section/Public properties" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Public%20properties"></a>
+                  <h3 class="section-name"><p>Public properties</p>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC4nameSSvp"></a>
+                    <a name="//apple_ref/swift/Property/name" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC4nameSSvp">name</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The name of the glasses, as advertised over Bluetooth.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC10identifier10Foundation4UUIDVvp"></a>
+                    <a name="//apple_ref/swift/Property/identifier" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC10identifier10Foundation4UUIDVvp">identifier</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The identifier of the glasses, as advertised over Bluetooth. It is not guaranteed to be unique over a certain period and across sessions.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">identifier</span><span class="p">:</span> <span class="kt">UUID</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC14manufacturerIdSSvp"></a>
+                    <a name="//apple_ref/swift/Property/manufacturerId" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC14manufacturerIdSSvp">manufacturerId</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The manufacturer id as set on the device as a hex string.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">manufacturerId</span><span class="p">:</span> <span class="kt">String</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Public%20methods"></a>
+                <a name="//apple_ref/swift/Section/Public methods" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Public%20methods"></a>
+                  <h3 class="section-name"><p>Public methods</p>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC10disconnectyyF"></a>
+                    <a name="//apple_ref/swift/Method/disconnect()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC10disconnectyyF">disconnect()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Disconnect from the glasses.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">disconnect</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC12onDisconnectyyyycSgF"></a>
+                    <a name="//apple_ref/swift/Method/onDisconnect(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC12onDisconnectyyyycSgF">onDisconnect(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Set the callback to be called when the connection to the glasses is lost.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">onDisconnect</span><span class="p">(</span><span class="n">_</span> <span class="nv">disconnectionCallback</span><span class="p">:</span> <span class="p">(()</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)?)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>disconnectionCallback</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A callback called asynchronously when the device is disconnected.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC20getDeviceInformationAA0fG0VyF"></a>
+                    <a name="//apple_ref/swift/Method/getDeviceInformation()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC20getDeviceInformationAA0fG0VyF">getDeviceInformation()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get information relative to the device as published over Bluetooth.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getDeviceInformation</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Structs/DeviceInformation.html">DeviceInformation</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>The current information about the device, including its manufacturer name, model number, serial number, hardware version, software version and firmware version.</p>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/General%20commands"></a>
+                <a name="//apple_ref/swift/Section/General commands" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/General%20commands"></a>
+                  <h3 class="section-name"><p>General commands</p>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC5power2onySb_tF"></a>
+                    <a name="//apple_ref/swift/Method/power(on:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC5power2onySb_tF">power(on:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Power the device on or off.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">power</span><span class="p">(</span><span class="nv">on</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>on</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>on if true, off otherwise</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC5clearyyF"></a>
+                    <a name="//apple_ref/swift/Method/clear()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC5clearyyF">clear()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Clear the whole screen.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">clear</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC4grey5levelys5UInt8V_tF"></a>
+                    <a name="//apple_ref/swift/Method/grey(level:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC4grey5levelys5UInt8V_tF">grey(level:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>/// Set the whole display to the corresponding grey level</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">grey</span><span class="p">(</span><span class="nv">level</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>level</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The grey level between 0 and 15</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC4demoyyF"></a>
+                    <a name="//apple_ref/swift/Method/demo()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC4demoyyF">demo()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Display the demonstration pattern</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">demo</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC4test7patternyAA11TestPatternO_tF"></a>
+                    <a name="//apple_ref/swift/Method/test(pattern:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC4test7patternyAA11TestPatternO_tF">test(pattern:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Display the test pattern</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">test</span><span class="p">(</span><span class="nv">pattern</span><span class="p">:</span> <span class="kt"><a href="../Enums/TestPattern.html">TestPattern</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>pattern</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The test pattern. 0: Fill screen. 1: Rectangle with a cross in it</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC7batteryyyySicF"></a>
+                    <a name="//apple_ref/swift/Method/battery(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC7batteryyyySicF">battery(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get the battery level</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">battery</span><span class="p">(</span><span class="n">_</span> <span class="nv">callback</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt">Int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>callback</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A callback called asynchronously when the device answers</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC4versyyyAA0D7VersionVcF"></a>
+                    <a name="//apple_ref/swift/Method/vers(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC4versyyyAA0D7VersionVcF">vers(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get the glasses version parameters such as device ID and firmware version</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">vers</span><span class="p">(</span><span class="n">_</span> <span class="nv">callback</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt"><a href="../Structs/GlassesVersion.html">GlassesVersion</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>callback</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A callback called asynchronously when the device answers</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC5debugyySbF"></a>
+                    <a name="//apple_ref/swift/Method/debug(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC5debugyySbF">debug(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Return BLE data to USB</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">debug</span><span class="p">(</span><span class="n">_</span> <span class="nv">enabled</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>enabled</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Enabled if true, disabled otherwise.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC3led5stateyAA8LedStateO_tF"></a>
+                    <a name="//apple_ref/swift/Method/led(state:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC3led5stateyAA8LedStateO_tF">led(state:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Set the state of the green LED</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">led</span><span class="p">(</span><span class="nv">state</span><span class="p">:</span> <span class="kt"><a href="../Enums/LedState.html">LedState</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>state</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The led state between off, on, toggle and blinking</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC5shift1x1yys5Int16V_AHtF"></a>
+                    <a name="//apple_ref/swift/Method/shift(x:y:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC5shift1x1yys5Int16V_AHtF">shift(x:<wbr>y:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Shift all subsequent displayed object of (x,y) pixels</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">shift</span><span class="p">(</span><span class="nv">x</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">,</span> <span class="nv">y</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>x</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The horizontal shift, between -128 and 127</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>y</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The vertical shift, between -128 and 127</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC8settingsyyyAA0D8SettingsVcF"></a>
+                    <a name="//apple_ref/swift/Method/settings(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC8settingsyyyAA0D8SettingsVcF">settings(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get the glasses settings such as screen shift, luma and sensor information</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">settings</span><span class="p">(</span><span class="n">_</span> <span class="nv">callback</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt"><a href="../Structs/GlassesSettings.html">GlassesSettings</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>callback</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A callback called asynchronously when the device answers</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC7setNameyySSF"></a>
+                    <a name="//apple_ref/swift/Method/setName(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC7setNameyySSF">setName(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Set a customized BLE advertising name.
+The maximum length is 15. An empty name will reset factory name</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">setName</span><span class="p">(</span><span class="n">_</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>name</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The name to be set</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Luma%20commands"></a>
+                <a name="//apple_ref/swift/Section/Luma commands" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Luma%20commands"></a>
+                  <h3 class="section-name"><p>Luma commands</p>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC4luma5levelys5UInt8V_tF"></a>
+                    <a name="//apple_ref/swift/Method/luma(level:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC4luma5levelys5UInt8V_tF">luma(level:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Set the display luminance to the corresponding level</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">luma</span><span class="p">(</span><span class="nv">level</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>level</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The luma level between 0 and 15</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC3dim5levelys5UInt8V_tF"></a>
+                    <a name="//apple_ref/swift/Method/dim(level:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC3dim5levelys5UInt8V_tF">dim(level:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Reduce luminance to given percentage</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">dim</span><span class="p">(</span><span class="nv">level</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>level</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The applied dim level between 0 and 100</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Optical%20sensor%20commands"></a>
+                <a name="//apple_ref/swift/Section/Optical sensor commands" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Optical%20sensor%20commands"></a>
+                  <h3 class="section-name"><p>Optical sensor commands</p>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC6sensor7enabledySb_tF"></a>
+                    <a name="//apple_ref/swift/Method/sensor(enabled:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC6sensor7enabledySb_tF">sensor(enabled:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Turn on/off the auto brightness adjustment and gesture detection</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">sensor</span><span class="p">(</span><span class="nv">enabled</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>enabled</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>enabled if true, disabled otherwise</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC7gesture7enabledySb_tF"></a>
+                    <a name="//apple_ref/swift/Method/gesture(enabled:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC7gesture7enabledySb_tF">gesture(enabled:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Turn on/off the gesture detection</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">gesture</span><span class="p">(</span><span class="nv">enabled</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>enabled</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>enabled if true, disabled otherwise</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC3als7enabledySb_tF"></a>
+                    <a name="//apple_ref/swift/Method/als(enabled:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC3als7enabledySb_tF">als(enabled:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Turn on/off the auto brightness adjustment</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">als</span><span class="p">(</span><span class="nv">enabled</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>enabled</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>enabled if true, disabled otherwise</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC19setSensorParameters4mode06sensorG0yAA0F4ModeO_AA0fG0CtF"></a>
+                    <a name="//apple_ref/swift/Method/setSensorParameters(mode:sensorParameters:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC19setSensorParameters4mode06sensorG0yAA0F4ModeO_AA0fG0CtF">setSensorParameters(mode:<wbr>sensorParameters:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>/// Set optical sensor parameters. Only the parameters corresponding to the specified mode will be set.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">setSensorParameters</span><span class="p">(</span><span class="n">mode</span> <span class="nv">sensorMode</span><span class="p">:</span> <span class="kt"><a href="../Enums/SensorMode.html">SensorMode</a></span><span class="p">,</span> <span class="nv">sensorParameters</span><span class="p">:</span> <span class="kt"><a href="../Classes/SensorParameters.html">SensorParameters</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>sensorMode</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The mode to configure</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>sensorParameters</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The sensor parameters to set</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC19getSensorParametersyyyAA0fG0CcF"></a>
+                    <a name="//apple_ref/swift/Method/getSensorParameters(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC19getSensorParametersyyyAA0fG0CcF">getSensorParameters(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get sensor parameters (ALS Array, ALS Period and ranging Period).</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getSensorParameters</span><span class="p">(</span><span class="n">_</span> <span class="nv">callback</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt"><a href="../Classes/SensorParameters.html">SensorParameters</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>callback</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A callback called asynchronously when the device answers</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Graphics%20commands"></a>
+                <a name="//apple_ref/swift/Section/Graphics commands" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Graphics%20commands"></a>
+                  <h3 class="section-name"><p>Graphics commands</p>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC5color5levelys5UInt8V_tF"></a>
+                    <a name="//apple_ref/swift/Method/color(level:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC5color5levelys5UInt8V_tF">color(level:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Sets the grey level used to draw the next graphical element</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">color</span><span class="p">(</span><span class="nv">level</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>level</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The grey level to be used between 0 and 15</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC5point1x1yys5Int16V_AHtF"></a>
+                    <a name="//apple_ref/swift/Method/point(x:y:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC5point1x1yys5Int16V_AHtF">point(x:<wbr>y:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Set a pixel on at the corresponding coordinates</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">point</span><span class="p">(</span><span class="nv">x</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">,</span> <span class="nv">y</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>x</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The x coordinate</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>y</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The y coordinate</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC4line2x02x12y02y1ys5Int16V_A3JtF"></a>
+                    <a name="//apple_ref/swift/Method/line(x0:x1:y0:y1:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC4line2x02x12y02y1ys5Int16V_A3JtF">line(x0:<wbr>x1:<wbr>y0:<wbr>y1:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Draw a line at the corresponding coordinates</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">line</span><span class="p">(</span><span class="nv">x0</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">,</span> <span class="nv">x1</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">,</span> <span class="nv">y0</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">,</span> <span class="nv">y1</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>x0</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The x coordinate of the start of the line</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>x1</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The x coordinate of the end of the line</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>y0</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The y coordinate of the start of the line</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>y1</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The y cooridnate of the end of the line</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC4rect2x02x12y02y1ys5Int16V_A3JtF"></a>
+                    <a name="//apple_ref/swift/Method/rect(x0:x1:y0:y1:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC4rect2x02x12y02y1ys5Int16V_A3JtF">rect(x0:<wbr>x1:<wbr>y0:<wbr>y1:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Draw an empty rectangle at the corresponding coordinates</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">rect</span><span class="p">(</span><span class="nv">x0</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">,</span> <span class="nv">x1</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">,</span> <span class="nv">y0</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">,</span> <span class="nv">y1</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>x0</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The x coordinate of the bottom left part of the rectangle</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>x1</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The x coordinate of the top right part of the rectangle</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>y0</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The y coordinate of the bottom left part of the rectangle</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>y1</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The y coordinate of the top right part of the rectangle</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC5rectf2x02x12y02y1ys5Int16V_A3JtF"></a>
+                    <a name="//apple_ref/swift/Method/rectf(x0:x1:y0:y1:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC5rectf2x02x12y02y1ys5Int16V_A3JtF">rectf(x0:<wbr>x1:<wbr>y0:<wbr>y1:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Draw a full rectangle at the corresponding coordinates</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">rectf</span><span class="p">(</span><span class="nv">x0</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">,</span> <span class="nv">x1</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">,</span> <span class="nv">y0</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">,</span> <span class="nv">y1</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>x0</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The x coordinate of the bottom left part of the rectangle</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>x1</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The x coordinate of the top right part of the rectangle</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>y0</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The y coordinate of the bottom left part of the rectangle</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>y1</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The y coordinate of the top right part of the rectangle</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC4circ1x1y6radiusys5Int16V_AIs5UInt8VtF"></a>
+                    <a name="//apple_ref/swift/Method/circ(x:y:radius:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC4circ1x1y6radiusys5Int16V_AIs5UInt8VtF">circ(x:<wbr>y:<wbr>radius:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Draw an empty circle at the corresponding coordinates</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">circ</span><span class="p">(</span><span class="nv">x</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">,</span> <span class="nv">y</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">,</span> <span class="nv">radius</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>x</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The x coordinate of the center of the circle</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>y</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The y coordinate of the center of the circle</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>radius</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The circle radius in pixels</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC5circf1x1y6radiusys5Int16V_AIs5UInt8VtF"></a>
+                    <a name="//apple_ref/swift/Method/circf(x:y:radius:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC5circf1x1y6radiusys5Int16V_AIs5UInt8VtF">circf(x:<wbr>y:<wbr>radius:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Draw a full circle at the corresponding coordinates</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">circf</span><span class="p">(</span><span class="nv">x</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">,</span> <span class="nv">y</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">,</span> <span class="nv">radius</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>x</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The x coordinate of the center of the circle</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>y</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The y coordinate of the center of the circle</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>radius</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The circle radius in pixels</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC3txt1x1y8rotation4font5color6stringys5Int16V_AlA12TextRotationOs5UInt8VAPSStF"></a>
+                    <a name="//apple_ref/swift/Method/txt(x:y:rotation:font:color:string:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC3txt1x1y8rotation4font5color6stringys5Int16V_AlA12TextRotationOs5UInt8VAPSStF">txt(x:<wbr>y:<wbr>rotation:<wbr>font:<wbr>color:<wbr>string:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Write the specified string at the specified coordinates, with rotation, font size and color</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">txt</span><span class="p">(</span><span class="nv">x</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">,</span> <span class="nv">y</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">,</span> <span class="nv">rotation</span><span class="p">:</span> <span class="kt"><a href="../Enums/TextRotation.html">TextRotation</a></span><span class="p">,</span> <span class="nv">font</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">,</span> <span class="nv">color</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">,</span> <span class="nv">string</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>x</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The x coordinate of the start of the string</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>y</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The y coordinate of the start of the string</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>rotation</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The rotation of the drawn text</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>font</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The id of the font used to draw the string</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>color</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The color used to draw the string, between 0 and 15</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>string</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The string to draw</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Bitmap%20commands"></a>
+                <a name="//apple_ref/swift/Section/Bitmap commands" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Bitmap%20commands"></a>
+                  <h3 class="section-name"><p>Bitmap commands</p>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC7imgListyyySayAA9ImageInfoCGcF"></a>
+                    <a name="//apple_ref/swift/Method/imgList(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC7imgListyyySayAA9ImageInfoCGcF">imgList(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>List all images saved on the device.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">imgList</span><span class="p">(</span><span class="n">_</span> <span class="nv">callback</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">([</span><span class="kt"><a href="../Classes/ImageInfo.html">ImageInfo</a></span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>callback</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A callback called asynchronously when the device answers</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC7imgSave9imageDatayAA05ImageH0C_tF"></a>
+                    <a name="//apple_ref/swift/Method/imgSave(imageData:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC7imgSave9imageDatayAA05ImageH0C_tF">imgSave(imageData:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Save a 4bpp image of the specified width.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">imgSave</span><span class="p">(</span><span class="nv">imageData</span><span class="p">:</span> <span class="kt"><a href="../Classes/ImageData.html">ImageData</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>imageData</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The data representing the image to save</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC10imgDisplay2id1x1yys5UInt8V_s5Int16VAKtF"></a>
+                    <a name="//apple_ref/swift/Method/imgDisplay(id:x:y:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC10imgDisplay2id1x1yys5UInt8V_s5Int16VAKtF">imgDisplay(id:<wbr>x:<wbr>y:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Display the image corresponding to the specified id at the specified position</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">imgDisplay</span><span class="p">(</span><span class="nv">id</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">,</span> <span class="nv">x</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">,</span> <span class="nv">y</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>id</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The id of the image to display</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>x</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The x coordinate of the image to display</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>y</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The y coordinate of the image to display</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC9imgDelete2idys5UInt8V_tF"></a>
+                    <a name="//apple_ref/swift/Method/imgDelete(id:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC9imgDelete2idys5UInt8V_tF">imgDelete(id:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Delete the specified image</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">imgDelete</span><span class="p">(</span><span class="nv">id</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>id</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The id of the image to delete</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC9imgStream9imageData1x1yyAA05ImageH0C_s5Int16VAKtF"></a>
+                    <a name="//apple_ref/swift/Method/imgStream(imageData:x:y:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC9imgStream9imageData1x1yyAA05ImageH0C_s5Int16VAKtF">imgStream(imageData:<wbr>x:<wbr>y:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>WARNING: NOT TESTED / NOT FULLY IMPLEMENTED</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">imgStream</span><span class="p">(</span><span class="nv">imageData</span><span class="p">:</span> <span class="kt"><a href="../Classes/ImageData.html">ImageData</a></span><span class="p">,</span> <span class="nv">x</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">,</span> <span class="nv">y</span><span class="p">:</span> <span class="kt">Int16</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC11imgSave1bpp9imageDatayAA05ImageH0C_tF"></a>
+                    <a name="//apple_ref/swift/Method/imgSave1bpp(imageData:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC11imgSave1bpp9imageDatayAA05ImageH0C_tF">imgSave1bpp(imageData:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>WARNING: NOT TESTED / NOT FULLY IMPLEMENTED</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">imgSave1bpp</span><span class="p">(</span><span class="nv">imageData</span><span class="p">:</span> <span class="kt"><a href="../Classes/ImageData.html">ImageData</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Font%20commands"></a>
+                <a name="//apple_ref/swift/Section/Font commands" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Font%20commands"></a>
+                  <h3 class="section-name"><p>Font commands</p>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC8fontlistyyF"></a>
+                    <a name="//apple_ref/swift/Method/fontlist()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC8fontlistyyF">fontlist()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>WARNING: CALLBACK NOT WORKING as of 3.7.4b</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">fontlist</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC8fontSave2id0E4Datays5UInt8V_AA04FontH0CtF"></a>
+                    <a name="//apple_ref/swift/Method/fontSave(id:fontData:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC8fontSave2id0E4Datays5UInt8V_AA04FontH0CtF">fontSave(id:<wbr>fontData:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Save a font to the specified font id</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">fontSave</span><span class="p">(</span><span class="nv">id</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">,</span> <span class="nv">fontData</span><span class="p">:</span> <span class="kt"><a href="../Classes/FontData.html">FontData</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>id</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The id of the font to save</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>fontData</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The encoded font data</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC10fontSelect2idys5UInt8V_tF"></a>
+                    <a name="//apple_ref/swift/Method/fontSelect(id:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC10fontSelect2idys5UInt8V_tF">fontSelect(id:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Select font which will be used for followings txt commands</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">fontSelect</span><span class="p">(</span><span class="nv">id</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>id</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The id of the font to select</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC10fontDelete2idys5UInt8V_tF"></a>
+                    <a name="//apple_ref/swift/Method/fontDelete(id:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC10fontDelete2idys5UInt8V_tF">fontDelete(id:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Delete the font corresponding to the specified font id if present</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">fontDelete</span><span class="p">(</span><span class="nv">id</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>id</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The id of the font to delete</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Layout%20commands"></a>
+                <a name="//apple_ref/swift/Section/Layout commands" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Layout%20commands"></a>
+                  <h3 class="section-name"><p>Layout commands</p>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC10layoutSave10parametersyAA16LayoutParametersC_tF"></a>
+                    <a name="//apple_ref/swift/Method/layoutSave(parameters:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC10layoutSave10parametersyAA16LayoutParametersC_tF">layoutSave(parameters:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Save a new layout according to the specified layout parameters.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">layoutSave</span><span class="p">(</span><span class="nv">parameters</span><span class="p">:</span> <span class="kt"><a href="../Classes/LayoutParameters.html">LayoutParameters</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>layout</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The parameters of the layout to save</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC12layoutDelete2idys5UInt8V_tF"></a>
+                    <a name="//apple_ref/swift/Method/layoutDelete(id:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC12layoutDelete2idys5UInt8V_tF">layoutDelete(id:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Delete the specified layout</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">layoutDelete</span><span class="p">(</span><span class="nv">id</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>id</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The id of the layout to delete</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC13layoutDisplay2id4textys5UInt8V_SStF"></a>
+                    <a name="//apple_ref/swift/Method/layoutDisplay(id:text:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC13layoutDisplay2id4textys5UInt8V_SStF">layoutDisplay(id:<wbr>text:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Display the specified layout with the specified text as its value</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">layoutDisplay</span><span class="p">(</span><span class="nv">id</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">,</span> <span class="nv">text</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>id</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The id of the layout to display</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>text</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The text value of the layout</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC11layoutClear2idys5UInt8V_tF"></a>
+                    <a name="//apple_ref/swift/Method/layoutClear(id:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC11layoutClear2idys5UInt8V_tF">layoutClear(id:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Clear the layout area corresponding to the specified layout id</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">layoutClear</span><span class="p">(</span><span class="nv">id</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>id</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The id of the layout to clear</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC14layoutPosition2id1x1yys5UInt8V_s6UInt16VAItF"></a>
+                    <a name="//apple_ref/swift/Method/layoutPosition(id:x:y:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC14layoutPosition2id1x1yys5UInt8V_s6UInt16VAItF">layoutPosition(id:<wbr>x:<wbr>y:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Redefine the position of a layout. The new position is saved.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">layoutPosition</span><span class="p">(</span><span class="nv">id</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">,</span> <span class="nv">x</span><span class="p">:</span> <span class="kt">UInt16</span><span class="p">,</span> <span class="nv">y</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>id</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The id of the layout to reposition</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>x</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The x coordinate of the new position</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>y</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The y coordinate of the new position</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC21layoutDisplayExtended2id1x1y4textys5UInt8V_s6UInt16VAJSStF"></a>
+                    <a name="//apple_ref/swift/Method/layoutDisplayExtended(id:x:y:text:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC21layoutDisplayExtended2id1x1y4textys5UInt8V_s6UInt16VAJSStF">layoutDisplayExtended(id:<wbr>x:<wbr>y:<wbr>text:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Display the specified layout at the specified position with the specified value. Position is not saved</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">layoutDisplayExtended</span><span class="p">(</span><span class="nv">id</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">,</span> <span class="nv">x</span><span class="p">:</span> <span class="kt">UInt16</span><span class="p">,</span> <span class="nv">y</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">,</span> <span class="nv">text</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>id</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The id of the layout to display</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>x</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The x coordinate of the position of the layout</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>y</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The y coordinate of the position of the layout</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>text</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The text value of the layout</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Gauge%20commands"></a>
+                <a name="//apple_ref/swift/Section/Gauge commands" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Gauge%20commands"></a>
+                  <h3 class="section-name"><p>Gauge commands</p>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC12gaugeDisplay2id5valueys5UInt8V_AHtF"></a>
+                    <a name="//apple_ref/swift/Method/gaugeDisplay(id:value:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC12gaugeDisplay2id5valueys5UInt8V_AHtF">gaugeDisplay(id:<wbr>value:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Display the specified gauge with the specified value</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">gaugeDisplay</span><span class="p">(</span><span class="nv">id</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">,</span> <span class="nv">value</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>id</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The gauge to display. It should have been created beforehand with the gaugeSave() command.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>value</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The value of the gauge.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC9gaugeSave2id1x1y14externalRadius08internalI05start3end9clockwiseys5UInt8V_s6UInt16VA3p2NSbtF"></a>
+                    <a name="//apple_ref/swift/Method/gaugeSave(id:x:y:externalRadius:internalRadius:start:end:clockwise:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC9gaugeSave2id1x1y14externalRadius08internalI05start3end9clockwiseys5UInt8V_s6UInt16VA3p2NSbtF">gaugeSave(id:<wbr>x:<wbr>y:<wbr>externalRadius:<wbr>internalRadius:<wbr>start:<wbr>end:<wbr>clockwise:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Save a gauge for the specified id with the specified parameters.</p>
+
+<p>⚠ The <code>cfgWrite</code> command is required before any gauge upload.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">gaugeSave</span><span class="p">(</span><span class="nv">id</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">,</span> <span class="nv">x</span><span class="p">:</span> <span class="kt">UInt16</span><span class="p">,</span> <span class="nv">y</span><span class="p">:</span> <span class="kt">UInt16</span><span class="p">,</span> <span class="nv">externalRadius</span><span class="p">:</span> <span class="kt">UInt16</span><span class="p">,</span> <span class="nv">internalRadius</span><span class="p">:</span> <span class="kt">UInt16</span><span class="p">,</span> <span class="nv">start</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">,</span> <span class="nv">end</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">,</span> <span class="nv">clockwise</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>id</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The id of the gauge</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>x</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The horizontal position of the gauge on the screen</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>y</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The vertical position of the gauge on the screen</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>externalRadius</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The radius of the outer bound of the gauge, in pixels</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>internalRadius</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The radius of the inner bound of the gauge, in pixels</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>start</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The start segment of the gauge, between 1 and 16</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>end</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The end segment of the gauge, between 1 and 16</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>clockwise</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Whether the gauge should be drawn clockwise or anti-clockwise</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Page%20commands"></a>
+                <a name="//apple_ref/swift/Section/Page commands" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Page%20commands"></a>
+                  <h3 class="section-name"><p>Page commands</p>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC8pageListyyF"></a>
+                    <a name="//apple_ref/swift/Method/pageList()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC8pageListyyF">pageList()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>WARNING: NOT TESTED / NOT FULLY IMPLEMENTED</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">pageList</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Statistics%20commands"></a>
+                <a name="//apple_ref/swift/Section/Statistics commands" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Statistics%20commands"></a>
+                  <h3 class="section-name"><p>Statistics commands</p>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC10pixelCountyyySicF"></a>
+                    <a name="//apple_ref/swift/Method/pixelCount(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC10pixelCountyyySicF">pixelCount(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get number of pixel activated on display</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">pixelCount</span><span class="p">(</span><span class="n">_</span> <span class="nv">callback</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt">Int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>callback</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A callback called asynchronously when the device answers</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC13setPixelValueyys6UInt32VF"></a>
+                    <a name="//apple_ref/swift/Method/setPixelValue(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC13setPixelValueyys6UInt32VF">setPixelValue(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Set the maximum amount of pixels that can be displayed</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">setPixelValue</span><span class="p">(</span><span class="n">_</span> <span class="nv">value</span><span class="p">:</span> <span class="kt">UInt32</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>value</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The maximum amount of pixels the screen should display</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC18getChargingCounteryyySicF"></a>
+                    <a name="//apple_ref/swift/Method/getChargingCounter(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC18getChargingCounteryyySicF">getChargingCounter(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get total number of charging cycles</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getChargingCounter</span><span class="p">(</span><span class="n">_</span> <span class="nv">callback</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt">Int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>callback</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A callback called asynchronously when the device answers</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC15getChargingTimeyyySicF"></a>
+                    <a name="//apple_ref/swift/Method/getChargingTime(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC15getChargingTimeyyySicF">getChargingTime(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get total number of charging minutes</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getChargingTime</span><span class="p">(</span><span class="n">_</span> <span class="nv">callback</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt">Int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>callback</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A callback called asynchronously when the device answers</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC16getMaxPixelValueyyySicF"></a>
+                    <a name="//apple_ref/swift/Method/getMaxPixelValue(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC16getMaxPixelValueyyySicF">getMaxPixelValue(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get the maximum number of pixel activated</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">getMaxPixelValue</span><span class="p">(</span><span class="n">_</span> <span class="nv">callback</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt">Int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>callback</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A callback called asynchronously when the device answers</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC18resetChargingParamyyF"></a>
+                    <a name="//apple_ref/swift/Method/resetChargingParam()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC18resetChargingParamyyF">resetChargingParam()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Reset charging counter and charging time values</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">resetChargingParam</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Configuration%20commands"></a>
+                <a name="//apple_ref/swift/Section/Configuration commands" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Configuration%20commands"></a>
+                  <h3 class="section-name"><p>Configuration commands</p>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC13writeConfigID13configurationyAA13ConfigurationC_tF"></a>
+                    <a name="//apple_ref/swift/Method/writeConfigID(configuration:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC13writeConfigID13configurationyAA13ConfigurationC_tF">writeConfigID(configuration:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Write configuration. The configuration id is used to track which config is on the device</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">writeConfigID</span><span class="p">(</span><span class="nv">configuration</span><span class="p">:</span> <span class="kt"><a href="../Classes/Configuration.html">Configuration</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>number</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The configuration number</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>configID</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The configuration ID</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC12readConfigID6number8callbackys5UInt8V_yAA13ConfigurationCctF"></a>
+                    <a name="//apple_ref/swift/Method/readConfigID(number:callback:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC12readConfigID6number8callbackys5UInt8V_yAA13ConfigurationCctF">readConfigID(number:<wbr>callback:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Read configuration.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">readConfigID</span><span class="p">(</span><span class="nv">number</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">,</span> <span class="nv">callback</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt"><a href="../Classes/Configuration.html">Configuration</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>number</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The number of the configuration to read
+
+<ul>
+<li>callback:  A callback called asynchronously when the device answers</li>
+</ul></p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC11setConfigID6numberys5UInt8V_tF"></a>
+                    <a name="//apple_ref/swift/Method/setConfigID(number:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC11setConfigID6numberys5UInt8V_tF">setConfigID(number:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Set current configuration to display images, layouts and fonts.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">setConfigID</span><span class="p">(</span><span class="nv">number</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>number</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The number of the configuration to read</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Notifications"></a>
+                <a name="//apple_ref/swift/Section/Notifications" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Notifications"></a>
+                  <h3 class="section-name"><p>Notifications</p>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC36subscribeToBatteryLevelNotifications02ongH6UpdateyySic_tF"></a>
+                    <a name="//apple_ref/swift/Method/subscribeToBatteryLevelNotifications(onBatteryLevelUpdate:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC36subscribeToBatteryLevelNotifications02ongH6UpdateyySic_tF">subscribeToBatteryLevelNotifications(onBatteryLevelUpdate:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Subscribe to battery level notifications. The specified callback will return the battery value about once every thirty seconds.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">subscribeToBatteryLevelNotifications</span><span class="p">(</span><span class="n">onBatteryLevelUpdate</span> <span class="nv">batteryLevelUpdateCallback</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt">Int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="kt">Void</span><span class="p">))</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>batteryLevelUpdateCallback</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A callback called asynchronously when the device sends a battery level notification.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC35subscribeToFlowControlNotifications02ongH6UpdateyyAA0gH5StateOc_tF"></a>
+                    <a name="//apple_ref/swift/Method/subscribeToFlowControlNotifications(onFlowControlUpdate:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC35subscribeToFlowControlNotifications02ongH6UpdateyyAA0gH5StateOc_tF">subscribeToFlowControlNotifications(onFlowControlUpdate:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Subscribe to flow control notifications. The specified callback will be called whenever the flow control state changes.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">subscribeToFlowControlNotifications</span><span class="p">(</span><span class="n">onFlowControlUpdate</span> <span class="nv">flowControlUpdateCallback</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt"><a href="../Enums/FlowControlState.html">FlowControlState</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="kt">Void</span><span class="p">))</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>flowControlUpdateCallback</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A callback called asynchronously when the device sends a flow control update.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC39subscribeToSensorInterfaceNotifications02ongH9Triggeredyyyc_tF"></a>
+                    <a name="//apple_ref/swift/Method/subscribeToSensorInterfaceNotifications(onSensorInterfaceTriggered:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC39subscribeToSensorInterfaceNotifications02ongH9Triggeredyyyc_tF">subscribeToSensorInterfaceNotifications(onSensorInterfaceTriggered:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Subscribe to sensor interface notifications. The specified callback will be called whenever a gesture has been detected.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">subscribeToSensorInterfaceNotifications</span><span class="p">(</span><span class="n">onSensorInterfaceTriggered</span> <span class="nv">sensorInterfaceTriggeredCallback</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">()</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="kt">Void</span><span class="p">))</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>sensorInterfaceTriggeredCallback</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A callback called asynchronously when the device detects a gesture.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC40unsubscribeFromBatteryLevelNotificationsyyF"></a>
+                    <a name="//apple_ref/swift/Method/unsubscribeFromBatteryLevelNotifications()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC40unsubscribeFromBatteryLevelNotificationsyyF">unsubscribeFromBatteryLevelNotifications()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Unsubscribe from battery level notifications.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">unsubscribeFromBatteryLevelNotifications</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC39unsubscribeFromFlowControlNotificationsyyF"></a>
+                    <a name="//apple_ref/swift/Method/unsubscribeFromFlowControlNotifications()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC39unsubscribeFromFlowControlNotificationsyyF">unsubscribeFromFlowControlNotifications()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Unsubscribe from flow control notifications.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">unsubscribeFromFlowControlNotifications</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC43unsubscribeFromSensorInterfaceNotificationsyyF"></a>
+                    <a name="//apple_ref/swift/Method/unsubscribeFromSensorInterfaceNotifications()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC43unsubscribeFromSensorInterfaceNotificationsyyF">unsubscribeFromSensorInterfaceNotifications()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Unsubscribe from sensor interface notifications.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">unsubscribeFromSensorInterfaceNotifications</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2021 <a class="link" href="https://git.rwigo.com/microoled/activelook-sdk" target="_blank" rel="external"></a>. All rights reserved. (Last updated: 2021-04-09)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.6</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</div>
+</html>

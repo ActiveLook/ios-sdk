@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Classes  Reference</title>
+    <link rel="stylesheet" type="text/css" href="css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="js/jquery.min.js" defer></script>
+    <script src="js/jazzy.js" defer></script>
+    
+    <script src="js/lunr.min.js" defer></script>
+    <script src="js/typeahead.jquery.js" defer></script>
+    <script src="js/jazzy.search.js" defer></script>
+  </head>
+  <body>
+    <a name="//apple_ref/swift/Section/Classes" class="dashAnchor"></a>
+    <a title="Classes  Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="index.html">ActiveLookSDK 0.1.0 Docs</a> (79% documented)</p>
+        <p class="header-right">
+          <form role="search" action="search.json">
+            <input type="text" placeholder="Search documentation" data-typeahead>
+          </form>
+        </p>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="index.html">ActiveLookSDK Reference</a>
+        <img id="carat" src="img/carat.png" />
+        Classes  Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="Classes/ActiveLookSDK.html">ActiveLookSDK</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/Configuration.html">Configuration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/DiscoveredGlasses.html">DiscoveredGlasses</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/FontData.html">FontData</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/Glasses.html">Glasses</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/ImageData.html">ImageData</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/ImageInfo.html">ImageInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/LayoutParameters.html">LayoutParameters</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/SensorParameters.html">SensorParameters</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="Enums.html">Enumerations</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="Enums/ActiveLookError.html">ActiveLookError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/FlowControlState.html">FlowControlState</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/LedState.html">LedState</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/SensorMode.html">SensorMode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/TestPattern.html">TestPattern</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/TextRotation.html">TextRotation</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="Structs/DeviceInformation.html">DeviceInformation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/GlassesSettings.html">GlassesSettings</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/GlassesVersion.html">GlassesVersion</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            <h1>Classes</h1>
+            <p>The following classes are available globally.</p>
+
+          </section>
+          <section class="section task-group-section">
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDKAAC"></a>
+                    <a name="//apple_ref/swift/Class/ActiveLookSDK" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDKAAC">ActiveLookSDK</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The main entry point to interacting with ActiveLook glasses.</p>
+
+<p>The ActiveLookSDK class should be used as a singleton, and can be accessed via its <code>shared</code> property.</p>
+
+<p>It uses the CBCentralManager to interact with ActiveLook glasses over Bluetooth and sets itself as its delegate.</p>
+
+                        <a href="Classes/ActiveLookSDK.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">ActiveLookSDK</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK13ConfigurationC"></a>
+                    <a name="//apple_ref/swift/Class/Configuration" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK13ConfigurationC">Configuration</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Information about a Configuration.</p>
+
+                        <a href="Classes/Configuration.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">Configuration</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK17DiscoveredGlassesC"></a>
+                    <a name="//apple_ref/swift/Class/DiscoveredGlasses" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK17DiscoveredGlassesC">DiscoveredGlasses</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A representation of ActiveLook® glasses, discovered while scanning for Bluetooth devices.</p>
+
+<p>Glasses can be discovered while scanning for ActiveLook® devices using the ActiveLookSDK class.
+Once discovered, it is possible to connect to them by calling the connect(glasses:) method on the discovered object.</p>
+
+<p>Once connected, the <code>onGlassesConnected</code> callback of the connect method will be called.
+Upon error, the <code>onConnectionError</code> callback of the connect method will be called instead.
+If the connection is lost, the <code>onGlassesDisconnected</code> callback of the connect method will be called.</p>
+
+<p>Note: This callback can also be set / changed via the <code>onDisconnect() method</code>.</p>
+
+<p>Once connected, the connection callback will return a <code><a href="Classes/Glasses.html">Glasses</a></code> object, which can then be used to send command to the ActiveLook® glasses.</p>
+
+                        <a href="Classes/DiscoveredGlasses.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">DiscoveredGlasses</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK8FontDataC"></a>
+                    <a name="//apple_ref/swift/Class/FontData" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK8FontDataC">FontData</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Data describing a font that can be saved on the device.</p>
+
+                        <a href="Classes/FontData.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">FontData</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK7GlassesC"></a>
+                    <a name="//apple_ref/swift/Class/Glasses" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK7GlassesC">Glasses</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A representation of connected ActiveLook® glasses.</p>
+
+<p>Commands can be sent directly using the corresponding method.</p>
+
+<p>If a response from the glasses is expected, it can be handled by providing a closure to the callback argument.</p>
+
+<p>It is possible to subscribe to three different types of notifications by providing a callback closure using the corresponding method.</p>
+
+<p>The glasses will send updates about the current battery level once every 30 seconds.</p>
+
+<p>They will notify about the state of the flow control whenever it changes.</p>
+
+<p>Finally, the registered callback will be triggered when a gesture is detected by the gesture detection sensor.</p>
+
+<p>To disconnect from the glasses, simply call the <code>disconnect()</code> method.</p>
+
+                        <a href="Classes/Glasses.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">Glasses</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK9ImageDataC"></a>
+                    <a name="//apple_ref/swift/Class/ImageData" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK9ImageDataC">ImageData</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Data describing an image that can be saved on the device.</p>
+
+                        <a href="Classes/ImageData.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">ImageData</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK9ImageInfoC"></a>
+                    <a name="//apple_ref/swift/Class/ImageInfo" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK9ImageInfoC">ImageInfo</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Information about an Image. Not an actual image object.</p>
+
+                        <a href="Classes/ImageInfo.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">ImageInfo</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK16LayoutParametersC"></a>
+                    <a name="//apple_ref/swift/Class/LayoutParameters" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK16LayoutParametersC">LayoutParameters</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Parameters defining a layout</p>
+
+                        <a href="Classes/LayoutParameters.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">LayoutParameters</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:13ActiveLookSDK16SensorParametersC"></a>
+                    <a name="//apple_ref/swift/Class/SensorParameters" class="dashAnchor"></a>
+                    <a class="token" href="#/s:13ActiveLookSDK16SensorParametersC">SensorParameters</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Parameters of the optical sensor.</p>
+
+                        <a href="Classes/SensorParameters.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">SensorParameters</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2021 <a class="link" href="https://git.rwigo.com/microoled/activelook-sdk" target="_blank" rel="external"></a>. All rights reserved. (Last updated: 2021-04-09)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.6</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</div>
+</html>
