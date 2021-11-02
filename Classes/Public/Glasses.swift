@@ -34,7 +34,6 @@ import CoreBluetooth
 ///
 public class Glasses {
     
-    
     // MARK: - Public properties
     
     /// The name of the glasses, as advertised over Bluetooth.
@@ -81,7 +80,22 @@ public class Glasses {
     // The status of the flowControl server
     private var flowControlState: FlowControlState {
         didSet {
-            if flowControlState == FlowControlState.on {
+            if (flowControlState == .on) {
+                self.sendBytes()
+            }
+        }
+    }
+    
+    /// RXCharacteristicState
+//    private enum BLEWrite.available / .busy
+    private enum RXCharacteristicState: Int {
+        case available = 0
+        case busy = 1
+    }
+    
+    private var rxCharacteristicState: RXCharacteristicState {
+        didSet {
+            if (rxCharacteristicState == .available) {
                 self.sendBytes()
             }
         }
@@ -143,7 +157,8 @@ public class Glasses {
         self.expectedResponseBufferLength = 0
         self.mtu = self.peripheral.maximumWriteValueLength(for: .withResponse)
         self.commandQueue = ConcurrentDataQueue(for: self.mtu)
-        self.flowControlState = FlowControlState.on
+        self.flowControlState = .on
+        self.rxCharacteristicState = .available
         self.peripheralDelegate = PeripheralDelegate()
         self.peripheralDelegate.parent = self
         self.peripheral.setNotifyValue(true, for: flowControlCharacteristic!)
@@ -210,16 +225,18 @@ public class Glasses {
         sendCommand(id: id, withData: [value])
     }
 
-    // the sendBytes() function send the commands queued in the commandQueue
+    /// sends the bytes queued in the commandQueue
     private func sendBytes() {
         if flowControlState != FlowControlState.on { return }
         
-        if commandQueue.isEmpty { return }
+        if rxCharacteristicState == .busy { return }
         
-        while let value = commandQueue.dequeue() {
-            peripheral.writeValue(value, for: rxCharacteristic!, type: .withResponse)
-            print("sending bytes \(value) to peripheral")
-        }
+        guard let value = commandQueue.dequeue() else { return }
+        
+        peripheral.writeValue(value, for: rxCharacteristic!, type: .withResponse)
+        rxCharacteristicState = .busy
+        
+        print("sending bytes \(value) to peripheral")
     }
     
     private func handleTxNotification(withData data: Data) {
@@ -343,6 +360,7 @@ public class Glasses {
     
     
     // MARK: - Utility commands
+    
     /// Check if firmware is at least
     /// - Parameter version: the version to compare to
     public func isFirmwareAtLeast(version: String) -> Bool {
@@ -728,7 +746,7 @@ public class Glasses {
         sendCommand(id: .fontDelete, withValue: id)
     }
 
-    /// Delete all the font
+    /// Delete all the fonts
     public func fontDeleteAll() {
         sendCommand(id: .fontDelete, withValue: 0xFF)
     }
@@ -1167,7 +1185,16 @@ public class Glasses {
                 print("error while writing value : \(error!.localizedDescription) for characteristic: \(characteristic.uuid)")
                 return
             }
-
+            
+            switch characteristic.uuid {
+            
+            case CBUUID.ActiveLookRxCharacteristic:
+                parent?.rxCharacteristicState = .available
+            
+            default:
+                break
+            }
+            
             //print("peripheral did write value for characteristic: ", characteristic.uuid)
         }
     }
@@ -1187,7 +1214,7 @@ public class Glasses {
         public var count: Int { return elements.count }
         
         public init(for mtu: Int = 23, withElements elements: [Data] = []) {
-            self.mtu = mtu
+            self.mtu = mtu - 3
             self.elements = elements
         }
         
