@@ -19,14 +19,15 @@ import Foundation
 public class FontData {
     
     /// The encoded data representing the font
-    public var data: [UInt8]
+    public let data: [UInt8]
     
     public init(data: [UInt8]) {
         self.data = data
     }
 
     public init(height: UInt8, data: [UInt8]) {
-        self.data = [0x01, height]
-        self.data.append(contentsOf: data)
+        var temp: [UInt8] = [0x01, height]
+        temp.append(contentsOf: data)
+        self.data = temp
     }
 }
