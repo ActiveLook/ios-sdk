@@ -65,6 +65,8 @@ class GlassesInitializer: NSObject, CBPeripheralDelegate {
         
         if !txCharacteristic!.isNotifying { return false }
         
+        if !flowControlCharacteristic!.isNotifying { return false }
+        
         return true
     }
     
@@ -99,8 +101,8 @@ class GlassesInitializer: NSObject, CBPeripheralDelegate {
         print("initializing glasses")
         
         glasses.peripheral.discoverServices([CBUUID.DeviceInformationService,
-                                     CBUUID.BatteryService,
-                                     CBUUID.ActiveLookCommandsInterfaceService])
+                                             CBUUID.BatteryService,
+                                             CBUUID.ActiveLookCommandsInterfaceService])
         
             
         // We're 'polling', or checking regularly that we've received all needed information about the glasses
@@ -135,16 +137,20 @@ class GlassesInitializer: NSObject, CBPeripheralDelegate {
 
         for service in services {
             print("discovered service: \(service.uuid)")
-            if (service.uuid == CBUUID.ActiveLookCommandsInterfaceService) {
+            switch service.uuid {
+                
+            case CBUUID.ActiveLookCommandsInterfaceService :
                 peripheral.discoverCharacteristics(CBUUID.ActiveLookCharacteristicsUUIDS, for: service)
-            }
-            
-            else if (service.uuid == CBUUID.BatteryService) {
+
+            case CBUUID.BatteryService :
                 peripheral.discoverCharacteristics([CBUUID.BatteryLevelCharacteristic], for: service)
-            }
-            
-            else if (service.uuid == CBUUID.DeviceInformationService) {
+
+            case CBUUID.DeviceInformationService :
                 peripheral.discoverCharacteristics(CBUUID.DeviceInformationCharacteristicsUUIDs, for: service)
+                
+            default:
+                // print("discovered unknown service: \(service.uuid)")
+                break
             }
         }
     }
@@ -166,15 +172,21 @@ class GlassesInitializer: NSObject, CBPeripheralDelegate {
             switch characteristic.uuid {
             case CBUUID.ActiveLookRxCharacteristic:
                 rxCharacteristic = characteristic
+                
             case CBUUID.ActiveLookTxCharacteristic:
                 txCharacteristic = characteristic
                 peripheral.setNotifyValue(true, for: characteristic)
+                
             case CBUUID.BatteryLevelCharacteristic:
                 batteryLevelCharacteristic = characteristic
+                
             case CBUUID.ActiveLookFlowControlCharacteristic:
                 flowControlCharacteristic = characteristic
+                peripheral.setNotifyValue(true, for: characteristic)
+                
             case CBUUID.ActiveLookSensorInterfaceCharacteristic:
                 sensorInterfaceCharacteristic = characteristic
+                
             default:
                 break
             }
