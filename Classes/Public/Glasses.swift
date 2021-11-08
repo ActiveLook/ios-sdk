@@ -161,7 +161,6 @@ public class Glasses {
         self.rxCharacteristicState = .available
         self.peripheralDelegate = PeripheralDelegate()
         self.peripheralDelegate.parent = self
-        self.peripheral.setNotifyValue(true, for: flowControlCharacteristic!)
     }
 
     internal convenience init(discoveredGlasses: DiscoveredGlasses) {
@@ -357,7 +356,6 @@ public class Glasses {
             deviceInformationService?.getCharacteristic(forUUID: CBUUID.SoftwareVersionCharateristic)?.valueAsUTF8
         )
     }
-    
     
     // MARK: - Utility commands
     
@@ -1113,7 +1111,6 @@ public class Glasses {
     
     /// Unsubscribe from flow control notifications.
     public func unsubscribeFromFlowControlNotifications() {
-        peripheral.setNotifyValue(false, for: flowControlCharacteristic!)
         flowControlUpdateCallback = nil
     }
     
@@ -1139,7 +1136,7 @@ public class Glasses {
                 return
             }
 
-    //        print("peripheral did update notification state for characteristic: ", characteristic)
+//        print("peripheral did update notification state for characteristic: ", characteristic)
         }
         
         public func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
