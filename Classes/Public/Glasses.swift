@@ -224,7 +224,7 @@ public class Glasses {
         sendCommand(id: id, withData: [value])
     }
 
-    /// sends the bytes queued in the commandQueue
+    /// sends the bytes queued in commandQueue
     private func sendBytes() {
         if flowControlState != FlowControlState.on { return }
         
@@ -235,7 +235,7 @@ public class Glasses {
         peripheral.writeValue(value, for: rxCharacteristic!, type: .withResponse)
         rxCharacteristicState = .busy
         
-        print("sending bytes \(value) to peripheral")
+        //print("sending bytes \(value) to peripheral")
     }
     
     private func handleTxNotification(withData data: Data) {
@@ -468,7 +468,7 @@ public class Glasses {
     /// The maximum length is 15. An empty name will reset factory name
     /// - Parameter name: The name to be set
     public func setName(_ name: String) {
-        sendCommand(id: .setName, withData: Array(name.utf8))
+        sendCommand(id: .setName, withData: name.asNullTerminatedUInt8Array)
     }
     
     
@@ -618,7 +618,7 @@ public class Glasses {
         data.append(rotation.rawValue)
         data.append(font)
         data.append(color)
-        data.append(contentsOf: Array(string.utf8))
+        data.append(contentsOf: string.asNullTerminatedUInt8Array)
         
         sendCommand(id: .txt, withData: data)
     }
@@ -775,7 +775,7 @@ public class Glasses {
     ///   - text: The text value of the layout
     public func layoutDisplay(id: UInt8, text: String) {
         var data: [UInt8] = [id]
-        data.append(contentsOf: Array(text.utf8))
+        data.append(contentsOf: text.asNullTerminatedUInt8Array)
         sendCommand(id: .layoutDisplay, withData: data)
     }
 
@@ -820,7 +820,7 @@ public class Glasses {
         var data: [UInt8] = [id]
         data.append(contentsOf: x.asUInt8Array)
         data.append(y) // y is only encoded on 1 byte
-        data.append(contentsOf: Array(text.utf8))
+        data.append(contentsOf: text.asNullTerminatedUInt8Array)
         
         sendCommand(id: .layoutDisplayExtended, withData: data)
     }
@@ -937,7 +937,7 @@ public class Glasses {
     public func pageDisplay(id: UInt8, texts: [String]) {
         var withData: [UInt8] = []
         texts.forEach { text in
-            withData += Array(text.utf8)
+            withData += text.asNullTerminatedUInt8Array
         }
         sendCommand(id: .pageDisplay, withData: withData)
     }
@@ -1020,20 +1020,20 @@ public class Glasses {
     
     /// Write a new configuration
     public func cfgWrite(name: String, version: Int, password: UInt32) {
-        let withData = Array(name.utf8) + version.asUInt8Array + password.asUInt8Array
+        let withData = name.asNullTerminatedUInt8Array + version.asUInt8Array + password.asUInt8Array
         sendCommand(id: .cfgWrite, withData: withData)
     }
 
     /// Read a configuration
     public func cfgRead(name: String, callback: @escaping (ConfigurationElementsInfo) -> Void) {
-        sendCommand(id: .cfgRead, withData: Array(name.utf8)) { (commandResponseData) in
+        sendCommand(id: .cfgRead, withData: name.asNullTerminatedUInt8Array) { (commandResponseData) in
             callback(ConfigurationElementsInfo.fromCommandResponseData(commandResponseData))
         }
     }
 
     /// Set the configuration
     public func cfgSet(name: String) {
-        sendCommand(id: .cfgSet, withData: Array(name.utf8))
+        sendCommand(id: .cfgSet, withData: name.asNullTerminatedUInt8Array)
     }
 
     /// List of configuration
@@ -1045,13 +1045,13 @@ public class Glasses {
 
     /// Rename a configuration
     public func cfgRename(oldName: String, newName: String, password: UInt32) {
-        let withData = Array(oldName.utf8) + Array(newName.utf8) + password.asUInt8Array
+        let withData = oldName.asNullTerminatedUInt8Array + newName.asNullTerminatedUInt8Array + password.asUInt8Array
         sendCommand(id: .cfgRename, withData: withData)
     }
 
     /// Delete a configuration
     public func cfgDelete(name: String) {
-        sendCommand(id: .cfgDelete, withData: Array(name.utf8))
+        sendCommand(id: .cfgDelete, withData: name.asNullTerminatedUInt8Array)
     }
 
     /// Delete least used configuration
