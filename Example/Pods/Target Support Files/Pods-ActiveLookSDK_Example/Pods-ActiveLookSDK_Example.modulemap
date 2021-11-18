@@ -1,6 +1,0 @@
-framework module Pods_ActiveLookSDK_Example {
-  umbrella header "Pods-ActiveLookSDK_Example-umbrella.h"
-
-  export *
-  module * { export * }
-}
