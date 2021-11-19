@@ -166,7 +166,7 @@ public class LayoutParameters {
         self.subCommands += x.asUInt8Array
         self.subCommands += y.asUInt8Array
         self.subCommands.append(UInt8(txt.count))
-        self.subCommands += Array(txt.utf8)
+        self.subCommands += Array(txt.asNullTerminatedUInt8Array)
         return self
     }
 
