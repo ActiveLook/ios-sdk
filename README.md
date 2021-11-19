@@ -2,52 +2,39 @@
 
 ## Requirements
 
-In order to use the ActiveLook SDK for iOS, you should have XCode installed.
+In order to use the ActiveLook SDK for iOS, you should have XCode installed and
+also [cocoapods](https://cocoapods.org).
 
 ## License
 
-```
-Copyright 2021 Microoled
-Licensed under the Apache License, Version 2.0 (the “License”);
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an “AS IS” BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-```
+See `LICENCE`. 
+_TLDR:_ [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
 ## Installation
 
 ### CocoaPods
-CocoaPods is a dependency manager for Cocoa projects. For usage and installation instructions, visit their [website](https://cocoapods.org/). To integrate ActiveLookSDK into your Xcode project using CocoaPods, specify it in your Podfile:
+To integrate ActiveLookSDK into your Xcode project using CocoaPods, specify it 
+in your Podfile:
 ```
-pod 'ActiveLookSDK', :git => 'https://github.com/ActiveLook/ios-sdk.git', :branch => 'rc/4.0.0'
-```
-An example Podfile for the app `Example` should look like the following:
-```
-use_frameworks!
-
-platform :ios, '13.0'
-
-target 'Example' do
-  pod 'ActiveLookSDK', :git => 'https://github.com/ActiveLook/ios-sdk.git', :branch => 'rc/4.0.0'
-end
+pod 'ActiveLookSDK', 
+    :git => 'https://github.com/ActiveLook/ios-sdk.git', 
+    :branch => 'rc/4.0.0'
 ```
 
+Then run the command:
+`pod install'
+
+An example Podfile is included in the `demo-app` repo available on github at 
+[demo-app](https://github.com/ActiveLook/demo-app)
 
 ### Info.plist
-To access Core Bluetooth APIs on apps linked on or after iOS 13, include the `NSBluetoothAlwaysUsageDescription` key in your app's `Info.plist`. 
+To access Core Bluetooth APIs on apps linked on or after iOS 13, include the
+`NSBluetoothAlwaysUsageDescription` key in your app's `Info.plist`. 
 
-## ~~Example~~ NOT WORKING
+## Example
 
-~~To run the example project, clone the repo, and open `ActiveLookSDK.xcworkspace` in XCode.~~
-
-~~Be carreful to open the workspace `.xcworkspace` file and not the project file (`.xcodeproj`).~~
-
-~~Note: BlueTooth will not work on the iOS simulator. A physical device should be used instead.~~
+To test the SDK, clone the [demo-app](https://github.com/ActiveLook/demo-app):
+`git clone https://github.com/ActiveLook/demo-app.git`
 
 
 ## Initialization
