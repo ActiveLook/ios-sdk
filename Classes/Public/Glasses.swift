@@ -1218,6 +1218,11 @@ public class Glasses {
         
         public mutating func enqueue(_ values: [UInt8]) {
             dispatchQueue.sync(flags: .barrier) {
+
+                #warning("TEMPORARY DISABLED")
+                /// TEMPORARY DISABLED WHILE ACTIVELOOK IS WORKING
+                /// ON CONTROLFLOW
+                /*
                 if elements.isEmpty {
                     elements.append(Data(capacity: mtu))
                 }
@@ -1227,6 +1232,8 @@ public class Glasses {
                     }
                     elements[elements.count-1].append(Data (_: [value]))
                 }
+                 */
+                elements.append(Data(_: values))
             }
         }
         
