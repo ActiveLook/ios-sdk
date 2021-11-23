@@ -464,14 +464,6 @@ public class Glasses {
         }
     }
     
-    /// Set a customized BLE advertising name.
-    /// The maximum length is 15. An empty name will reset factory name
-    /// - Parameter name: The name to be set
-    public func setName(_ name: String) {
-        sendCommand(id: .setName, withData: name.asNullTerminatedUInt8Array)
-    }
-    
-    
     // MARK: - Luma commands
     
     /// Set the display luminance to the corresponding level
