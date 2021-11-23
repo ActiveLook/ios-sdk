@@ -49,12 +49,12 @@ public class ConfigurationDescription {
         var results: [ConfigurationDescription] = []
         var offset = 0
         while (offset < data.count) {
-            let subData = data.suffix(from: offset)
+            let subData = Array(data.suffix(from: offset))
             let nameSize = (subData.firstIndex(of: 0) ?? 0) + 1
             
             guard subData.count >= nameSize + 11 else { return results }
             
-            let name = String(decoding: Array(subData[0 ... nameSize - 1]), as: UTF8.self)
+            let name = String(cString: Array(subData[0 ... nameSize - 1]))  
             let size = UInt32.fromUInt32ByteArray(bytes: Array(subData[nameSize ... nameSize + 3]))
             let version = UInt32.fromUInt32ByteArray(bytes: Array(subData[nameSize + 4 ... nameSize + 7]))
             let usageCnt = subData[nameSize + 8]
