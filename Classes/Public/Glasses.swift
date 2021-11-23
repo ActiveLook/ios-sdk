@@ -252,7 +252,7 @@ public class Glasses {
         let handledCommandIDs: [UInt8] = [
             CommandID.battery, CommandID.vers, CommandID.settings,  CommandID.imgList,
             CommandID.pixelCount, CommandID.getChargingCounter, CommandID.getChargingTime,
-            CommandID.rConfigID
+            CommandID.rConfigID, CommandID.cfgList
         ].map({$0.rawValue})
         
         let commandId = bytes[1]
