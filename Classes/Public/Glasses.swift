@@ -252,7 +252,7 @@ public class Glasses {
         let handledCommandIDs: [UInt8] = [
             CommandID.battery, CommandID.vers, CommandID.settings,  CommandID.imgList,
             CommandID.pixelCount, CommandID.getChargingCounter, CommandID.getChargingTime,
-            CommandID.rConfigID, CommandID.cfgList
+            CommandID.rConfigID, CommandID.cfgRead, CommandID.cfgList, CommandID.cfgGetNb
         ].map({$0.rawValue})
         
         let commandId = bytes[1]
@@ -1068,7 +1068,7 @@ public class Glasses {
 
     /// get number of configuration
     public func cfgGetNb(callback: @escaping (Int) -> Void) {
-        sendCommand(id: .cfdGetNb) { (commandResponseData) in
+        sendCommand(id: .cfgGetNb) { (commandResponseData) in
             callback(Int(commandResponseData[0]))
         }
     }
