@@ -152,7 +152,7 @@ public class ActiveLookSDK {
                 return
             }
             
-            print("central manager did disconnect to glasses \(discoveredGlasses.name)")
+            print("central manager did connect to glasses \(discoveredGlasses.name)")
 
             let glasses = Glasses(discoveredGlasses: discoveredGlasses)
             let glassesInitializer = GlassesInitializer(glasses: glasses)
@@ -177,7 +177,7 @@ public class ActiveLookSDK {
                 return
             }
 
-            print("central manager did disconnect from glasses \(glasses.name)")
+            print("central manager did disconnect from glasses \(glasses.name) :  \(error?.localizedDescription)")
 
             glasses.disconnectionCallback?()
             glasses.disconnectionCallback = nil
