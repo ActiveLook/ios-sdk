@@ -135,11 +135,6 @@ public class ActiveLookSDK {
                 print("ignoring non ActiveLook peripheral")
                 return
             }
-            
-            guard parent?.discoveredGlasses(fromPeripheral: peripheral) == nil else {
-                print("glasses already discovered")
-                return
-            }
 
             let discoveredGlasses = DiscoveredGlasses(peripheral: peripheral, centralManager: central, advertisementData: advertisementData)
             parent?.discoveredGlassesArray.append(discoveredGlasses)
