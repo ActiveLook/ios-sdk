@@ -27,7 +27,6 @@ internal enum CommandID: UInt8 {
     case led = 0x08
     case shift = 0x09
     case settings = 0x0A
-    case setName = 0x0B
     
     case luma = 0x10
     
