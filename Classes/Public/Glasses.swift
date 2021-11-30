@@ -87,7 +87,6 @@ public class Glasses {
     }
     
     /// RXCharacteristicState
-//    private enum BLEWrite.available / .busy
     private enum RXCharacteristicState: Int {
         case available = 0
         case busy = 1
