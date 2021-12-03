@@ -1127,6 +1127,21 @@ public class Glasses {
                 print("error while updating notification state : \(error!.localizedDescription) for characteristic: \(characteristic.uuid)")
                 return
             }
+            
+            switch characteristic.uuid {
+            case CBUUID.ActiveLookFlowControlCharacteristic:
+                if let flowControlState = FlowControlState(rawValue: characteristic.valueAsInt) {
+                    parent?.flowControlState = flowControlState
+                    
+                    // ON and OFF notifications are not available to callback (i.e SDK's consumer)
+                    if (flowControlState != FlowControlState.on &&
+                        flowControlState != FlowControlState.off) {
+                        parent?.flowControlUpdateCallback?(flowControlState)
+                    }
+                }
+            default:
+                break
+            }
 
 //        print("peripheral did update notification state for characteristic: ", characteristic)
         }
@@ -1148,17 +1163,6 @@ public class Glasses {
 
             case CBUUID.BatteryLevelCharacteristic:
                 parent?.batteryLevelUpdateCallback?(characteristic.valueAsInt)
-                
-            case CBUUID.ActiveLookFlowControlCharacteristic:
-                if let flowControlState = FlowControlState(rawValue: characteristic.valueAsInt) {
-                    parent?.flowControlState = flowControlState
-                    
-                    // ON and OFF notifications are not available to callback (i.e SDK's consumer)
-                    if (flowControlState != FlowControlState.on &&
-                        flowControlState != FlowControlState.off) {
-                        parent?.flowControlUpdateCallback?(flowControlState)
-                    }
-                }
 
             case CBUUID.ActiveLookSensorInterfaceCharacteristic:
                 parent?.sensorInterfaceTriggeredCallback?()
