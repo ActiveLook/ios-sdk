@@ -23,6 +23,7 @@ public enum ActiveLookError: Error {
     case bluetoothUnsupportedError
     case bluetoothUnauthorizedError
     case initializationError
+    case startScanningAlreadyCalled
 }
 
 extension ActiveLookError: LocalizedError {
@@ -40,6 +41,8 @@ extension ActiveLookError: LocalizedError {
             return "Bluetooth is powered off"
         case .initializationError:
             return "Error while initializing glasses"
+        case .startScanningAlreadyCalled:
+            return "startScanning() has already been called"
         }
     }
     

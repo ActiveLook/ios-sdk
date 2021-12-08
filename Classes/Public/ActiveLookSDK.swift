@@ -87,13 +87,15 @@ public class ActiveLookSDK {
     /// - Parameters:
     ///   - glassesDiscoveredCallback: A callback called asynchronously when glasses are discovered.
     ///   - scanErrorCallback: A callback called asynchronously when an scanning error occurs.
-    public func startScanning(onGlassesDiscovered glassesDiscoveredCallback: @escaping (DiscoveredGlasses) -> Void, onScanError scanErrorCallback: @escaping (Error) -> Void) {
+    public func startScanning(onGlassesDiscovered glassesDiscoveredCallback: @escaping (DiscoveredGlasses) -> Void,
+                              onScanError scanErrorCallback: @escaping (Error) -> Void,
+                              _ caller: String? = nil) {
 
         guard centralManager.state == .poweredOn else {
-            if self.didAskForScan == nil {
+            if (self.didAskForScan == nil && caller == nil) {
                 self.didAskForScan = (glassesDiscoveredCallback, scanErrorCallback)
             } else {
-                scanErrorCallback(ActiveLookError.bluetoothErrorFromState(state: centralManager.state))
+                scanErrorCallback(ActiveLookError.startScanningAlreadyCalled)
             }
             return
         }
@@ -136,9 +138,9 @@ public class ActiveLookSDK {
         
         public func centralManagerDidUpdateState(_ central: CBCentralManager) {
             print("central manager did update state: ", central.state.rawValue)
-            // TODO What to do here when the state changes ?
             
             guard central.state == .poweredOn else {
+                parent?.didAskForScan?.scanErrorCallback(ActiveLookError.bluetoothErrorFromState(state: central.state))
                 return
             }
             
@@ -147,10 +149,14 @@ public class ActiveLookSDK {
             }
             
             parent?.startScanning(onGlassesDiscovered: didAskForScan.glassesDiscoveredCallback,
-                                  onScanError: didAskForScan.scanErrorCallback)
+                                  onScanError: didAskForScan.scanErrorCallback,
+                                  "centralManagerDidUpdateState()")
         }
 
-        public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
+        public func centralManager(_ central: CBCentralManager,
+                                   didDiscover peripheral: CBPeripheral,
+                                   advertisementData: [String : Any],
+                                   rssi RSSI: NSNumber) {
             guard parent != nil, parent!.peripheralIsActiveLookGlasses(peripheral: peripheral, advertisementData: advertisementData) else {
                 print("ignoring non ActiveLook peripheral")
                 return
