@@ -48,9 +48,9 @@ internal enum CommandID: UInt8 {
     case imgList = 0x40
     case imgSave = 0x41
     case imgDisplay = 0x42
-    case imgDelete = 0x43
     case imgStream = 0x44
     case imgSave1bpp = 0x45
+    case imgDelete = 0x46
     
     case fontList = 0x50
     case fontSave = 0x51
