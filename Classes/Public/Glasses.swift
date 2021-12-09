@@ -252,7 +252,7 @@ public class Glasses {
             CommandID.battery, CommandID.vers, CommandID.settings,  CommandID.imgList,
             CommandID.pixelCount, CommandID.getChargingCounter, CommandID.getChargingTime,
             CommandID.rConfigID, CommandID.cfgRead, CommandID.cfgList, CommandID.cfgGetNb,
-            CommandID.cfgFreeSpace
+            CommandID.cfgFreeSpace, CommandID.fontList, CommandID.pageList
         ].map({$0.rawValue})
         
         let commandId = bytes[1]
