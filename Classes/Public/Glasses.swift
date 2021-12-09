@@ -418,7 +418,7 @@ public class Glasses {
     /// Display the test pattern
     /// - Parameter pattern: The demo pattern. 0: Fill screen. 1: Rectangle with a cross in it
     public func test(pattern: DemoPattern) {
-        sendCommand(id: .test, withValue: pattern.rawValue)
+        sendCommand(id: .demo, withValue: pattern.rawValue)
     }
     
     /// Get the battery level

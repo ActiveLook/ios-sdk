@@ -21,7 +21,8 @@ internal enum CommandID: UInt8 {
     case clear = 0x01
     case grey = 0x02
     case demo = 0x03
-    case test = 0x04
+    @available(*, deprecated, renamed:"demo", message: "use demo commandID instead")
+    case test = 0x04    // deprecated since 4.0.0
     case battery = 0x05
     case vers = 0x06
     case led = 0x08
