@@ -87,7 +87,6 @@ public class Glasses {
     }
     
     /// RXCharacteristicState
-//    private enum BLEWrite.available / .busy
     private enum RXCharacteristicState: Int {
         case available = 0
         case busy = 1
@@ -252,7 +251,8 @@ public class Glasses {
         let handledCommandIDs: [UInt8] = [
             CommandID.battery, CommandID.vers, CommandID.settings,  CommandID.imgList,
             CommandID.pixelCount, CommandID.getChargingCounter, CommandID.getChargingTime,
-            CommandID.rConfigID
+            CommandID.rConfigID, CommandID.cfgRead, CommandID.cfgList, CommandID.cfgGetNb,
+            CommandID.cfgFreeSpace, CommandID.fontList, CommandID.pageList
         ].map({$0.rawValue})
         
         let commandId = bytes[1]
@@ -418,7 +418,7 @@ public class Glasses {
     /// Display the test pattern
     /// - Parameter pattern: The demo pattern. 0: Fill screen. 1: Rectangle with a cross in it
     public func test(pattern: DemoPattern) {
-        sendCommand(id: .test, withValue: pattern.rawValue)
+        sendCommand(id: .demo, withValue: pattern.rawValue)
     }
     
     /// Get the battery level
@@ -463,14 +463,6 @@ public class Glasses {
             callback(GlassesSettings.fromCommandResponseData(commandResponseData))
         }
     }
-    
-    /// Set a customized BLE advertising name.
-    /// The maximum length is 15. An empty name will reset factory name
-    /// - Parameter name: The name to be set
-    public func setName(_ name: String) {
-        sendCommand(id: .setName, withData: name.asNullTerminatedUInt8Array)
-    }
-    
     
     // MARK: - Luma commands
     
@@ -1068,7 +1060,7 @@ public class Glasses {
 
     /// get number of configuration
     public func cfgGetNb(callback: @escaping (Int) -> Void) {
-        sendCommand(id: .cfdGetNb) { (commandResponseData) in
+        sendCommand(id: .cfgGetNb) { (commandResponseData) in
             callback(Int(commandResponseData[0]))
         }
     }
@@ -1135,6 +1127,21 @@ public class Glasses {
                 print("error while updating notification state : \(error!.localizedDescription) for characteristic: \(characteristic.uuid)")
                 return
             }
+            
+            switch characteristic.uuid {
+            case CBUUID.ActiveLookFlowControlCharacteristic:
+                if let flowControlState = FlowControlState(rawValue: characteristic.valueAsInt) {
+                    parent?.flowControlState = flowControlState
+                    
+                    // ON and OFF notifications are not available to callback (i.e SDK's consumer)
+                    if (flowControlState != FlowControlState.on &&
+                        flowControlState != FlowControlState.off) {
+                        parent?.flowControlUpdateCallback?(flowControlState)
+                    }
+                }
+            default:
+                break
+            }
 
 //        print("peripheral did update notification state for characteristic: ", characteristic)
         }
@@ -1156,17 +1163,6 @@ public class Glasses {
 
             case CBUUID.BatteryLevelCharacteristic:
                 parent?.batteryLevelUpdateCallback?(characteristic.valueAsInt)
-                
-            case CBUUID.ActiveLookFlowControlCharacteristic:
-                if let flowControlState = FlowControlState(rawValue: characteristic.valueAsInt) {
-                    parent?.flowControlState = flowControlState
-                    
-                    // ON and OFF notifications are not available to callback (i.e SDK's consumer)
-                    if (flowControlState != FlowControlState.on &&
-                        flowControlState != FlowControlState.off) {
-                        parent?.flowControlUpdateCallback?(flowControlState)
-                    }
-                }
 
             case CBUUID.ActiveLookSensorInterfaceCharacteristic:
                 parent?.sensorInterfaceTriggeredCallback?()
@@ -1218,6 +1214,11 @@ public class Glasses {
         
         public mutating func enqueue(_ values: [UInt8]) {
             dispatchQueue.sync(flags: .barrier) {
+
+                #warning("TEMPORARY DISABLED")
+                /// TEMPORARY DISABLED WHILE ACTIVELOOK IS WORKING
+                /// ON CONTROLFLOW
+                /*
                 if elements.isEmpty {
                     elements.append(Data(capacity: mtu))
                 }
@@ -1227,6 +1228,8 @@ public class Glasses {
                     }
                     elements[elements.count-1].append(Data (_: [value]))
                 }
+                 */
+                elements.append(Data(_: values))
             }
         }
         

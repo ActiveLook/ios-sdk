@@ -21,13 +21,13 @@ internal enum CommandID: UInt8 {
     case clear = 0x01
     case grey = 0x02
     case demo = 0x03
-    case test = 0x04
+    @available(*, deprecated, renamed:"demo", message: "use demo commandID instead")
+    case test = 0x04    // deprecated since 4.0.0
     case battery = 0x05
     case vers = 0x06
     case led = 0x08
     case shift = 0x09
     case settings = 0x0A
-    case setName = 0x0B
     
     case luma = 0x10
     
@@ -48,9 +48,9 @@ internal enum CommandID: UInt8 {
     case imgList = 0x40
     case imgSave = 0x41
     case imgDisplay = 0x42
-    case imgDelete = 0x43
     case imgStream = 0x44
     case imgSave1bpp = 0x45
+    case imgDelete = 0x46
     
     case fontList = 0x50
     case fontSave = 0x51
@@ -96,7 +96,7 @@ internal enum CommandID: UInt8 {
     case cfgDelete = 0xD5
     case cfgDeleteLessUsed = 0xD6
     case cfgFreeSpace = 0xD7
-    case cfdGetNb = 0xD8
+    case cfgGetNb = 0xD8
     
     case shutdown = 0xE0
 }
