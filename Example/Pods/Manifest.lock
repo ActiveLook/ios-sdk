@@ -1,0 +1,16 @@
+PODS:
+  - ActiveLookSDK (0.1.0)
+
+DEPENDENCIES:
+  - ActiveLookSDK (from `../`)
+
+EXTERNAL SOURCES:
+  ActiveLookSDK:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  ActiveLookSDK: 995f586fc36e2c4de4ecab999b7a4a0eea2218d6
+
+PODFILE CHECKSUM: c7f101e16aaa1fbe1150cde76c9f2a0e08594eb9
+
+COCOAPODS: 1.9.1

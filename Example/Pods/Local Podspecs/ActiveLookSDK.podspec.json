@@ -1,0 +1,22 @@
+{
+  "name": "ActiveLookSDK",
+  "version": "0.1.0",
+  "summary": "A short description of ActiveLookSDK.",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://github.com/Damien Pattou/ActiveLookSDK",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "Damien Pattou": "damien@rwigo.com"
+  },
+  "source": {
+    "git": "https://github.com/Damien Pattou/ActiveLookSDK.git",
+    "tag": "0.1.0"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "source_files": "ActiveLookSDK/Classes/**/*"
+}
