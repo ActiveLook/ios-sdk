@@ -51,32 +51,31 @@ class ConfigurationCommandsViewController : CommandsTableViewController {
     // MARK: - Actions
     
     func readDefaultConfig() {
-        glasses.readConfigID(number: 1, callback: { (config: Configuration) in
-            let alert = UIAlertController(title: "Configuration info", message: "Number: \(config.number)\nConfig ID: \(config.id)", preferredStyle: .alert)
+        glasses.cfgRead(name: "A.LooK", callback: { (config: ConfigurationElementsInfo) in
+            let alert = UIAlertController(title: "Configuration info", message: "Version: \(config.version)\nnb layout: \(config.nbLayout)", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
             self.present(alert, animated: true)
         })
     }
     
     func writeTestConfig() {
-        let testConfig = Configuration(number: 3, id: 1234)
-        glasses.writeConfigID(configuration: testConfig)
+        glasses.cfgWrite(name: "DemoApp", version: 1, password: "42")
     }
     
     func readTestConfig() {
-        glasses.readConfigID(number: 3, callback: { (config: Configuration) in
-            let alert = UIAlertController(title: "Configuration info", message: "Number: \(config.number)\nConfig ID: \(config.id)", preferredStyle: .alert)
+        glasses.cfgRead(name: "DemoApp", callback: { (config: ConfigurationElementsInfo) in
+            let alert = UIAlertController(title: "Configuration info", message: "Version: \(config.version)\nnb layout: \(config.nbLayout)", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
             self.present(alert, animated: true)
         })
     }
     
     func setTestConfig() {
-        glasses.setConfigID(number: 3)
+        glasses.cfgSet(name: "DemoApp")
     }
     
     func setDefaultConfig() {
-        glasses.setConfigID(number: 1)
+        glasses.cfgSet(name: "A.LooK")
     }
     
 //    func configCount() {

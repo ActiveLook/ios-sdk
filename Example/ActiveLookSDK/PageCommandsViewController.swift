@@ -25,14 +25,44 @@ class PageCommandsViewController : CommandsTableViewController {
         super.viewDidLoad()
         title = "Page commands"
         
-        commandNames = ["List pages"]
-        commandActions = [self.listPages]
+        commandNames = [
+            "List pages",
+            "Save page",
+            "Display page",
+            "Delete page"
+        ]
+        commandActions = [
+            self.listPages,
+            self.pageSave,
+            self.pageDisplay,
+            self.pageDelete
+        ]
     }
     
     
     // MARK: - Actions
     
     func listPages() {
-        glasses.pageList()
+        glasses.pageList() { (pages: [Int]) in
+            let alert = UIAlertController(title: "Page count", message: "\(pages.count)   ", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+            self.present(alert, animated: true)
+        }
+    }
+    
+    func pageSave() {
+        glasses.cfgWrite(name: "DemoApp", version: 1, password: "42")
+        glasses.pageSave(id: 1, layoutIds: [1, 2], xs: [0, 50], ys: [0, 50])
+    }
+
+    func pageDisplay() {
+        glasses.cfgSet(name: "DemoApp")
+        glasses.pageDisplay(id: 1, texts: ["AA", "BB"])
+    }
+
+    func pageDelete() {
+        glasses.cfgSet(name: "DemoApp")
+        glasses.cfgWrite(name: "DemoApp", version: 1, password: "42")
+        glasses.pageDelete(id: 1)
     }
 }

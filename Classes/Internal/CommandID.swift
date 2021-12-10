@@ -72,7 +72,10 @@ internal enum CommandID: UInt8 {
     
     case gaugeDisplay = 0x70
     case gaugeSave = 0x71
-    
+    case gaugeDelete = 0x72
+    case gaugeList = 0x73
+    case gaugeGet = 0x74
+
     case pageSave = 0x80
     case pageGet = 0x81
     case pageDelete = 0x82
@@ -91,13 +94,13 @@ internal enum CommandID: UInt8 {
     case rConfigID = 0xA2
     case setConfigID = 0xA3
     
-//    case cfgWrite = 0xD0
-//    case cfgRead = 0xD1
-//    case cfgSet = 0xD2
-//    case cfgList = 0xD3
-//    case cfgRename = 0xD4
-//    case cfgDelete = 0xD5
-//    case cfgDeleteOldest = 0xD6
-//    case cfgFreeSpace = 0xD7
-//    case cfdGetNb = 0xD8
+    case cfgWrite = 0xD0
+    case cfgRead = 0xD1
+    case cfgSet = 0xD2
+    case cfgList = 0xD3
+    case cfgRename = 0xD4
+    case cfgDelete = 0xD5
+    case cfgDeleteLessUsed = 0xD6
+    case cfgFreeSpace = 0xD7
+    case cfdGetNb = 0xD8
 }
