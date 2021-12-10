@@ -2,34 +2,34 @@
 
 ## Requirements
 
-In order to use the ActiveLook SDK for iOS, you should have XCode installed and
-also [cocoapods](https://cocoapods.org).
+In order to use the ActiveLook SDK for iOS, you should have XCode installed together
+with [cocoapods](https://cocoapods.org).
 
 ## License
 
-See `LICENCE`. 
+See `LICENCE`.
 _TLDR:_ [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
 ## Installation
 
 ### CocoaPods
-To integrate ActiveLookSDK into your Xcode project using CocoaPods, specify it 
+To integrate ActiveLookSDK into your Xcode project using CocoaPods, specify it
 in your Podfile:
 ```
-pod 'ActiveLookSDK', 
-    :git => 'https://github.com/ActiveLook/ios-sdk.git', 
-    :branch => 'rc/4.0.0'
+pod 'ActiveLookSDK',
+    :git => 'https://github.com/ActiveLook/ios-sdk.git',
+    :tag = '4.1.0'
 ```
 
 Then run the command:
 `pod install'
 
-An example Podfile is included in the `demo-app` repo available on github at 
+An example Podfile is included in the `demo-app` repo available on github at
 [demo-app](https://github.com/ActiveLook/demo-app)
 
 ### Info.plist
 To access Core Bluetooth APIs on apps linked on or after iOS 13, include the
-`NSBluetoothAlwaysUsageDescription` key in your app's `Info.plist`. 
+`NSBluetoothAlwaysUsageDescription` key in your app's `Info.plist`.
 
 ## Example
 
@@ -53,12 +53,12 @@ var activeLook: ActiveLookSDK = ActiveLookSDK.shared
 
 ## Scanning
 
-To scan for available ActiveLook glasses, simply use the `startScanning(onGlassesDiscovered:onScanError:)` and `stopScanning()` methods.
+To scan for available ActiveLook glasses, simply use `startScanning( onGlassesDiscovered: onScanError: )`.
 
 When a device is discovered, the `onGlassesDiscovered` callback will be called.
 Upon failure, the `onScanError` callback will be called instead.
 
-You can handle these cases by providing closures as parameters: 
+You can handle these cases by providing closures as parameters:
 
 ```swift
 activeLook.startScanning(
@@ -71,6 +71,7 @@ activeLook.startScanning(
     }
 )
 ```
+To stop scanning, call `stopScanning()`.
 
 ## Connect to ActiveLook glasses
 
