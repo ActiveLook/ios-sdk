@@ -26,8 +26,8 @@ class DisplayCommandsViewController : CommandsTableViewController {
         super.viewDidLoad()
         title = "Display commands"
         
-        commandNames = ["Low luminance", "Medium luminance", "High luminance", "Dim to 20%", "Dim to 50%", "Dim to 100%"]
-        commandActions = [self.lowLuma, self.mediumLuma, self.highLuma, self.dim20, self.dim50, self.dim100]
+        commandNames = ["Low luminance", "Medium luminance", "High luminance"]
+        commandActions = [self.lowLuma, self.mediumLuma, self.highLuma]
     }
     
     
@@ -44,17 +44,4 @@ class DisplayCommandsViewController : CommandsTableViewController {
     func highLuma() {
         glasses.luma(level: 15)
     }
-    
-    func dim20() {
-        glasses.dim(level: 20)
-    }
-    
-    func dim50() {
-        glasses.dim(level: 50)
-    }
-
-    func dim100() {
-        glasses.dim(level: 100)
-    }
-
 }

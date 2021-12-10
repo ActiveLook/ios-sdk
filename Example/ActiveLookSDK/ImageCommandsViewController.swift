@@ -97,17 +97,17 @@ class ImageCommandsViewController : CommandsTableViewController {
     }
     
     func saveImage() {
-        glasses.cfgWrite(name: "DemoApp", version: 1, password: "42")
+        glasses.cfgWrite(name: "DemoApp", version: 1, password: 42)
         glasses.imgSave(id: 0, imageData: ImageData(width: testImageWidth, data: testImageData))
     }
 
     func saveImage1bpp() {
-        glasses.cfgWrite(name: "DemoApp", version: 1, password: "42")
+        glasses.cfgWrite(name: "DemoApp", version: 1, password: 42)
         glasses.imgSave1bpp(imageData: ImageData(width: testImage1bppWidth, data: testImage1bppData))
     }
 
     func deleteImage() {
-        glasses.cfgWrite(name: "DemoApp", version: 1, password: "42")
+        glasses.cfgWrite(name: "DemoApp", version: 1, password: 42)
         glasses.imgDelete(id: 0)
     }
 }

@@ -135,6 +135,7 @@ class GlassesTableViewController: UITableViewController {
     
     private func addDiscoveredGlasses(_ glasses: DiscoveredGlasses) {
         discoveredGlassesArray.append(glasses)
+        // TODO: // Use -performBatchUpdates:completion: instead of these methods, which will be deprecated in a future release. (introduced iOS 11)
         tableView.beginUpdates()
         tableView.insertRows(at: [IndexPath(row: self.discoveredGlassesArray.count - 1, section: 0)], with: .automatic)
         tableView.endUpdates()

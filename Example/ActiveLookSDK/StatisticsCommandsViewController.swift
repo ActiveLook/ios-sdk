@@ -29,9 +29,6 @@ class StatisticsCommandsViewController : CommandsTableViewController {
             "Get pixel count",
             "Get charging counter",
             "Get charging time",
-            "Get max pixel value",
-            "Set max pixel value to half",
-            "Reset max pixel value",
             "Reset charging param"
         ]
         
@@ -39,9 +36,6 @@ class StatisticsCommandsViewController : CommandsTableViewController {
             self.getPixelCount,
             self.getChargingCounter,
             self.getChargingTime,
-            self.getMaxPixelValue,
-            self.setMaxPixelValueHalf,
-            self.resetMaxPixelValue,
             self.resetChargingParam
         ]
     }
@@ -71,22 +65,6 @@ class StatisticsCommandsViewController : CommandsTableViewController {
             alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
             self.present(alert, animated: true)
         }
-    }
-    
-    func getMaxPixelValue() {
-        glasses.getMaxPixelValue { maxPixelValue in
-            let alert = UIAlertController(title: "Max pixel value", message: "\(maxPixelValue)", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-            self.present(alert, animated: true)
-        }
-    }
-    
-    func setMaxPixelValueHalf() {
-        glasses.setPixelValue(77824 / 2)
-    }
-    
-    func resetMaxPixelValue() {
-        glasses.setPixelValue(77824)
     }
     
     func resetChargingParam() {

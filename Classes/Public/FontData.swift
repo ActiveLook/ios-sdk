@@ -18,14 +18,15 @@ import Foundation
 /// Data describing a font that can be saved on the device.
 public class FontData {
     
-    /// The height of characters in pixels
-    public let height: UInt8
-    
     /// The encoded data representing the font
     public let data: [UInt8]
     
-    public init(height: UInt8, data: [UInt8]) {
-        self.height = height
+    public init(data: [UInt8]) {
         self.data = data
+    }
+
+    public init(height: UInt8, data: [UInt8]) {
+        self.data = [0x01, height]
+        self.data.append(contentsOf: data)
     }
 }

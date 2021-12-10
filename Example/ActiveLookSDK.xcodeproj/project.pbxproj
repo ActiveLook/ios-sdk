@@ -300,12 +300,12 @@
 				TargetAttributes = {
 					607FACCF1AFB9204008FA782 = {
 						CreatedOnToolsVersion = 6.3.1;
-						DevelopmentTeam = Q6RY2SP3A4;
+						DevelopmentTeam = M93MNXR86B;
 						LastSwiftMigration = 0900;
 					};
 					607FACE41AFB9204008FA782 = {
 						CreatedOnToolsVersion = 6.3.1;
-						DevelopmentTeam = Q6RY2SP3A4;
+						DevelopmentTeam = M93MNXR86B;
 						LastSwiftMigration = 1220;
 						TestTargetID = 607FACCF1AFB9204008FA782;
 					};
@@ -583,7 +583,7 @@
 			baseConfigurationReference = C81A328DB7A951CCF6A77D89 /* Pods-ActiveLookSDK_Example.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = Q6RY2SP3A4;
+				DEVELOPMENT_TEAM = M93MNXR86B;
 				INFOPLIST_FILE = ActiveLookSDK/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MODULE_NAME = ExampleApp;
@@ -599,7 +599,7 @@
 			baseConfigurationReference = F55477437C104300E1C1792E /* Pods-ActiveLookSDK_Example.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = Q6RY2SP3A4;
+				DEVELOPMENT_TEAM = M93MNXR86B;
 				INFOPLIST_FILE = ActiveLookSDK/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MODULE_NAME = ExampleApp;
@@ -614,7 +614,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 83200256C08053AF7A006996 /* Pods-ActiveLookSDK_Tests.debug.xcconfig */;
 			buildSettings = {
-				DEVELOPMENT_TEAM = Q6RY2SP3A4;
+				DEVELOPMENT_TEAM = M93MNXR86B;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(PLATFORM_DIR)/Developer/Library/Frameworks",
 					"$(inherited)",
@@ -637,7 +637,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 1FBEE7D55113BC0EFFAE408F /* Pods-ActiveLookSDK_Tests.release.xcconfig */;
 			buildSettings = {
-				DEVELOPMENT_TEAM = Q6RY2SP3A4;
+				DEVELOPMENT_TEAM = M93MNXR86B;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(PLATFORM_DIR)/Developer/Library/Frameworks",
 					"$(inherited)",

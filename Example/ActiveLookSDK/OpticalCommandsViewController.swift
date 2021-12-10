@@ -33,9 +33,6 @@ class OpticalCommandsViewController : CommandsTableViewController {
             "Disable gesture detection",
             "Enable auto brightness adjustment",
             "Disable auto brightness adjustment",
-            "Set different sensor parameters",
-            "Reset sensor parameters",
-            "Get sensor parameters",
             "Subscribe to gesture notifications",
             "Unsubscribe from gesture notifications",
         ]
@@ -47,9 +44,6 @@ class OpticalCommandsViewController : CommandsTableViewController {
             self.disableGestureSensor,
             self.enableBrightnessSensor,
             self.disableGestureSensor,
-            self.setSensorParameters,
-            self.resetSensorParameters,
-            self.getSensorParameters,
             self.subscribeToSensorInterfaceNotifications,
             self.unsubscribeFromSensorInterfaceNotifications
         ]
@@ -80,32 +74,6 @@ class OpticalCommandsViewController : CommandsTableViewController {
     
     func disableBrightnessSensor() {
         glasses.als(enabled: false)
-    }
-    
-    func setSensorParameters() {
-        let alsArray: [UInt16] = [50, 250, 1000, 3000, 6000, 9000, 10000, 12000, 15000]
-        let sensorParameters = SensorParameters(alsArray: alsArray, alsPeriod: 250, rangingPeriod: 250)
-        glasses.setSensorParameters(mode: .ALSArray, sensorParameters: sensorParameters)
-        glasses.setSensorParameters(mode: .ALSPeriod, sensorParameters: sensorParameters)
-        glasses.setSensorParameters(mode: .rangingPeriod, sensorParameters: sensorParameters)
-    }
-    
-    func resetSensorParameters() {
-        let alsArray: [UInt16] = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-        let sensorParameters = SensorParameters(alsArray: alsArray, alsPeriod: 1000, rangingPeriod: 1000)
-        glasses.setSensorParameters(mode: .ALSArray, sensorParameters: sensorParameters)
-        glasses.setSensorParameters(mode: .ALSPeriod, sensorParameters: sensorParameters)
-        glasses.setSensorParameters(mode: .rangingPeriod, sensorParameters: sensorParameters)
-    }
-    
-    func getSensorParameters() {
-        glasses.getSensorParameters({ (sensorParameters) in
-            let message = "ALS array: \(sensorParameters.alsArray)\nALS period: \(sensorParameters.alsPeriod)\nRanging period: \(sensorParameters.rangingPeriod)"
-
-            let alert = UIAlertController(title: "Sensor parameters", message: message, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-            self.present(alert, animated: true)
-        })
     }
 
     func subscribeToSensorInterfaceNotifications() {

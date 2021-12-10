@@ -66,6 +66,27 @@ public class Glasses {
     // the last queryId sent to the glasses and increment the value for each new command
     private var queryId: UInt8
     
+    // The maximum amount of data, in bytes, you can send to a characteristic in a single write type.
+    private var mtu: Int
+    
+    // A queue used for storing commands while glasses are unavailable
+    private var commandQueue: ConcurrentDataQueue {
+        didSet {
+            if (oldValue.count < commandQueue.count) {
+                self.sendBytes()
+            }
+        }
+    }
+
+    // The status of the flowControl server
+    private var flowControlState: FlowControlState {
+        didSet {
+            if flowControlState == FlowControlState.on {
+                self.sendBytes()
+            }
+        }
+    }
+    
     // An array used to track queries (commands expecting a response) and match them to a corresponding callback returning the response data as a byte array ([UInt8]).
     private var pendingQueries: [UInt8: (CommandResponseData) -> Void]
     
@@ -120,8 +141,12 @@ public class Glasses {
         self.pendingQueries = [:]
         self.responseBuffer = nil
         self.expectedResponseBufferLength = 0
+        self.mtu = self.peripheral.maximumWriteValueLength(for: .withResponse)
+        self.commandQueue = ConcurrentDataQueue(for: self.mtu)
+        self.flowControlState = FlowControlState.on
         self.peripheralDelegate = PeripheralDelegate()
         self.peripheralDelegate.parent = self
+        self.peripheral.setNotifyValue(true, for: flowControlCharacteristic!)
     }
 
     internal convenience init(discoveredGlasses: DiscoveredGlasses) {
@@ -173,8 +198,8 @@ public class Glasses {
         if callback != nil {
             pendingQueries[queryId] = callback
         }
-
-        sendBytes(bytes: bytes)
+        
+        commandQueue.enqueue(bytes)
     }
     
     private func sendCommand(id: CommandID, withValue value: Bool) {
@@ -185,11 +210,16 @@ public class Glasses {
         sendCommand(id: id, withData: [value])
     }
 
-    private func sendBytes(bytes: [UInt8]) {
-        print("sending bytes to peripheral: \(bytes)")
-        let value = Data(_: bytes)
+    // the sendBytes() function send the commands queued in the commandQueue
+    private func sendBytes() {
+        if flowControlState != FlowControlState.on { return }
         
-        peripheral.writeValue(value, for: rxCharacteristic!, type: .withResponse)
+        if commandQueue.isEmpty { return }
+        
+        while let value = commandQueue.dequeue() {
+            peripheral.writeValue(value, for: rxCharacteristic!, type: .withResponse)
+            print("sending bytes \(value) to peripheral")
+        }
     }
     
     private func handleTxNotification(withData data: Data) {
@@ -204,8 +234,8 @@ public class Glasses {
         guard data.count >= 6 else { return } // Header + CommandID + CommandFormat + QueryID + Length + Footer // TODO Raise error
 
         let handledCommandIDs: [UInt8] = [
-            CommandID.battery, CommandID.vers, CommandID.settings, CommandID.getSensorParameters, CommandID.imgList,
-            CommandID.pixelCount, CommandID.getChargingCounter, CommandID.getChargingTime, CommandID.getMaxPixelValue,
+            CommandID.battery, CommandID.vers, CommandID.settings,  CommandID.imgList,
+            CommandID.pixelCount, CommandID.getChargingCounter, CommandID.getChargingTime,
             CommandID.rConfigID
         ].map({$0.rawValue})
         
@@ -335,7 +365,7 @@ public class Glasses {
     /// load a configuration file
     public func loadConfiguration(cfg: [String]) -> Void {
         for line in cfg {
-            sendBytes(bytes: line.hexaBytes)
+            commandQueue.enqueue(line.hexaBytes)
         }
     }
 
@@ -391,12 +421,6 @@ public class Glasses {
             callback(GlassesVersion.fromCommandResponseData(commandResponseData))
         }
     }
-    
-    /// Return BLE data to USB
-    /// - Parameter enabled: Enabled if true, disabled otherwise.
-    public func debug(_ enabled: Bool) {
-        sendCommand(id: .debug, withValue: enabled)
-    }
 
     /// Set the state of the green LED
     /// - Parameter state: The led state between off, on, toggle and blinking
@@ -440,13 +464,6 @@ public class Glasses {
         sendCommand(id: .luma, withValue: level)
     }
     
-    /// Reduce luminance to given percentage
-    /// - Parameter level: The applied dim level between 0 and 100
-    public func dim(level: UInt8) {
-        sendCommand(id: .dim, withValue: level)
-    }
-    
-    
     // MARK: - Optical sensor commands
     
     /// Turn on/off the auto brightness adjustment and gesture detection
@@ -466,40 +483,6 @@ public class Glasses {
     public func als(enabled: Bool) {
         sendCommand(id: .als, withValue: enabled)
     }
-    
-    
-    
-    
-    /// /// Set optical sensor parameters. Only the parameters corresponding to the specified mode will be set.
-    /// - Parameters:
-    ///   - sensorMode: The mode to configure
-    ///   - sensorParameters: The sensor parameters to set
-    public func setSensorParameters(mode sensorMode: SensorMode, sensorParameters: SensorParameters) {
-        var data: [UInt8] = [sensorMode.rawValue]
-        
-        switch sensorMode {
-        case .ALSArray:
-            for alsArrayItem in sensorParameters.alsArray {
-                data.append(contentsOf: alsArrayItem.asUInt8Array)
-            }
-        case .ALSPeriod:
-            data.append(contentsOf: sensorParameters.alsPeriod.asUInt8Array)
-        case.rangingPeriod:
-            data.append(contentsOf: sensorParameters.rangingPeriod.asUInt8Array)
-        }
-
-        sendCommand(id: .setSensorParameters, withData: data)
-    }
-    
-    /// Get sensor parameters (ALS Array, ALS Period and ranging Period).
-    /// - Parameter callback: A callback called asynchronously when the device answers
-    public func getSensorParameters(_ callback: @escaping (SensorParameters) -> Void) {
-        sendCommand(id: .getSensorParameters, withData: nil) { (commandResponseData) in
-            let sensorParameters = SensorParameters.fromCommandResponseData(commandResponseData)
-            callback(sensorParameters)
-        }
-    }
-    
     
     // MARK: - Graphics commands
     
@@ -719,18 +702,14 @@ public class Glasses {
     ///   - id: The id of the font to save
     ///   - fontData: The encoded font data
     public func fontSave(id: UInt8, fontData: FontData) {
-        // Prepend reserved 0x01 byte and font height in pixels to actual font data
-        var commandData: [UInt8] = [0x01, fontData.height]
-        commandData.append(contentsOf: fontData.data)
-        
         var firstChunkData: [UInt8] = []
         firstChunkData.append(id)
-        firstChunkData.append(contentsOf: UInt16(commandData.count).asUInt8Array)
+        firstChunkData.append(contentsOf: UInt16(fontData.data.count).asUInt8Array)
 
         sendCommand(id: .fontSave, withData: firstChunkData)
         
         // TODO Should be using bigger chunk size (505) but not working on 3.7.4b
-        let chunkedCommandData = commandData.chunked(into: 121) // 128 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+        let chunkedCommandData = fontData.data.chunked(into: 121) // 128 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
 
         for chunk in chunkedCommandData {
             sendCommand(id: .fontSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
@@ -973,12 +952,6 @@ public class Glasses {
             callback(pixelCount)
         }
     }
-    
-    /// Set the maximum amount of pixels that can be displayed
-    /// - Parameter value: The maximum amount of pixels the screen should display
-    public func setPixelValue(_ value: UInt32) {
-        sendCommand(id: .setPixelValue, withData: value.asUInt8Array)
-    }
 
     /// Get total number of charging cycles
     /// - Parameter callback: A callback called asynchronously when the device answers
@@ -997,17 +970,7 @@ public class Glasses {
             callback(chargingTime)
         }
     }
-
-    /// Get the maximum number of pixel activated
-    /// - Parameter callback: A callback called asynchronously when the device answers
-    public func getMaxPixelValue(_ callback: @escaping (Int) -> Void) {
-        // Not working on 3.7.4b. Glasses answer for charging counter instead...
-        sendCommand(id: .getMaxPixelValue, withData: nil) { (commandResponseData: [UInt8]) in
-            let maxPixelValue = Int.fromUInt32ByteArray(bytes: commandResponseData)
-            callback(maxPixelValue)
-        }
-    }
-
+    
     /// Reset charging counter and charging time values
     public func resetChargingParam() {
         sendCommand(id: .resetChargingParam)
@@ -1040,8 +1003,8 @@ public class Glasses {
     }
     
     /// Write a new configuration
-    public func cfgWrite(name: String, version: Int, password: String) {
-        let withData = Array(name.utf8) + version.asUInt8Array + Array(password.utf8)
+    public func cfgWrite(name: String, version: Int, password: UInt32) {
+        let withData = Array(name.utf8) + version.asUInt8Array + password.asUInt8Array
         sendCommand(id: .cfgWrite, withData: withData)
     }
 
@@ -1065,8 +1028,8 @@ public class Glasses {
     }
 
     /// Rename a configuration
-    public func cfgRename(oldName: String, newName: String, password: String) {
-        let withData = Array(oldName.utf8) + Array(newName.utf8) + Array(password.utf8)
+    public func cfgRename(oldName: String, newName: String, password: UInt32) {
+        let withData = Array(oldName.utf8) + Array(newName.utf8) + password.asUInt8Array
         sendCommand(id: .cfgRename, withData: withData)
     }
 
@@ -1094,6 +1057,13 @@ public class Glasses {
         }
     }
     
+    // MARK: - Device Commands
+    
+    /// Shutdown the device
+    /// Shutdown is not allowed while USB powered.
+    public func shutdown() {
+        sendCommand(id: .shutdown, withData: [0x6F, 0x7F, 0xC4, 0xEE])
+    }
     
     // MARK: - Notifications
     
@@ -1107,7 +1077,6 @@ public class Glasses {
     /// Subscribe to flow control notifications. The specified callback will be called whenever the flow control state changes.
     /// - Parameter flowControlUpdateCallback: A callback called asynchronously when the device sends a flow control update.
     public func subscribeToFlowControlNotifications(onFlowControlUpdate flowControlUpdateCallback: @escaping (FlowControlState) -> (Void)) {
-        peripheral.setNotifyValue(true, for: flowControlCharacteristic!)
         self.flowControlUpdateCallback = flowControlUpdateCallback
     }
     
@@ -1166,21 +1135,27 @@ public class Glasses {
             
             switch characteristic.uuid {
             case CBUUID.ActiveLookTxCharacteristic:
-
                 if let data = characteristic.value {
                     parent?.handleTxNotification(withData: data)
                 }
 
             case CBUUID.BatteryLevelCharacteristic:
                 parent?.batteryLevelUpdateCallback?(characteristic.valueAsInt)
+                
             case CBUUID.ActiveLookFlowControlCharacteristic:
-
                 if let flowControlState = FlowControlState(rawValue: characteristic.valueAsInt) {
-                    parent?.flowControlUpdateCallback?(flowControlState)
+                    parent?.flowControlState = flowControlState
+                    
+                    // ON and OFF notifications are not available to callback (i.e SDK's consumer)
+                    if (flowControlState != FlowControlState.on &&
+                        flowControlState != FlowControlState.off) {
+                        parent?.flowControlUpdateCallback?(flowControlState)
+                    }
                 }
 
             case CBUUID.ActiveLookSensorInterfaceCharacteristic:
                 parent?.sensorInterfaceTriggeredCallback?()
+
             default:
                 break
             }
@@ -1194,6 +1169,62 @@ public class Glasses {
             }
 
             //print("peripheral did write value for characteristic: ", characteristic.uuid)
+        }
+    }
+    
+    // MARK: - DataStructure
+    
+    /* largely inspired from Pasquier, B (2020) Atomic properties and Thread-safe data structure in Swift [Source code].
+     * https://benoitpasquier.com/atomic-properties-thread-safe-data-structure-swift/
+     */
+    fileprivate struct ConcurrentDataQueue {
+        
+        private let dispatchQueue = DispatchQueue(label: "com.activelook.queueOperations", attributes: .concurrent)
+        private var mtu: Int
+        private var elements: [Data]
+        
+        public var isEmpty: Bool { return elements.isEmpty }
+        public var count: Int { return elements.count }
+        
+        public init(for mtu: Int = 23, withElements elements: [Data] = []) {
+            self.mtu = mtu
+            self.elements = elements
+        }
+        
+        
+        public mutating func enqueue(_ values: [UInt8]) {
+            dispatchQueue.sync(flags: .barrier) {
+                if elements.isEmpty {
+                    elements.append(Data(capacity: mtu))
+                }
+                for value in values {
+                    if (elements.last!.count >= mtu) {
+                        elements.append(Data(capacity: mtu))
+                    }
+                    elements[elements.count-1].append(Data (_: [value]))
+                }
+            }
+        }
+        
+        public mutating func dequeue() -> Data? {
+            return dispatchQueue.sync(flags: .barrier) {
+                guard !self.elements.isEmpty else {
+                    return nil
+                }
+                return self.elements.removeFirst()
+            }
+        }
+        
+        public var head: Data? {
+            return dispatchQueue.sync {
+                return elements.first
+            }
+        }
+        
+        public var tail: Data? {
+            return dispatchQueue.sync {
+                return elements.last
+            }
         }
     }
 }

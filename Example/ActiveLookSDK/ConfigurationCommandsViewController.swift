@@ -59,7 +59,7 @@ class ConfigurationCommandsViewController : CommandsTableViewController {
     }
     
     func writeTestConfig() {
-        glasses.cfgWrite(name: "DemoApp", version: 1, password: "42")
+        glasses.cfgWrite(name: "DemoApp", version: 1, password: 42)
     }
     
     func readTestConfig() {

@@ -37,8 +37,6 @@ class GeneralCommandsViewController : CommandsTableViewController {
             "Test pattern 3",
             "Get battery level",
             "Get version",
-            "Enable debug mode",
-            "Disable debug mode",
             "Toggle led",
             "Shift screen to the left",
             "Shift screen to the right",
@@ -58,8 +56,6 @@ class GeneralCommandsViewController : CommandsTableViewController {
             self.displayDemoPattern3,
             self.getBatteryLevel,
             self.getVersion,
-            self.enableDebugMode,
-            self.disableDebugMode,
             self.toggleLed,
             self.shiftToLeft,
             self.shiftToRight,
@@ -119,14 +115,6 @@ class GeneralCommandsViewController : CommandsTableViewController {
             alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
             self.present(alert, animated: true)
         }
-    }
-    
-    func enableDebugMode() {
-        glasses.debug(true)
-    }
-    
-    func disableDebugMode() {
-        glasses.debug(false)
     }
     
     func toggleLed() {

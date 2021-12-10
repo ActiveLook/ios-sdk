@@ -51,7 +51,7 @@ class PageCommandsViewController : CommandsTableViewController {
     }
     
     func pageSave() {
-        glasses.cfgWrite(name: "DemoApp", version: 1, password: "42")
+        glasses.cfgWrite(name: "DemoApp", version: 1, password: 42)
         glasses.pageSave(id: 1, layoutIds: [1, 2], xs: [0, 50], ys: [0, 50])
     }
 
@@ -62,7 +62,7 @@ class PageCommandsViewController : CommandsTableViewController {
 
     func pageDelete() {
         glasses.cfgSet(name: "DemoApp")
-        glasses.cfgWrite(name: "DemoApp", version: 1, password: "42")
+        glasses.cfgWrite(name: "DemoApp", version: 1, password: 42)
         glasses.pageDelete(id: 1)
     }
 }

@@ -71,7 +71,7 @@ class FontCommandsViewController : CommandsTableViewController {
     }
     
     func saveCustomFont() {
-        glasses.cfgWrite(name: "DemoApp", version: 1, password: "42")
+        glasses.cfgWrite(name: "DemoApp", version: 1, password: 42)
         glasses.fontSave(id: 4, fontData: FontData(height: 14, data: customFontData))
     }
     
@@ -85,7 +85,7 @@ class FontCommandsViewController : CommandsTableViewController {
     }
     
     func deleteCustomFont() {
-        glasses.cfgWrite(name: "DemoApp", version: 1, password: "42")
+        glasses.cfgWrite(name: "DemoApp", version: 1, password: 42)
         glasses.fontDelete(id: 4)
     }
 }
