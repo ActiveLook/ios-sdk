@@ -9,37 +9,19 @@
 Pod::Spec.new do |s|
   s.name             = 'ActiveLookSDK'
   s.version          = '4.1.0'
-  s.summary          = 'A library to allow interaction between an iOS app and Active Look glasses'
-
-# This description is used to generate tags and improve search results.
-#   * Think: What does it do? Why did you write it? What is the focus?
-#   * Try to keep it short, snappy and to the point.
-#   * Write the description between the DESC delimiters below.
-#   * Finally, don't worry about the indent, CocoaPods strips it!
-
+  s.summary          = 'An iOS library to interact with Active Look glasses'
   s.description      = <<-DESC
-This CocoaPod provides the ability to connect to ActiveLook glasses and send various commands
+This CocoaPod provides the ability to connect to ActiveLook glasses running
+a firmware >= 4.0.0  and send various commands
                        DESC
 
-  s.homepage         = 'https://github.com/ActiveLook/ios-sdk/'
-  # s.screenshots     = 'www.example.com/screenshots_1', 'www.example.com/screenshots_2'
+  s.homepage         = 'https://github.com/ActiveLook/ios-sdk'
   s.license          = { :type => 'Apache', :file => 'LICENSE' }
   s.author           = { "Sylvain Romillon" => "sylvain.romillon@microoled.net" }
   s.source           = { :git => 'https://github.com/ActiveLook/ios-sdk.git', :tag => s.version.to_s }
-  # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
+  s.source_files     = 'Classes/**/*'
+  s.swift_version    = '5.0'
 
-  s.ios.deployment_target = '12.0'
-  s.watchos.deployment_target = '6.0'
-
-  s.source_files = 'Classes/**/*'
-
-  s.swift_version = '5.0'
-
-  # s.resource_bundles = {
-  #   'ActiveLookSDK' => ['ActiveLookSDK/Assets/*.png']
-  # }
-
-  # s.public_header_files = 'Pod/Classes/**/*.h'
-  # s.frameworks = 'UIKit', 'MapKit'
-  # s.dependency 'AFNetworking', '~> 2.3'
+  s.ios.deployment_target       = '12.0'
+  s.watchos.deployment_target   = '6.0'
 end
