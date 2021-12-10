@@ -16,6 +16,14 @@ limitations under the License.
 import Foundation
 
 extension Int {
+
+    var asUInt8Array: [UInt8] {
+        let firstByte = UInt8(truncatingIfNeeded: self >> 24)
+        let secondByte = UInt8(truncatingIfNeeded: self >> 16)
+        let thirdByte = UInt8(truncatingIfNeeded: self >> 8)
+        let fourthByte = UInt8(truncatingIfNeeded: self)
+        return [firstByte, secondByte, thirdByte, fourthByte]
+    }
     
     internal static func fromUInt16ByteArray(bytes: [UInt8]) -> Int {
         guard bytes.count >= 2 else { return 0 }

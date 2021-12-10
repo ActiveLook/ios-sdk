@@ -2,7 +2,7 @@
 
 ## Requirements
 
-In order to use the ActiveLook SDK for iOS, you should have XCode installed and a working version of CocoaPods.
+In order to use the ActiveLook SDK for iOS, you should have XCode installed.
 
 ## License
 

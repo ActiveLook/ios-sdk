@@ -74,10 +74,27 @@ class GlassesTableViewController: UITableViewController {
 
             self.connecting = false
             self.connectionTimer?.invalidate()
-
-            let viewController = CommandsMenuTableViewController(glasses)
-            self.navigationController?.pushViewController(viewController, animated: true)
-
+                
+            if (glasses.isFirmwareAtLeast(version: "4.0")) {
+                /*if (glasses.compareFirmwareAtLeast(version: "4.0").rawValue > 0) {
+                    let alert = UIAlertController(title: "Update application", message: "The glasses firmware is newer. Check the store for an application update.", preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
+                    self.present(alert, animated: true)
+                // } else {
+                    // if let filePath = Bundle.main.path(forResource: "ConfigDemo-4.0", ofType: "txt") {
+                    //     do {
+                    //         let cfg = try String(contentsOfFile: filePath)
+                    //         glasses.loadConfiguration(cfg: cfg.components(separatedBy: "\n"))
+                    //     } catch {}
+                    // }
+                }*/
+                let viewController = CommandsMenuTableViewController(glasses)
+                self.navigationController?.pushViewController(viewController, animated: true)
+            } else {
+                let alert = UIAlertController(title: "Update glasses firmware", message: "The glasses firmware is not up to date.", preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
+                self.present(alert, animated: true)
+            }
         }, onGlassesDisconnected: { [weak self] in
             guard let self = self else { return }
             

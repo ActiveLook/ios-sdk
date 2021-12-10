@@ -124,9 +124,8 @@ class LayoutCommandsViewController : CommandsTableViewController {
             textY: 50,
             textRotation: .bottomRL,
             textOpacity: true
-        )
-
-        glasses.writeConfigID(configuration: Configuration(number: 1, id: 0))
+        ).addSubCommandLine(x1: 0, y1: 0, x2: 200, y2: 50)
+        glasses.cfgWrite(name: "DemoApp", version: 1, password: "42")
         glasses.layoutSave(parameters: layoutParameters)
     }
     

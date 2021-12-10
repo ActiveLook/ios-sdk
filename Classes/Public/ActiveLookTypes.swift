@@ -16,9 +16,10 @@ limitations under the License.
 import Foundation
 
 /// Available test patterns
-public enum TestPattern: UInt8 {
+public enum DemoPattern: UInt8 {
     case fill = 0x00
-    case rect = 0x01
+    case cross = 0x01
+    case image = 0x02
 }
 
 /// Available states for the glasses' green LED
@@ -38,14 +39,14 @@ public enum SensorMode: UInt8 {
 
 /// Rotation / orientation of text being displayed
 public enum TextRotation: UInt8 {
-    case topLR = 0x00
-    case topRL = 0x01
-    case rightTB = 0x02
-    case rightBT = 0x03
-    case bottomRL = 0x04
-    case bottomLR = 0x05
-    case leftBT = 0x06
-    case leftTB = 0x07
+    case bottomRL = 0x00
+    case bottomLR = 0x01
+    case leftBT = 0x02
+    case leftTB = 0x03
+    case topLR = 0x04
+    case topRL = 0x05
+    case rightTB = 0x06
+    case rightBT = 0x07
 }
 
 /// The Flow Control state.

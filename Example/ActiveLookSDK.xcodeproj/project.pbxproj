@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4A81AC79268B1F330038DC70 /* ConfigDemo-4.0.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4A81AC77268B1F320038DC70 /* ConfigDemo-4.0.txt */; };
+		4A81AC7A268B1F330038DC70 /* ConfigSystem ActiveLookApp-3.7.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4A81AC78268B1F330038DC70 /* ConfigSystem ActiveLookApp-3.7.txt */; };
 		607FACD61AFB9204008FA782 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607FACD51AFB9204008FA782 /* AppDelegate.swift */; };
 		607FACDD1AFB9204008FA782 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 607FACDC1AFB9204008FA782 /* Images.xcassets */; };
 		607FACE01AFB9204008FA782 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 607FACDE1AFB9204008FA782 /* LaunchScreen.xib */; };
@@ -45,6 +47,8 @@
 		1FBEE7D55113BC0EFFAE408F /* Pods-ActiveLookSDK_Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ActiveLookSDK_Tests.release.xcconfig"; path = "Target Support Files/Pods-ActiveLookSDK_Tests/Pods-ActiveLookSDK_Tests.release.xcconfig"; sourceTree = "<group>"; };
 		2883C312A9DC4A12A6A7D788 /* Pods_ActiveLookSDK_Example.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ActiveLookSDK_Example.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B5835CD2E5B0F3DB00FA0AE /* ActiveLookSDK.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = ActiveLookSDK.podspec; path = ../ActiveLookSDK.podspec; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
+		4A81AC77268B1F320038DC70 /* ConfigDemo-4.0.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ConfigDemo-4.0.txt"; sourceTree = "<group>"; };
+		4A81AC78268B1F330038DC70 /* ConfigSystem ActiveLookApp-3.7.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ConfigSystem ActiveLookApp-3.7.txt"; sourceTree = "<group>"; };
 		4DF3C0802BFC743CF75A66A3 /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
 		607FACD01AFB9204008FA782 /* ActiveLookSDK_Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ActiveLookSDK_Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		607FACD41AFB9204008FA782 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -97,9 +101,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		4A81AC76268B1EFF0038DC70 /* Assets */ = {
+			isa = PBXGroup;
+			children = (
+				4A81AC77268B1F320038DC70 /* ConfigDemo-4.0.txt */,
+				4A81AC78268B1F330038DC70 /* ConfigSystem ActiveLookApp-3.7.txt */,
+			);
+			path = Assets;
+			sourceTree = "<group>";
+		};
 		607FACC71AFB9204008FA782 = {
 			isa = PBXGroup;
 			children = (
+				4A81AC76268B1EFF0038DC70 /* Assets */,
 				607FACF51AFB993E008FA782 /* Podspec Metadata */,
 				607FACD21AFB9204008FA782 /* Example */,
 				607FACE81AFB9204008FA782 /* Tests */,
@@ -286,12 +300,12 @@
 				TargetAttributes = {
 					607FACCF1AFB9204008FA782 = {
 						CreatedOnToolsVersion = 6.3.1;
-						DevelopmentTeam = M93MNXR86B;
+						DevelopmentTeam = Q6RY2SP3A4;
 						LastSwiftMigration = 0900;
 					};
 					607FACE41AFB9204008FA782 = {
 						CreatedOnToolsVersion = 6.3.1;
-						DevelopmentTeam = M93MNXR86B;
+						DevelopmentTeam = Q6RY2SP3A4;
 						LastSwiftMigration = 1220;
 						TestTargetID = 607FACCF1AFB9204008FA782;
 					};
@@ -322,7 +336,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				607FACE01AFB9204008FA782 /* LaunchScreen.xib in Resources */,
+				4A81AC7A268B1F330038DC70 /* ConfigSystem ActiveLookApp-3.7.txt in Resources */,
 				607FACDD1AFB9204008FA782 /* Images.xcassets in Resources */,
+				4A81AC79268B1F330038DC70 /* ConfigDemo-4.0.txt in Resources */,
 				6D08115A260895370000FF32 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -567,7 +583,7 @@
 			baseConfigurationReference = C81A328DB7A951CCF6A77D89 /* Pods-ActiveLookSDK_Example.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = M93MNXR86B;
+				DEVELOPMENT_TEAM = Q6RY2SP3A4;
 				INFOPLIST_FILE = ActiveLookSDK/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MODULE_NAME = ExampleApp;
@@ -583,7 +599,7 @@
 			baseConfigurationReference = F55477437C104300E1C1792E /* Pods-ActiveLookSDK_Example.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = M93MNXR86B;
+				DEVELOPMENT_TEAM = Q6RY2SP3A4;
 				INFOPLIST_FILE = ActiveLookSDK/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MODULE_NAME = ExampleApp;
@@ -598,7 +614,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 83200256C08053AF7A006996 /* Pods-ActiveLookSDK_Tests.debug.xcconfig */;
 			buildSettings = {
-				DEVELOPMENT_TEAM = M93MNXR86B;
+				DEVELOPMENT_TEAM = Q6RY2SP3A4;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(PLATFORM_DIR)/Developer/Library/Frameworks",
 					"$(inherited)",
@@ -621,7 +637,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 1FBEE7D55113BC0EFFAE408F /* Pods-ActiveLookSDK_Tests.release.xcconfig */;
 			buildSettings = {
-				DEVELOPMENT_TEAM = M93MNXR86B;
+				DEVELOPMENT_TEAM = Q6RY2SP3A4;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(PLATFORM_DIR)/Developer/Library/Frameworks",
 					"$(inherited)",

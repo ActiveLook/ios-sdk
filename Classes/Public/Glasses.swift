@@ -312,6 +312,33 @@ public class Glasses {
     }
     
     
+    // MARK: - Utility commands
+    /// Check if firmware is at least
+    /// - Parameter version: the version to compare to
+    public func isFirmwareAtLeast(version: String) -> Bool {
+        let gVersion = self.getDeviceInformation().firmwareVersion
+        guard gVersion != nil else { return false }
+        if (gVersion ?? "" >= "v\(version).0b") {
+            return true
+        } else {
+            return false
+        }
+    }
+
+    /// Compare the firmware against a certain version
+    /// - Parameter version: the version to compare to
+    public func compareFirmwareAtLeast(version: String) -> ComparisonResult {
+        let gVersion = self.getDeviceInformation().firmwareVersion
+        return (gVersion ?? "").compare("v\(version).0b")
+    }
+    
+    /// load a configuration file
+    public func loadConfiguration(cfg: [String]) -> Void {
+        for line in cfg {
+            sendBytes(bytes: line.hexaBytes)
+        }
+    }
+
     // MARK: - General commands
     
     /// Power the device on or off.
@@ -336,9 +363,15 @@ public class Glasses {
         sendCommand(id: .demo)
     }
     
+    /// Display the test pattern from demo command fw 4.0
+    /// - Parameter pattern: The demo pattern. 0: Fill screen. 1: Rectangle with a cross in it. 2: Image
+    public func demo(pattern: DemoPattern) {
+        sendCommand(id: .demo, withValue: pattern.rawValue)
+    }
+    
     /// Display the test pattern
-    /// - Parameter pattern: The test pattern. 0: Fill screen. 1: Rectangle with a cross in it
-    public func test(pattern: TestPattern) {
+    /// - Parameter pattern: The demo pattern. 0: Fill screen. 1: Rectangle with a cross in it
+    public func test(pattern: DemoPattern) {
         sendCommand(id: .test, withValue: pattern.rawValue)
     }
     
@@ -622,8 +655,8 @@ public class Glasses {
     
     /// Save a 4bpp image of the specified width.
     /// - Parameter imageData: The data representing the image to save
-    public func imgSave(imageData: ImageData) {
-        var firstChunkData: [UInt8] = []
+    public func imgSave(id: UInt8, imageData: ImageData) {
+        var firstChunkData: [UInt8] = [id]
         firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
         firstChunkData.append(contentsOf: imageData.width.asUInt8Array)
         
@@ -655,6 +688,11 @@ public class Glasses {
         sendCommand(id: .imgDelete, withValue: id)
     }
 
+    /// Delete all images
+    public func imgDeleteAll() {
+        sendCommand(id: .imgDelete, withValue: 0xFF)
+    }
+
     /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
     public func imgStream(imageData: ImageData, x: Int16, y: Int16) {
         // TODO Infer size from data length
@@ -670,10 +708,10 @@ public class Glasses {
     // MARK: - Font commands
     
     /// WARNING: CALLBACK NOT WORKING as of 3.7.4b
-    public func fontlist() {
-        // TODO Handle callback
-        // TODO For now, no data is returned with invalid length.
-        sendCommand(id: .fontList)
+    public func fontlist(_ callback: @escaping ([FontInfo]) -> Void) {
+        sendCommand(id: .fontList) { (commandResponseData: [UInt8]) in
+            callback(FontInfo.fromCommandResponseData(commandResponseData))
+        }
     }
 
     /// Save a font to the specified font id
@@ -710,7 +748,12 @@ public class Glasses {
     public func fontDelete(id: UInt8) {
         sendCommand(id: .fontDelete, withValue: id)
     }
-    
+
+    /// Delete all the font
+    public func fontDeleteAll() {
+        sendCommand(id: .fontDelete, withValue: 0xFF)
+    }
+
     
     // MARK: - Layout commands
     
@@ -724,6 +767,11 @@ public class Glasses {
     /// - Parameter id: The id of the layout to delete
     public func layoutDelete(id: UInt8) {
         sendCommand(id: .layoutDelete, withValue: id)
+    }
+
+    /// Delete all layouts
+    public func layoutDeleteAll() {
+        sendCommand(id: .layoutDelete, withValue: 0xFF)
     }
 
     /// Display the specified layout with the specified text as its value
@@ -742,11 +790,17 @@ public class Glasses {
         sendCommand(id: .layoutClear, withValue: id)
     }
 
-//    /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
-//    public func layoutList() {
-//        // TODO Handle callback once working
-//        sendCommand(id: .layoutList)
-//    }
+    /// Get the list of layouts
+    /// - Parameter callback: A callback called asynchronously when the device answers
+    public func layoutList(_ callback: @escaping ([Int]) -> Void) {
+        sendCommand(id: .layoutList) { (commandResponseData: [UInt8]) in
+            var results: [Int] = []
+            commandResponseData.forEach { b in
+                results.append(Int(b & 0x00FF))
+            }
+            callback(results)
+        }
+    }
 
     /// Redefine the position of a layout. The new position is saved.
     /// - Parameters:
@@ -776,11 +830,15 @@ public class Glasses {
         sendCommand(id: .layoutDisplayExtended, withData: data)
     }
 
-//    /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
-//    public func layoutGet(id: UInt8) {
-//        // TODO Handle callback
-//        sendCommand(id: .layoutGet, withValue: id)
-//    }
+    /// Get a layout
+    /// - Parameters:
+    ///   - id: The id of the layout to get
+    ///   - callback: A callback called asynchronously when the device answers
+    public func layoutGet(id: UInt8, _ callback: @escaping (LayoutParameters) -> Void) {
+        sendCommand(id: .layoutGet, withData: [id]) { (commandResponseData: [UInt8]) in
+            callback(LayoutParameters.fromCommandResponseData(commandResponseData))
+        }
+    }
     
     
     // MARK: - Gauge commands
@@ -818,45 +876,95 @@ public class Glasses {
         
         sendCommand(id: .gaugeSave, withData: data)
     }
-    
+
+    /// Delete the specified gauge
+    /// - Parameter id: The id of the gauge to delete
+    public func gaugeDelete(id: UInt8) {
+        sendCommand(id: .gaugeDelete, withValue: id)
+    }
+
+    /// Delete all gauge
+    public func gaugeDeleteAll() {
+        sendCommand(id: .gaugeDelete, withValue: 0xFF)
+    }
+
+    /// Get the list of gauge
+    /// - Parameter callback: A callback called asynchronously when the device answers
+    public func gaugeList(_ callback: @escaping ([Int]) -> Void) {
+        sendCommand(id: .gaugeList) { (commandResponseData: [UInt8]) in
+            var results: [Int] = []
+            commandResponseData.forEach { b in
+                results.append(Int(b & 0x00FF))
+            }
+            callback(results)
+        }
+    }
+
+    /// Get a gauge
+    /// - Parameters:
+    ///   - id: The id of the gauge to get
+    ///   - callback: A callback called asynchronously when the device answers
+    public func gaugeGet(id: UInt8, _ callback: @escaping (GaugeInfo) -> Void) {
+        sendCommand(id: .gaugeGet, withData: [id]) { (commandResponseData: [UInt8]) in
+            callback(GaugeInfo.fromCommandResponseData(commandResponseData))
+        }
+    }
     
     // MARK: - Page commands
-    
-//    /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
-//    public func pageSave() {
-//        // TODO Define interface with list of [Layout+LayoutX+LayoutY]
-//        // TODO Implement command
-//    }
-//
-//    /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
-//    public func pageGet(id: UInt8) {
-//        // TODO
-//    }
-//
-//    /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
-//    public func pageDelete(id: UInt8) {
-//        // TODO
-//    }
-//
-//    /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
-//    public func pageDisplay() {
-//        // TODO Define interface
-//    }
-//
-//    /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
-//    public func pageClear(id: UInt8) {
-//        // TODO
-//    }
+    /// Save a page
+    public func pageSave(id: UInt8, layoutIds: [UInt8], xs: [Int16], ys: [UInt8]) {
+        let pi = PageInfo(id, layoutIds, xs, ys)
+        sendCommand(id: .pageSave, withData: pi.payload)
+    }
 
-    /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
-    public func pageList() {
-        // TODO Handle callback once working
-        sendCommand(id: .pageList)
+    /// Get a page
+    /// - Parameters:
+    ///   - id: The id of the page to get
+    ///   - callback: A callback called asynchronously when the device answers
+    public func pageGet(id: UInt8, _ callback: @escaping (PageInfo) -> Void) {
+        sendCommand(id: .pageGet, withData: [id]) { (commandResponseData: [UInt8]) in
+            callback(PageInfo.fromCommandResponseData(commandResponseData))
+        }
+    }
+
+    /// Delete a page
+    public func pageDelete(id: UInt8) {
+        sendCommand(id: .pageDelete, withValue: id)
+    }
+    
+    /// Delete all pages
+    public func pageDeleteAll() {
+        sendCommand(id: .pageDelete, withValue: 0xFF)
+    }
+
+
+    /// Display a page
+    public func pageDisplay(id: UInt8, texts: [String]) {
+        var withData: [UInt8] = []
+        texts.forEach { text in
+            withData += Array(text.utf8)
+        }
+        sendCommand(id: .pageDisplay, withData: withData)
+    }
+
+    /// Clear a page
+    public func pageClear(id: UInt8) {
+        sendCommand(id: .pageClear, withValue: id)
+    }
+
+    /// List a page
+    public func pageList(_ callback: @escaping ([Int]) -> Void) {
+        sendCommand(id: .pageList) { (commandResponseData: [UInt8]) in
+            var results: [Int] = []
+            commandResponseData.forEach { b in
+                results.append(Int(b & 0x00FF))
+            }
+            callback(results)
+        }
     }
     
     
     // MARK: - Statistics commands
-    
     /// Get number of pixel activated on display
     /// - Parameter callback: A callback called asynchronously when the device answers
     public func pixelCount(_ callback: @escaping (Int) -> Void) {
@@ -931,53 +1039,60 @@ public class Glasses {
         sendCommand(id: .setConfigID, withValue: number)
     }
     
-//    /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
-//    public func cfgWrite(name: String, version: Int32, password: String) {
-//        // Not working with 3.7.4b
-//    }
-//
-//    /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
-//    public func cfgRead(name: String) {
-//        sendCommand(id: .cfgRead)
-//    }
-//
-//    /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
-//    public func cfgSet(name: String) {
-//        // TODO
-//    }
-//
-//    /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
-//    public func cfgList() {
-//        // TODO Handle callback
-//        sendCommand(id: .cfgList)
-//    }
-//
-//    /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
-//    public func cfgRename(oldName: String, newName: String, password: String) {
-//        // TODO
-//    }
-//
-//    /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
-//    public func cfgDelete(name: String) {
-//        // TODO
-//    }
-//
-//    /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
-//    public func cfgDeleteOldest() {
-//        sendCommand(id: .cfgDeleteOldest)
-//    }
-//
-//    /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
-//    public func cfgFreeSpace() {
-//        // TODO Handle callback
-//        sendCommand(id: .cfgFreeSpace)
-//    }
-//
-//    /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
-//    public func cfgGetNb() {
-//        // TODO Handle callback
-//        sendCommand(id: .cfdGetNb)
-//    }
+    /// Write a new configuration
+    public func cfgWrite(name: String, version: Int, password: String) {
+        let withData = Array(name.utf8) + version.asUInt8Array + Array(password.utf8)
+        sendCommand(id: .cfgWrite, withData: withData)
+    }
+
+    /// Read a configuration
+    public func cfgRead(name: String, callback: @escaping (ConfigurationElementsInfo) -> Void) {
+        sendCommand(id: .cfgRead, withData: Array(name.utf8)) { (commandResponseData) in
+            callback(ConfigurationElementsInfo.fromCommandResponseData(commandResponseData))
+        }
+    }
+
+    /// Set the configuration
+    public func cfgSet(name: String) {
+        sendCommand(id: .cfgSet, withData: Array(name.utf8))
+    }
+
+    /// List of configuration
+    public func cfgList(callback: @escaping ([ConfigurationDescription]) -> Void) {
+        sendCommand(id: .cfgList) { (commandResponseData) in
+            callback(ConfigurationDescription.fromCommandResponseData(commandResponseData))
+        }
+    }
+
+    /// Rename a configuration
+    public func cfgRename(oldName: String, newName: String, password: String) {
+        let withData = Array(oldName.utf8) + Array(newName.utf8) + Array(password.utf8)
+        sendCommand(id: .cfgRename, withData: withData)
+    }
+
+    /// Delete a configuration
+    public func cfgDelete(name: String) {
+        sendCommand(id: .cfgDelete, withData: Array(name.utf8))
+    }
+
+    /// Delete least used configuration
+    public func cfgDeleteLessUsed() {
+        sendCommand(id: .cfgDeleteLessUsed)
+    }
+
+    /// get available free space
+    public func cfgFreeSpace(callback: @escaping (FreeSpace) -> Void) {
+        sendCommand(id: .cfgFreeSpace) { (commandResponseData) in
+            callback(FreeSpace.fromCommandResponseData(commandResponseData))
+        }
+    }
+
+    /// get number of configuration
+    public func cfgGetNb(callback: @escaping (Int) -> Void) {
+        sendCommand(id: .cfdGetNb) { (commandResponseData) in
+            callback(Int(commandResponseData[0]))
+        }
+    }
     
     
     // MARK: - Notifications
