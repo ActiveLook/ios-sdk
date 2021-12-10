@@ -39,7 +39,9 @@ public class ActiveLookSDK {
     private var connectedGlassesArray: [Glasses] = []
     
     private var glassesDiscoveredCallback: ((DiscoveredGlasses) -> Void)?
-
+    
+    private var didAskForScan: (glassesDiscoveredCallback: (DiscoveredGlasses) -> Void,
+                                   scanErrorCallback: (Error) -> Void)?
     
     // MARK: - Initialization
     
@@ -47,6 +49,7 @@ public class ActiveLookSDK {
         self.centralManagerDelegate = CentralManagerDelegate()
         self.centralManagerDelegate.parent = self
         centralManager = CBCentralManager(delegate:self.centralManagerDelegate, queue: nil) // TODO Use a specific queue
+        self.didAskForScan = nil
     }
     
     
@@ -77,7 +80,6 @@ public class ActiveLookSDK {
         return nil
     }
 
-    
     // MARK: - Public methods
     
     
@@ -85,9 +87,16 @@ public class ActiveLookSDK {
     /// - Parameters:
     ///   - glassesDiscoveredCallback: A callback called asynchronously when glasses are discovered.
     ///   - scanErrorCallback: A callback called asynchronously when an scanning error occurs.
-    public func startScanning(onGlassesDiscovered glassesDiscoveredCallback: @escaping (DiscoveredGlasses) -> Void, onScanError scanErrorCallback: (Error) -> Void) {
+    public func startScanning(onGlassesDiscovered glassesDiscoveredCallback: @escaping (DiscoveredGlasses) -> Void,
+                              onScanError scanErrorCallback: @escaping (Error) -> Void,
+                              _ caller: String? = nil) {
+
         guard centralManager.state == .poweredOn else {
-            scanErrorCallback(ActiveLookError.bluetoothErrorFromState(state: centralManager.state))
+            if (self.didAskForScan == nil && caller == nil) {
+                self.didAskForScan = (glassesDiscoveredCallback, scanErrorCallback)
+            } else {
+                scanErrorCallback(ActiveLookError.startScanningAlreadyCalled)
+            }
             return
         }
         
@@ -95,6 +104,9 @@ public class ActiveLookSDK {
             print("already scanning")
             return
         }
+        
+        self.didAskForScan = nil
+        self.discoveredGlassesArray.removeAll()
         
         self.glassesDiscoveredCallback = glassesDiscoveredCallback
         print("starting scan")
@@ -114,7 +126,6 @@ public class ActiveLookSDK {
         if centralManager.isScanning {
             print("stopping scan")
             centralManager.stopScan()
-            glassesDiscoveredCallback = nil
         }
     }
     
@@ -127,10 +138,25 @@ public class ActiveLookSDK {
         
         public func centralManagerDidUpdateState(_ central: CBCentralManager) {
             print("central manager did update state: ", central.state.rawValue)
-            // TODO What to do here when the state changes ?
+            
+            guard central.state == .poweredOn else {
+                parent?.didAskForScan?.scanErrorCallback(ActiveLookError.bluetoothErrorFromState(state: central.state))
+                return
+            }
+            
+            guard let didAskForScan = parent?.didAskForScan else {
+                return
+            }
+            
+            parent?.startScanning(onGlassesDiscovered: didAskForScan.glassesDiscoveredCallback,
+                                  onScanError: didAskForScan.scanErrorCallback,
+                                  "centralManagerDidUpdateState()")
         }
 
-        public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
+        public func centralManager(_ central: CBCentralManager,
+                                   didDiscover peripheral: CBPeripheral,
+                                   advertisementData: [String : Any],
+                                   rssi RSSI: NSNumber) {
             guard parent != nil, parent!.peripheralIsActiveLookGlasses(peripheral: peripheral, advertisementData: advertisementData) else {
                 print("ignoring non ActiveLook peripheral")
                 return
@@ -152,7 +178,7 @@ public class ActiveLookSDK {
                 return
             }
             
-            print("central manager did disconnect to glasses \(discoveredGlasses.name)")
+            print("central manager did connect to glasses \(discoveredGlasses.name)")
 
             let glasses = Glasses(discoveredGlasses: discoveredGlasses)
             let glassesInitializer = GlassesInitializer(glasses: glasses)

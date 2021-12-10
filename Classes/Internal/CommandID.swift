@@ -21,23 +21,19 @@ internal enum CommandID: UInt8 {
     case clear = 0x01
     case grey = 0x02
     case demo = 0x03
-    case test = 0x04
+    @available(*, deprecated, renamed:"demo", message: "use demo commandID instead")
+    case test = 0x04    // deprecated since 4.0.0
     case battery = 0x05
     case vers = 0x06
-    case debug = 0x07
     case led = 0x08
     case shift = 0x09
     case settings = 0x0A
-    case setName = 0x0B
     
     case luma = 0x10
-    case dim = 0x11
     
     case sensor = 0x20
     case gesture = 0x21
     case als = 0x22
-    case setSensorParameters = 0x23
-    case getSensorParameters = 0x24
     
     case color = 0x30
     case point = 0x31
@@ -52,9 +48,9 @@ internal enum CommandID: UInt8 {
     case imgList = 0x40
     case imgSave = 0x41
     case imgDisplay = 0x42
-    case imgDelete = 0x43
     case imgStream = 0x44
     case imgSave1bpp = 0x45
+    case imgDelete = 0x46
     
     case fontList = 0x50
     case fontSave = 0x51
@@ -84,10 +80,8 @@ internal enum CommandID: UInt8 {
     case pageList = 0x85
     
     case pixelCount = 0xA5
-    case setPixelValue = 0xA6
     case getChargingCounter = 0xA7
     case getChargingTime = 0xA8
-    case getMaxPixelValue = 0xA9
     case resetChargingParam = 0xAA
     
     case wConfigID = 0xA1
@@ -102,5 +96,7 @@ internal enum CommandID: UInt8 {
     case cfgDelete = 0xD5
     case cfgDeleteLessUsed = 0xD6
     case cfgFreeSpace = 0xD7
-    case cfdGetNb = 0xD8
+    case cfgGetNb = 0xD8
+    
+    case shutdown = 0xE0
 }

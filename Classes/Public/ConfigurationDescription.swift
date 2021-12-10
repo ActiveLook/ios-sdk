@@ -47,21 +47,22 @@ public class ConfigurationDescription {
     
     internal static func fromCommandResponseData(_ data: CommandResponseData) -> [ConfigurationDescription] {
         var results: [ConfigurationDescription] = []
-        let offset = 0
+        var offset = 0
         while (offset < data.count) {
-            let subData = data.suffix(from: offset)
-            let nameSize = subData.firstIndex(of: 0) ?? 0
+            let subData = Array(data.suffix(from: offset))
+            let nameSize = (subData.firstIndex(of: 0) ?? 0) + 1
             
-            guard subData.count >= nameSize+11 else { return results }
+            guard subData.count >= nameSize + 11 else { return results }
             
-            let name = String(decoding: Array(subData[0...nameSize-1]), as: UTF8.self)
-            let size = UInt32.fromUInt32ByteArray(bytes: Array(subData[nameSize+1...nameSize+4]))
-            let version = UInt32.fromUInt32ByteArray(bytes: Array(subData[nameSize+5...nameSize+8]))
-            let usageCnt = subData[nameSize+9]
-            let installCnt = subData[nameSize+10]
-            let isSystem = subData[nameSize+11] != 0
+            let name = String(cString: Array(subData[0 ... nameSize - 1]))  
+            let size = UInt32.fromUInt32ByteArray(bytes: Array(subData[nameSize ... nameSize + 3]))
+            let version = UInt32.fromUInt32ByteArray(bytes: Array(subData[nameSize + 4 ... nameSize + 7]))
+            let usageCnt = subData[nameSize + 8]
+            let installCnt = subData[nameSize + 9]
+            let isSystem = subData[nameSize + 10] != 0
 
             results.append(ConfigurationDescription(name, size, version, usageCnt, installCnt, isSystem))
+            offset += nameSize + 11
         }
         return results
     }

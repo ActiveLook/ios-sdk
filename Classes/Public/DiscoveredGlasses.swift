@@ -71,7 +71,7 @@ public class DiscoveredGlasses {
     /// Connect to the discovered glasses. Once the connection has been established over Buetooth, the glasses still need to be initialized before being considered as 'connected'.
     /// If this step takes too long, a timeout error will be issued via the `onConnectionError` callback.
     ///
-    /// If successful, a `Glasses` object reprensenting connected glasses is returned and can be used to send commands to ActiveLook glasses.
+    /// If successful, a `Glasses` object representing connected glasses is returned and can be used to send commands to ActiveLook glasses.
     ///
     ///   - connectionCallback: A callback called asynchronously when the connection is successful.
     ///   - disconnectionCallback: A callback called asynchronously when the connection to the device is lost.
