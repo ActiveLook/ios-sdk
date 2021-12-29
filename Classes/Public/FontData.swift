@@ -17,10 +17,10 @@ import Foundation
 
 /// Data describing a font that can be saved on the device.
 public class FontData {
-    
+
     /// The encoded data representing the font
     public let data: [UInt8]
-    
+
     public init(data: [UInt8]) {
         self.data = data
     }

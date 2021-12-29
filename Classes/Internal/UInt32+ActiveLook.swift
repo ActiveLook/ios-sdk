@@ -24,7 +24,7 @@ extension UInt32 {
         let fourthByte = UInt8(truncatingIfNeeded: self)
         return [firstByte, secondByte, thirdByte, fourthByte]
     }
-    
+
     internal static func fromUInt32ByteArray(bytes: [UInt8]) -> UInt32 {
         guard bytes.count >= 2 else { return 0 }
         return UInt32(bytes[0]) << 24 + UInt32(bytes[1]) << 16 + UInt32(bytes[2]) << 8 + UInt32(bytes[3])

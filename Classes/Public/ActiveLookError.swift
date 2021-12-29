@@ -45,7 +45,7 @@ extension ActiveLookError: LocalizedError {
             return "startScanning() has already been called"
         }
     }
-    
+
     internal static func bluetoothErrorFromState(state: CBManagerState) -> Error {
         switch state {
         case .poweredOff:

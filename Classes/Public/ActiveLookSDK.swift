@@ -48,14 +48,14 @@ public class ActiveLookSDK {
     private init() {
         self.centralManagerDelegate = CentralManagerDelegate()
         self.centralManagerDelegate.parent = self
-        centralManager = CBCentralManager(delegate:self.centralManagerDelegate, queue: nil) // TODO Use a specific queue
+        centralManager = CBCentralManager(delegate: self.centralManagerDelegate, queue: nil) // TODO Use a specific queue
         self.didAskForScan = nil
     }
     
     
     // MARK: - Private methods
     
-    private func peripheralIsActiveLookGlasses(peripheral: CBPeripheral, advertisementData: [String : Any]) -> Bool {
+    private func peripheralIsActiveLookGlasses(peripheral: CBPeripheral, advertisementData: [String: Any]) -> Bool {
         if let manufacturerData = advertisementData["kCBAdvDataManufacturerData"] as? Data, manufacturerData.count >= 2 {
             return manufacturerData[0] == 0xFA && manufacturerData[1] == 0xDA
         }
@@ -92,7 +92,7 @@ public class ActiveLookSDK {
                               _ caller: String? = nil) {
 
         guard centralManager.state == .poweredOn else {
-            if (self.didAskForScan == nil && caller == nil) {
+            if self.didAskForScan == nil && caller == nil {
                 self.didAskForScan = (glassesDiscoveredCallback, scanErrorCallback)
             } else {
                 scanErrorCallback(ActiveLookError.startScanningAlreadyCalled)
@@ -112,7 +112,8 @@ public class ActiveLookSDK {
         print("starting scan")
         
         // Scanning with services list not working
-        centralManager.scanForPeripherals(withServices: nil, options: [CBCentralManagerScanOptionAllowDuplicatesKey : false])
+        centralManager.scanForPeripherals(withServices: nil,
+                                          options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
     }
     
     /// Check whether the ActiveLookSDK is currently scanning.
@@ -155,9 +156,11 @@ public class ActiveLookSDK {
 
         public func centralManager(_ central: CBCentralManager,
                                    didDiscover peripheral: CBPeripheral,
-                                   advertisementData: [String : Any],
+                                   advertisementData: [String: Any],
                                    rssi RSSI: NSNumber) {
-            guard parent != nil, parent!.peripheralIsActiveLookGlasses(peripheral: peripheral, advertisementData: advertisementData) else {
+            guard parent != nil, parent!.peripheralIsActiveLookGlasses(peripheral: peripheral,
+                                                                       advertisementData: advertisementData)
+            else {
                 print("ignoring non ActiveLook peripheral")
                 return
             }
@@ -167,7 +170,10 @@ public class ActiveLookSDK {
                 return
             }
 
-            let discoveredGlasses = DiscoveredGlasses(peripheral: peripheral, centralManager: central, advertisementData: advertisementData)
+            let discoveredGlasses = DiscoveredGlasses(peripheral: peripheral,
+                                                      centralManager: central,
+                                                      advertisementData: advertisementData)
+
             parent?.discoveredGlassesArray.append(discoveredGlasses)
             parent?.glassesDiscoveredCallback?(discoveredGlasses)
         }
@@ -197,7 +203,9 @@ public class ActiveLookSDK {
             })
         }
         
-        public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+        public func centralManager(_ central: CBCentralManager,
+                                   didDisconnectPeripheral peripheral: CBPeripheral,
+                                   error: Error?) {
             guard let glasses = parent?.connectedGlasses(fromPeripheral: peripheral) else {
                 print("disconnected from unknown glasses")
                 return
@@ -213,13 +221,16 @@ public class ActiveLookSDK {
             }
         }
 
-        public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
+        public func centralManager(_ central: CBCentralManager,
+                                   didFailToConnect peripheral: CBPeripheral,
+                                   error: Error?) {
             guard let glasses = parent?.discoveredGlasses(fromPeripheral: peripheral) else {
                 print("failed to connect to unknown glasses")
                 return
             }
             
-            print("central manager did fail to connect to glasses \(glasses.name) with error: ", error?.localizedDescription ?? "")
+            print("central manager did fail to connect to glasses \(glasses.name) with error: ",
+                  error?.localizedDescription ?? "")
 
             glasses.connectionErrorCallback?(error ?? ActiveLookError.unknownError)
             glasses.connectionErrorCallback = nil

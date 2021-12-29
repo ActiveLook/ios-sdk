@@ -17,22 +17,22 @@ import Foundation
 
 /// Data describing a font that can be saved on the device.
 public class FontInfo {
-    
+
     /// The id of the font
     public let id: UInt8
 
     /// The height of characters in pixels
     public let height: UInt8
-        
+
     public init(id: UInt8, height: UInt8) {
         self.id = id
         self.height = height
     }
-    
+
     internal static func fromCommandResponseData(_ data: CommandResponseData) -> [FontInfo] {
         var results: [FontInfo] = []
         var offset = 0
-        while (offset < data.count) {
+        while offset < data.count {
             results.append(FontInfo(id: data[offset], height: data[offset+1]))
             offset += 2
         }

@@ -17,19 +17,19 @@ import Foundation
 
 /// Information about the current glasses settings
 public struct GlassesSettings {
-    
+
     /// The horizontal shift currently set, applied to the whole screen and to all layouts, pages etc...
     public let xShift: Int
-    
+
     /// The vertical shift currently set, applied to the whole screen and to all layouts, pages etc...
     public let yShift: Int
-    
+
     /// The current display luminance, as an Integer between 0 and 15
     public let luma: Int
-    
+
     /// true if the auto brightness adjustment sensor is enabled, false otherwise
     public let brightnessAdjustmentEnabled: Bool
-    
+
     /// true if the auto gesture detection sensor is enabled, false otherwise
     public let gestureDetectionEnabled: Bool
 
@@ -40,10 +40,10 @@ public struct GlassesSettings {
         self.brightnessAdjustmentEnabled = brightnessAdjustmentEnabled
         self.gestureDetectionEnabled = gestureDetectionEnabled
     }
-    
+
     internal static func fromCommandResponseData(_ data: CommandResponseData) -> GlassesSettings {
         guard data.count >= 5 else { return GlassesSettings(0, 0, 0, false, false) }
-        
+
         let shiftX = Int(Int8(bitPattern: data[0]))
         let shiftY = Int(Int8(bitPattern: data[1]))
         let luma = Int(data[2])

@@ -20,7 +20,7 @@ extension Int8 {
     var asUInt8: UInt8 {
         return UInt8(bitPattern: self)
     }
-    
+
     var asInt16: Int16 {
         return Int16(self)
     }

@@ -17,21 +17,21 @@ import Foundation
 
 /// Information about free space.
 public class FreeSpace {
-    
+
     /// The total available space
     public let totalSize: UInt32
-    
+
     /// The available free space
     public let freeSpace: UInt32
-    
+
     init(_ totalSize: UInt32, _ freeSpace: UInt32) {
         self.totalSize = totalSize
         self.freeSpace = freeSpace
     }
-    
+
     internal static func fromCommandResponseData(_ data: CommandResponseData) -> FreeSpace {
         guard data.count >= 8 else { return FreeSpace(0, 0) }
-        
+
         let totalSpace = UInt32.fromUInt32ByteArray(bytes: Array(data[0...3]))
         let freeSpace = UInt32.fromUInt32ByteArray(bytes: Array(data[4...7]))
 

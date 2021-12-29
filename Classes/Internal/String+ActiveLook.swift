@@ -18,6 +18,6 @@ import Foundation
 extension String {
 
     var asNullTerminatedUInt8Array: [UInt8] {
-        return self.utf8CString.map{ UInt8($0) }
+        return self.utf8CString.map { UInt8($0) }
     }
 }
