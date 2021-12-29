@@ -17,26 +17,26 @@ import Foundation
 
 /// Information about the glasses
 public struct GlassesVersion {
-    
+
     /// The installed firmware version
     public let firmwareVersion: String
-    
+
     /// The year the glasses were manufactured
     public let manufacturingYear: Int
-    
+
     /// The week the glasses were manufactured
     public let manufacturingWeek: Int
-    
+
     /// The glasses serial number
     public let serialNumber: Int
-    
+
     init(_ firmwareVersion: String, _ manufacturingYear: Int, _ manufacturingWeek: Int, _ serialNumber: Int) {
         self.firmwareVersion = firmwareVersion
         self.manufacturingYear = manufacturingYear
         self.manufacturingWeek = manufacturingWeek
         self.serialNumber = serialNumber
     }
-    
+
     internal static func fromCommandResponseData(_ data: CommandResponseData) -> GlassesVersion {
         guard data.count >= 9 else { return GlassesVersion("unknown", 0, 0, 0) }
 

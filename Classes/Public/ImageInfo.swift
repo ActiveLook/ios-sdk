@@ -17,25 +17,25 @@ import Foundation
 
 /// Information about an Image. Not an actual image object.
 public class ImageInfo {
-    
+
     /// The image id
     public let id: Int
-    
+
     /// The image width in pixels
     public let width: Int
-    
+
     /// The image height in pixels
     public let height: Int
-    
+
     init(_ id: Int, _ width: Int, _ height: Int) {
         self.id = id
         self.width = width
         self.height = height
     }
-    
+
     internal static func fromCommandResponseData(_ data: CommandResponseData, withId id: Int) -> ImageInfo {
         guard data.count >= 4 else { return ImageInfo(0, 0, 0) }
-        
+
         let width = Int.fromUInt16ByteArray(bytes: [data[0], data[1]])
         let height = Int.fromUInt16ByteArray(bytes: [data[2], data[3]])
 

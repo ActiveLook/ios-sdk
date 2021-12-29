@@ -24,22 +24,22 @@ extension Int {
         let fourthByte = UInt8(truncatingIfNeeded: self)
         return [firstByte, secondByte, thirdByte, fourthByte]
     }
-    
+
     internal static func fromUInt16ByteArray(bytes: [UInt8]) -> Int {
         guard bytes.count >= 2 else { return 0 }
-        
+
         return Int(bytes[0]) << 8 + Int(bytes[1])
     }
 
     internal static func fromUInt24ByteArray(bytes: [UInt8]) -> Int {
         guard bytes.count >= 3 else { return 0 }
-        
+
         return Int(bytes[0]) << 16 + Int(bytes[1]) << 8 + Int(bytes[2])
     }
-    
+
     internal static func fromUInt32ByteArray(bytes: [UInt8]) -> Int {
         guard bytes.count >= 4 else { return 0 }
-        
+
         return Int(bytes[0]) << 24 + Int(bytes[1]) << 16 + Int(bytes[2]) << 8 + Int(bytes[3])
     }
 }

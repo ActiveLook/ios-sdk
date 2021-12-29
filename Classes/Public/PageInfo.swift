@@ -17,13 +17,13 @@ import Foundation
 
 /// Information about a page.
 public class PageInfo {
-    
+
     /// The page id
     public let id: UInt8
-    
+
     /// The page payload
     public let payload: [UInt8]
-    
+
     init(_ id: UInt8, _ layoutIds: [UInt8], _ xs: [Int16], _ ys: [UInt8]) {
         self.id = id
         var payload: [UInt8] = [id]

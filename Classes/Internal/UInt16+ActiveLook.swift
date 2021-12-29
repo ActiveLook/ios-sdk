@@ -22,10 +22,10 @@ extension UInt16 {
         let lsb = UInt8(truncatingIfNeeded: self)
         return [msb, lsb]
     }
-    
+
     internal static func fromUInt16ByteArray(bytes: [UInt8]) -> UInt16 {
         guard bytes.count >= 2 else { return 0 }
-        
+
         return UInt16(bytes[0]) << 8 + UInt16(bytes[1])
     }
 

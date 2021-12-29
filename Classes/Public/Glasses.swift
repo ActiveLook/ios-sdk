@@ -249,7 +249,7 @@ public class Glasses {
         guard data.count >= 6 else { return } // Header + CommandID + CommandFormat + QueryID + Length + Footer // TODO Raise error
 
         let handledCommandIDs: [UInt8] = [
-            CommandID.battery, CommandID.vers, CommandID.settings,  CommandID.imgList,
+            CommandID.battery, CommandID.vers, CommandID.settings, CommandID.imgList,
             CommandID.pixelCount, CommandID.getChargingCounter, CommandID.getChargingTime,
             CommandID.rConfigID, CommandID.cfgRead, CommandID.cfgList, CommandID.cfgGetNb,
             CommandID.cfgFreeSpace, CommandID.fontList, CommandID.pageList
@@ -1215,7 +1215,7 @@ public class Glasses {
         public mutating func enqueue(_ values: [UInt8]) {
             dispatchQueue.sync(flags: .barrier) {
 
-                #warning("TEMPORARY DISABLED")
+                #warning("TEMPORARILY DISABLED")
                 /// TEMPORARY DISABLED WHILE ACTIVELOOK IS WORKING
                 /// ON CONTROLFLOW
                 /*

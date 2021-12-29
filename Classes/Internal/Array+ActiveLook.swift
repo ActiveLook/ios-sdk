@@ -22,6 +22,3 @@ extension Array {
         }
     }
 }
-
-
-
