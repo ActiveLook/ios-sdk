@@ -18,25 +18,24 @@ import CoreBluetooth
 
 /// The main entry point to interacting with ActiveLook glasses.
 ///
-/// The ActiveLookSDK class should be used as a singleton, and can be accessed via its `shared` property.
+/// The ActiveLookSDK class should be used as a singleton, and can be accessed via the `shared()` function.
 ///
 /// It uses the CBCentralManager to interact with ActiveLook glasses over Bluetooth and sets itself as its delegate.
 ///
+
 public class ActiveLookSDK {
 
-    
-    // MARK: - Public properties
 
-    /// The shared instance of the ActiveLook SDK.
-    public static let shared = ActiveLookSDK()
-    
-    
     // MARK: - Private properties
 
+    private static var _shared: ActiveLookSDK!
     private var centralManager: CBCentralManager!
     private var centralManagerDelegate: CentralManagerDelegate
+    private var glassesUpdater: GlassesUpdater!
     private var discoveredGlassesArray: [DiscoveredGlasses] = []
     private var connectedGlassesArray: [Glasses] = []
+
+    private var glassesUpdateParameters: GlassesUpdateParameters!
     
     private var glassesDiscoveredCallback: ((DiscoveredGlasses) -> Void)?
     
@@ -44,15 +43,21 @@ public class ActiveLookSDK {
                                    scanErrorCallback: (Error) -> Void)?
     
     // MARK: - Initialization
-    
-    private init() {
+
+    private init(with glassesUpdateParameters: GlassesUpdateParameters) {
+
+        self.glassesUpdateParameters = glassesUpdateParameters
+        self.glassesUpdater = GlassesUpdater(with: glassesUpdateParameters)
         self.centralManagerDelegate = CentralManagerDelegate()
         self.centralManagerDelegate.parent = self
-        centralManager = CBCentralManager(delegate: self.centralManagerDelegate, queue: nil) // TODO Use a specific queue
         self.didAskForScan = nil
+
+        ActiveLookSDK._shared = self
+
+        centralManager = CBCentralManager(delegate: self.centralManagerDelegate, queue: nil) // TODO Use a specific queue
     }
-    
-    
+
+
     // MARK: - Private methods
     
     private func peripheralIsActiveLookGlasses(peripheral: CBPeripheral, advertisementData: [String: Any]) -> Bool {
@@ -80,8 +85,59 @@ public class ActiveLookSDK {
         return nil
     }
 
+
     // MARK: - Public methods
-    
+
+    /// This is the method used to initialize the `ActiveLookSDK` singleton **and** access it later on.
+    /// To initialize it, this function is called with all parameters set.
+    /// To access it afterwards, just call it without any arguments: `ActiveLookSDK.shared()`
+    /// - throws:
+    ///     - `ActiveLookError.sdkInitMissingParameters`
+    ///     if the function is called with incomplete parameters.
+    ///     - `ActiveLookError.sdkCannotChangeParameters`
+    ///     if the function is called more than once during the application's lifetime, with all the parameters correctly set.
+    /// - parameters:
+    ///     - token: The token used for authenticating with the firmware repository.
+    ///     - onUpdateStart             Registered callback for update start event notification
+    ///     - onUpdateProgress      Registered callback for update progress event notification.
+    ///     - onUpdateSuccess       Registered callback for update success event notification.
+    ///     - onUpdateError             Registered callback for update error event notification.
+    ///  - returns: the `ActiveLookSDK`'s singleton
+    ///
+    public static func shared(token: String? = nil,
+                       onUpdateStartCallback: (() -> Void)? = nil,
+                       onUpdateProgressCallback: (() -> Void)? = nil,
+                       onUpdateSuccessCallback: (() -> Void)? = nil,
+                       onUpdateFailureCallback: (() -> Void)? = nil) throws -> ActiveLookSDK
+    {
+
+        var glassesUpdateParameters: GlassesUpdateParameters? = nil
+
+        if token != nil,
+           onUpdateStartCallback != nil,
+           onUpdateProgressCallback != nil,
+           onUpdateSuccessCallback != nil,
+           onUpdateFailureCallback != nil
+        {
+            glassesUpdateParameters = GlassesUpdateParameters(token: token!,
+                                                              onUpdateStartCallback: onUpdateStartCallback!,
+                                                              onUpdateProgressCallback: onUpdateProgressCallback!,
+                                                              onUpdateSuccessCallback: onUpdateSuccessCallback!,
+                                                              onUpdateFailureCallback: onUpdateFailureCallback!)
+        }
+
+        switch (_shared, glassesUpdateParameters) {
+        case let (i?, nil):
+            return i
+        case _ where (_shared != nil) && (glassesUpdateParameters != nil):
+            throw ActiveLookError.sdkCannotChangeParameters
+        case _ where (_shared == nil) && (glassesUpdateParameters != nil):
+            _shared = ActiveLookSDK(with: glassesUpdateParameters!)
+            return _shared
+        default:
+            throw ActiveLookError.sdkInitMissingParameters
+        }
+    }
     
     /// Start scanning for ActiveLook glasses. Will keep scanning until `stopScanning()` is called.
     /// - Parameters:
@@ -178,7 +234,8 @@ public class ActiveLookSDK {
             parent?.glassesDiscoveredCallback?(discoveredGlasses)
         }
         
-        public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+        public func centralManager(_ central: CBCentralManager,
+                                   didConnect peripheral: CBPeripheral) {
             guard let discoveredGlasses = parent?.discoveredGlasses(fromPeripheral: peripheral) else {
                 print("connected to unknown glasses") // TODO Raise error ?
                 return
@@ -186,7 +243,15 @@ public class ActiveLookSDK {
             
             print("central manager did connect to glasses \(discoveredGlasses.name)")
 
+
             let glasses = Glasses(discoveredGlasses: discoveredGlasses)
+
+            do {
+                try parent?.glassesUpdater.update(glasses: glasses)
+            } catch {
+                parent?.glassesUpdateParameters.onUpdateFailureCallback()
+            }
+
             let glassesInitializer = GlassesInitializer(glasses: glasses)
 
             glassesInitializer.initialize(
