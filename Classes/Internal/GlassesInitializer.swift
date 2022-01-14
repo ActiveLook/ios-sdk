@@ -191,6 +191,7 @@ class GlassesInitializer: NSObject, CBPeripheralDelegate {
 
             peripheral.discoverDescriptors(for: characteristic)
 
+            //TODO: is the following call needed here?
             if service.uuid == CBUUID.DeviceInformationService {
                 peripheral.readValue(for: characteristic)
             }

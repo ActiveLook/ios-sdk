@@ -22,3 +22,4 @@ struct GlassesUpdateParameters {
     var onUpdateSuccessCallback: () -> Void
     var onUpdateFailureCallback: () -> Void
 }
+

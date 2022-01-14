@@ -249,7 +249,9 @@ public class ActiveLookSDK {
             do {
                 try parent?.glassesUpdater.update(glasses: glasses)
             } catch {
+                print("error updating glasses")
                 parent?.glassesUpdateParameters.onUpdateFailureCallback()
+                return
             }
 
             let glassesInitializer = GlassesInitializer(glasses: glasses)

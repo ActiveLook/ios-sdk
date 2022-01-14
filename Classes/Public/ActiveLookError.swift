@@ -27,6 +27,7 @@ public enum ActiveLookError: Error {
     case sdkInitMissingParameters
     case sdkCannotChangeParameters
     case sdkDevelopment
+    case sdkSUOTAError
 }
 
 extension ActiveLookError: LocalizedError {
@@ -52,6 +53,8 @@ extension ActiveLookError: LocalizedError {
             return "You cannot change parameters after initialization!"
         case .sdkDevelopment:
             return "YOU HAVE AN ERROR!!!!"
+        case .sdkSUOTAError:
+            return "Error while uploading firmware"
         }
     }
 
