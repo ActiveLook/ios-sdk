@@ -16,15 +16,11 @@
 import Foundation
 import CoreBluetooth
 
-
 public enum FirmwareUpdaterError: Error {
     case firmwareUpdater(message: String)
     case sdk
     case sdkDevelopment(message: String = "")   // Used for development? LET'S TRY...
 }
-
-#warning("TEMPORARY TYPEALIAS! DEFINE")
-typealias Firmware = NSString
 
 #warning("PUT FOLLOWING DEFINITION WHERE IT BELONGS...")
 extension UInt32 {
@@ -51,11 +47,15 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
     private var initTimeoutTimer: Timer?
     private var initPollTimer: Timer?
 
+    private static let BLOCK_SIZE = 240
+
     private var suotaVersion: Int = 0
     private var suotaPatchDataSize: Int = 20
     private var suotaMtu: Int = 23
     private var suotaL2capPsm: Int = 0
-    //    private List<Pair<Integer, List<byte[]>>> blocks
+
+    private var blocks: Blocks = []
+
     private var blockId: Int = 0
     private var chunkId: Int = 0
     private var patchLength: Int = 0
@@ -160,8 +160,8 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
         steps.append(4)
     }
 
-    private func enableNotifications() {
-        print("SUOTA - Enabling notification")
+    private func enableNotifications() {  // -- ✅
+        print("SUOTA - enable notification")
 
         let service = peripheral.getService(withUUID: CBUUID.SPOTA_SERVICE_UUID)
 
@@ -179,40 +179,60 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
         peripheral.setNotifyValue(true, for: characteristic)
         steps.append(5)
         print("5 - enableNotifications")
-        // onSuccess -> setSpotaMemDev()    -- ✅ ### ( -- ✅ -- ❌ )
-        // fail -> throw error              -- ✅
-        // onUpdate -> onSuotaNotification()-- ❌
+        // onSuccess -> setSpotaMemDev()        -- ✅
+        // fail -> throw error                  -- ✅
+        // onUpdate -> onSuotaNotification()    -- ✅
     }
 
-    private func onSuotaNotifications(data: Data) {
-//        int value = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0); -- ❌
-//        Log.d("Suota notification", String.format("SPOTA_SERV_STATUS notification: %#04x", value)); -- ❌
+    private func onSuotaNotifications(data: Data) { // -- ✅
+//        int value = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0); -- ✅
+//        Log.d("Suota notification", String.format("SPOTA_SERV_STATUS notification: %#04x", value)); -- ✅
 //        if (value == 0x10) {
-//            this.setSpotaGpioMap(gatt, service);  -- ❌ ### ( -- ✅ -- ❌ )
+//            this.setSpotaGpioMap(gatt, service);  -- ✅
 //        } else if (value == 0x02) {
-//            this.setPatchLength(gatt, service);   -- ❌
+//            this.setPatchLength(gatt, service);   -- ✅
 //        } else {
-//            Log.e("Suota notification", String.format("SPOTA_SERV_STATUS notification error: %#04x", value)); -- ❌
+//            Log.e("Suota notification", String.format("SPOTA_SERV_STATUS notification error: %#04x", value)); -- ✅
 //        }
+        print("onSuotaNotifications()")
+
+        guard let value = data.first else {
+            failed(withError: GlassesUpdaterError.glassesUpdater(
+                message: "SUOTA notification: unexpected format"))
+            return
+        }
+
+        print(String(format: "SPOTA_SERV_STATUS notification: %04x", arguments: [value]))
+
+        switch value {
+        case 0x10 :
+            // self.setSpotaGpioMap()
+            self.setSpotaGpioMap()
+
+        case 0x02 :
+            // self.setPatchLength()
+            self.setPatchLength()
+
+        default :
+            print(String(format: "SUOTA notification : SPOTA_SERV_STATUS notification: %04x", arguments: [value]))
+        }
     }
 
-    private func setSpotaMemDev() {
-//        final int memType = 0x13000000;
-//        Log.d("SPOTA", "setSpotaMemDev: " + String.format("%#010x", memType));
-//        final BluetoothGattCharacteristic characteristic = service.getCharacteristic(GlassesGatt.SPOTA_MEM_DEV_UUID);
+    private func setSpotaMemDev() {  // -- ✅
+//        final int memType = 0x13000000; -- ✅
+//        Log.d("SPOTA", "setSpotaMemDev: " + String.format("%#010x", memType));    -- ✅
+//        final BluetoothGattCharacteristic characteristic = service.getCharacteristic(GlassesGatt.SPOTA_MEM_DEV_UUID); -- ✅
 //        characteristic.setValue(memType, BluetoothGattCharacteristic.FORMAT_UINT32, 0);
 //        gatt.writeCharacteristic(
-//            characteristic,
+//            characteristic, -- ✅
 //            c -> {
 //                Log.d("SPOTA", "Wait for notification for setSpotaMemDev."); -- ✅
 //            },
-//            this::onCharacteristicError);
+//            this::onCharacteristicError); -- ✅
         let memType: UInt32 = 0x13000000
         print(String(format:"SPOTA - setSpotaMemDev %010x", arguments: [memType]))
 
-        let service = peripheral.getService(withUUID: CBUUID.SPOTA_SERVICE_UUID)
-
-        guard let service = service else {
+        guard let service = peripheral.getService(withUUID: CBUUID.SPOTA_SERVICE_UUID) else {
             failed(withError: FirmwareUpdaterError.firmwareUpdater(
                 message: "no SPOTA_SERVICE_UUID service discovered"))
             return
@@ -225,26 +245,68 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
         }
 
         peripheral.writeValue(Data(memType.byteArray), for: characteristic, type: .withResponse)
-        print("SPOTA - Wait for notification for setSpotaMemDev")
+        print("SPOTA - Wait for notification from setSpotaMemDev")
     }
 
-    private func setSpotaGpioMap() {
+    private func setSpotaGpioMap() { // -- ❌
 // private void setSpotaGpioMap(final GlassesGatt gatt, final BluetoothGattService service) {
-//        final int memInfoData = 0x05060300;
-//        Log.d("SPOTA", "setSpotaGpioMap: " + String.format("%#010x", memInfoData));
-//        final BluetoothGattCharacteristic characteristic = service.getCharacteristic(GlassesGatt.SPOTA_GPIO_MAP_UUID);
-//        characteristic.setValue(memInfoData, BluetoothGattCharacteristic.FORMAT_UINT32, 0);
-//        gatt.writeCharacteristic(
+//        final int memInfoData = 0x05060300; // -- ✅ ### -- ✅ -- ❌
+//        Log.d("SPOTA", "setSpotaGpioMap: " + String.format("%#010x", memInfoData));// -- ✅
+//        final BluetoothGattCharacteristic characteristic = service.getCharacteristic(GlassesGatt.SPOTA_GPIO_MAP_UUID); // -- ✅
+//        characteristic.setValue(memInfoData, BluetoothGattCharacteristic.FORMAT_UINT32, 0); // -- ✅
+//        gatt.writeCharacteristic( // -- ✅
 //            characteristic,
-//            c -> {
-//                final int chunkSize = Math.min(this.suotaPatchDataSize, this.suotaMtu - 3);
-//                this.blocks = this.firmware.getSuotaBlocks(BLOCK_SIZE, chunkSize);
-//                this.blockId = 0;
-//                this.chunkId = 0;
-//                this.patchLength = 0;
-//                this.setPatchLength(gatt, service);
+//            c -> { // -- ✅
+//                final int chunkSize = Math.min(this.suotaPatchDataSize, this.suotaMtu - 3); // -- ✅
+//                this.blocks = this.firmware.getSuotaBlocks(BLOCK_SIZE, chunkSize); // -- ❌
+//                this.blockId = 0; // -- ✅
+//                this.chunkId = 0; // -- ✅
+//                this.patchLength = 0; // -- ✅
+//                this.setPatchLength(gatt, service); // -- ❌
 //            },
-//            this::onCharacteristicError);
+//            this::onCharacteristicError); // -- ❌
+        let memInfoData: UInt32 = 0x05060300
+
+        print(String(format: "SPOTA – setSpotaGpioMap: %010x", arguments: [memInfoData]))
+
+        guard let service = peripheral.getService(withUUID: CBUUID.SPOTA_SERVICE_UUID) else {
+            return
+        }
+
+        guard let characteristic = service.getCharacteristic(forUUID: CBUUID.SPOTA_GPIO_MAP_UUID) else {
+            failed(withError: FirmwareUpdaterError.firmwareUpdater(
+                message: "no SPOTA_MEM_DEV_UUID characteristic discovered"))
+            return
+        }
+
+        peripheral.writeValue(Data(memInfoData.byteArray), for: characteristic, type: .withResponse)
+    }
+
+    private func setBlocks() {
+
+        guard let firmware = firmware else {
+            failed(withError: FirmwareUpdaterError.firmwareUpdater(
+                message: "error updating writing value for characteristic: \(characteristic.uuid)"))
+            return
+        }
+
+        let chunkSize = min(self.suotaPatchDataSize, self.suotaMtu - 3)
+
+        do {
+            try self.blocks = firmware.getSuotaBlocks(Self.BLOCK_SIZE, chunkSize)
+        } catch error {
+            switch error {
+            case E.firmwareNullChunksize :
+                failed(withError: FirmwareUpdaterError.firmwareUpdater(
+                    message: "Chunk size should not be nul"))
+            }
+        }
+
+        self.blockId = 0
+        self.chunkId = 0
+        self.patchLength = 0
+
+        self.setPatchLength()
     }
 
     private func setPatchLength() {
@@ -269,6 +331,37 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
 //        } else {
 //            this.sendEndSignal(gatt, service);
 //        }
+
+
+        if ( self.blockId < self.blocks.count ) {
+
+            let block: Block = self.blocks [ self.blockId ]
+            let blockSize: UInt16 = block.size
+
+            if ( blockSize != UInt16(self.patchLength)) {
+                print(String(format: "SUOTA setPatchLength: \(blockSize) - %06x", arguments: [blockSize]))
+
+                guard let service = peripheral.getService(withUUID: CBUUID.SPOTA_SERVICE_UUID) else {
+                    failed(withError: FirmwareUpdaterError.firmwareUpdater(
+                        message: "no SPOTA_SERVICE_UUID service discovered"))
+                    return
+                }
+
+                guard let characteristic = service.getCharacteristic(forUUID: CBUUID.SPOTA_PATCH_LEN_UUID) else {
+                    failed(withError: FirmwareUpdaterError.firmwareUpdater(
+                        message: "no SPOTA_PATCH_LEN_UUID characteristic discovered"))
+                    return
+                }
+
+                peripheral.writeValue(blockSize,
+                                      for: characteristic,
+                                      type: .withResponse)
+            } else {
+                self.sendBlock()
+            }
+        } else {
+            self.sendEndSignal()
+        }
     }
 
     private func sendBlock() {
@@ -276,7 +369,7 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
 //        if (this.blockId < this.blocks.size()) {
 //            final Pair<Integer, List<byte[]>> block = this.blocks.get(this.blockId);
 //            final List<byte[]> chunks = block.second;
-//            if (this.chunkId < chunks.size()) {
+//            if (this.chunkId < chunks.size()) { <<<<--------------- ❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌
 //                Log.d("SUOTA", String.format("sendBlock %d chunk %d", this.blockId, this.chunkId));
 //                final BluetoothGattCharacteristic characteristic = service.getCharacteristic(GlassesGatt.SPOTA_PATCH_DATA_UUID);
 //                characteristic.setValue(chunks.get(this.chunkId++));
@@ -293,6 +386,12 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
 //        } else {
 //            this.sendEndSignal(gatt, service);
 //        }
+        if ( self.blockId < self.blocks.count ) {
+            let block: Block = self.blocks[blockId]
+            les chunks = block.bytes
+
+            if
+        }
     }
 
     private func sendEndSignal() {
@@ -391,11 +490,11 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
 
             switch characteristic.uuid {
             case CBUUID.SUOTA_VERSION_UUID :
-                print("discovered characteristic: SUOTA_VERSION_UUID")
+                print("discovered SUOTA_VERSION_UUID characteristic")
                 peripheral.readValue(for: characteristic)
 
             case CBUUID.SUOTA_PATCH_DATA_CHAR_SIZE_UUID :
-                print("discovered characteristic: SUOTA_PATCH_DATA_CHAR_SIZE_UUID")
+                print("discovered SUOTA_PATCH_DATA_CHAR_SIZE_UUID characteristic")
                 peripheral.readValue(for: characteristic)
 
             default:
@@ -434,6 +533,9 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
         case CBUUID.SUOTA_L2CAP_PSM_UUID :
             suotaRead_SUOTA_L2CAP_PSM_UUID(data: data)
 
+        case CBUUID.SPOTA_MEM_DEV_UUID :
+            onSuotaNotifications(data: data)
+
         default:
             // print("updated value for unknown characteristic: \(characteristic.uuid)")
             break
@@ -447,9 +549,23 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
 
         guard error == nil else {
             failed(withError: FirmwareUpdaterError.firmwareUpdater(
-                message: "error\(error!) updating notification state for characteristic: \(characteristic.uuid)"))
+                message: "error \(error!) updating notification state for characteristic: \(characteristic.uuid)"))
             return
         }
+
+        guard let data = characteristic.value else {
+            failed(withError: FirmwareUpdaterError.firmwareUpdater(
+                message: "no data read for characteristic: \(characteristic)"))
+            return
+        }
+
+        switch characteristic.uuid {
+
+        default :
+            failed(withError: FirmwareUpdaterError.firmwareUpdater(
+                message: "Did update notification state for unknown characteristic: \(characteristic.uuid)"))
+        }
+
     }
 
     func peripheral(_ peripheral: CBPeripheral,
@@ -458,17 +574,26 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
 
         guard error == nil else {
             failed(withError: FirmwareUpdaterError.firmwareUpdater(
-                message: "error\(error!) updating writing value for characteristic: \(characteristic.uuid)"))
+                message: "error \(error!) updating writing value for characteristic: \(characteristic.uuid)"))
             return
         }
 
         switch characteristic.uuid {
-        case CBUUID.SPOTA_MEM_DEV_UUID:
-            print("SPOTA - Wait for notification for setSpotaMemDev.")
+        case CBUUID.SPOTA_MEM_DEV_UUID :
+            print("SPOTA - Did write value for SPOTA_MEM_DEV_UUID.")
+
+        case CBUUID.SPOTA_GPIO_MAP_UUID :
+            print("SPOTA - Did write value for SPOTA_GPIO_MAP_UUID.")
+            self.setBlocks()
+
+        case CBUUID.SPOTA_PATCH_LEN_UUID :
+            print("SPOTA - Did write value for SPOTA_PATCH_LEN_UUID")
+            self.patchLength = UInt16(characteristic.valueAsInt)
+            self.sendBlock()
+
         default:
-            print("toto")
             failed(withError: FirmwareUpdaterError.firmwareUpdater(
-                message: "write value for unknown characteristic: \(characteristic.uuid)"))
+                message: "Did write value for unknown characteristic: \(characteristic.uuid)"))
             return
         }
     }
