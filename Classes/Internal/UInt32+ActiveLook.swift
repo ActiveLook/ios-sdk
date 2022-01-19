@@ -17,6 +17,14 @@ import Foundation
 
 extension UInt32 {
 
+    /// is returning the same output as `asUInt8Array`.
+    /// Not tested performance wise...
+    var byteArray: [UInt8] {
+        withUnsafeBytes(of: self.bigEndian) {
+            Array($0)
+        }
+    }
+
     var asUInt8Array: [UInt8] {
         let firstByte = UInt8(truncatingIfNeeded: self >> 24)
         let secondByte = UInt8(truncatingIfNeeded: self >> 16)

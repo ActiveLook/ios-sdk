@@ -15,7 +15,8 @@
 
 import Foundation
 
-typealias Block = (size: Int, bytes: [UInt8])
+typealias Chunck = [UInt8]
+typealias Block = (size: Int, bytes: [Chunck])
 typealias Blocks = [Block]
 
 enum E: Error {
@@ -59,13 +60,13 @@ final class Firmware {
         while blockOffset < self.bytes.count {
             let currentBlockSize = min(blockSize, self.bytes.count - blockOffset)
 
-            final var block: [UInt8]
+            final var block:
             final var chunkOffset = 0
 
             while chunkOffset < currentBlockSize {
 
                 let currentChunkSize = min(chunkSize, currentBlockSize - chunkOffset)
-                var chunk: [UInt8] = Array[currentChunkSize]
+                var chunk: Chunck = Array[currentChunkSize]
 
                 let startIndex = blockOffset + chunkOffset
                 let endIndex = startIndex + currentChunkSize

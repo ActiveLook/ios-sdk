@@ -66,7 +66,7 @@ public class Glasses {
     private var queryId: UInt8
     
     // The maximum amount of data, in bytes, you can send to a characteristic in a single write type.
-    private var mtu: Int
+    private var availableMTU: Int = 20
     
     // A queue used for storing commands while glasses are unavailable
     private var commandQueue: ConcurrentDataQueue {
@@ -154,8 +154,8 @@ public class Glasses {
         self.pendingQueries = [:]
         self.responseBuffer = nil
         self.expectedResponseBufferLength = 0
-        self.mtu = self.peripheral.maximumWriteValueLength(for: .withResponse)
-        self.commandQueue = ConcurrentDataQueue(for: self.mtu)
+        self.availableMTU = self.peripheral.maximumWriteValueLength(for: .withResponse) - 3
+        self.commandQueue = ConcurrentDataQueue(for: self.availableMTU)
         self.flowControlState = .on
         self.rxCharacteristicState = .available
         self.peripheralDelegate = PeripheralDelegate()
@@ -1206,8 +1206,8 @@ public class Glasses {
         public var isEmpty: Bool { return elements.isEmpty }
         public var count: Int { return elements.count }
         
-        public init(for mtu: Int = 23, withElements elements: [Data] = []) {
-            self.mtu = mtu - 3
+        public init(for mtu: Int = 20, withElements elements: [Data] = []) {
+            self.mtu = mtu
             self.elements = elements
         }
         
@@ -1215,7 +1215,7 @@ public class Glasses {
         public mutating func enqueue(_ values: [UInt8]) {
             dispatchQueue.sync(flags: .barrier) {
 
-                #warning("TEMPORARILY DISABLED")
+                #warning("TEMPORARILY DISABLED --- ALSO HOW COMMANDS > MTU ARE HANDLED")
                 /// TEMPORARY DISABLED WHILE ACTIVELOOK IS WORKING
                 /// ON CONTROLFLOW
                 /*
