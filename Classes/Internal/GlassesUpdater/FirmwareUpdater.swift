@@ -227,16 +227,6 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
     }
 
     private func setSpotaMemDev() {  // -- ✅
-//        final int memType = 0x13000000; -- ✅
-//        Log.d("SPOTA", "setSpotaMemDev: " + String.format("%#010x", memType));    -- ✅
-//        final BluetoothGattCharacteristic characteristic = service.getCharacteristic(GlassesGatt.SPOTA_MEM_DEV_UUID); -- ✅
-//        characteristic.setValue(memType, BluetoothGattCharacteristic.FORMAT_UINT32, 0);
-//        gatt.writeCharacteristic(
-//            characteristic, -- ✅
-//            c -> {
-//                Log.d("SPOTA", "Wait for notification for setSpotaMemDev."); -- ✅
-//            },
-//            this::onCharacteristicError); -- ✅
         let memType: UInt32 = 0x13000000
         print(String(format:"SPOTA - setSpotaMemDev %010x", arguments: [memType]))
 
@@ -257,22 +247,6 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
     }
 
     private func setSpotaGpioMap() { // -- ✅
-// private void setSpotaGpioMap(final GlassesGatt gatt, final BluetoothGattService service) {
-//        final int memInfoData = 0x05060300; // -- ✅
-//        Log.d("SPOTA", "setSpotaGpioMap: " + String.format("%#010x", memInfoData));// -- ✅
-//        final BluetoothGattCharacteristic characteristic = service.getCharacteristic(GlassesGatt.SPOTA_GPIO_MAP_UUID); // -- ✅
-//        characteristic.setValue(memInfoData, BluetoothGattCharacteristic.FORMAT_UINT32, 0); // -- ✅
-//        gatt.writeCharacteristic( // -- ✅
-//            characteristic,
-//            c -> { // -- ✅
-//                final int chunkSize = Math.min(this.suotaPatchDataSize, this.suotaMtu - 3); // -- ✅
-//                this.blocks = this.firmware.getSuotaBlocks(BLOCK_SIZE, chunkSize); // -- ✅
-//                this.blockId = 0; // -- ✅
-//                this.chunkId = 0; // -- ✅
-//                this.patchLength = 0; // -- ✅
-//                this.setPatchLength(gatt, service); // -- ✅
-//            },
-//            this::onCharacteristicError); // -- ✅
         let memInfoData: UInt32 = 0x05060300
 
         print(String(format: "SPOTA – setSpotaGpioMap: %010x", arguments: [memInfoData]))
@@ -318,27 +292,6 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
     }
 
     private func setPatchLength() { // -- ✅
-//    private void setPatchLength(final GlassesGatt gatt, final BluetoothGattService service) {
-//        if (this.blockId < this.blocks.size()) {  // -- ✅
-//            final Pair<Integer, List<byte[]>> block = this.blocks.get(this.blockId);  // -- ✅
-//            final int blockSize = block.first;  // -- ✅
-//            if (blockSize != this.patchLength) {  // -- ✅
-//                Log.d("SUOTA", "setPatchLength: " + blockSize + " - " + String.format("%#06x", blockSize));  // -- ✅
-//                final BluetoothGattCharacteristic characteristic = service.getCharacteristic(GlassesGatt.SPOTA_PATCH_LEN_UUID);  // -- ✅
-//                characteristic.setValue(blockSize, BluetoothGattCharacteristic.FORMAT_UINT16, 0);  // -- ✅
-//                gatt.writeCharacteristic(  // -- ✅
-//                    characteristic,
-//                    c -> {
-//                        this.patchLength = blockSize;
-//                        this.sendBlock(gatt, service);
-//                    },
-//                    this::onCharacteristicError);
-//            } else {
-//                this.sendBlock(gatt, service);   // -- ✅
-//            }
-//        } else {
-//            this.sendEndSignal(gatt, service);  // -- ✅
-//        }
 
         if ( self.blockId < self.blocks.count ) {
 
@@ -372,37 +325,17 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
     }
 
     private func sendBlock() {   // -- ✅
-//    private void sendBlock(final GlassesGatt gatt, final BluetoothGattService service) {
-//        if (this.blockId < this.blocks.size()) { // -- ✅
-//            final Pair<Integer, List<byte[]>> block = this.blocks.get(this.blockId); // -- ✅
-//            final List<byte[]> chunks = block.second; // -- ✅
-//            if (this.chunkId < chunks.size()) { // -- ✅
-//                Log.d("SUOTA", String.format("sendBlock %d chunk %d", this.blockId, this.chunkId));  // -- ✅
-//                final BluetoothGattCharacteristic characteristic = service.getCharacteristic(GlassesGatt.SPOTA_PATCH_DATA_UUID); // -- ✅
-//                characteristic.setValue(chunks.get(this.chunkId++)); // -- ✅
-//                characteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE); // -- ✅
-//                gatt.writeCharacteristic( // -- ✅
-//                    characteristic,
-//                    c -> this.sendBlock(gatt, service), // -- ✅
-//                    this::onCharacteristicError);
-//            } else {
-//                this.blockId ++; // -- ✅
-//                this.chunkId = 0; // -- ✅
-//                Log.d("SPOTA", "Wait for notification for sendBlock."); // -- ✅
-//            }
-//        } else { // -- ✅
-//            this.sendEndSignal(gatt, service); // -- ✅
-//        }
+
         if ( self.blockId < self.blocks.count ) {
 
-            guard let service = peripheral.getService(withUUID: CBUUID.SPOTA_SERVICE_UUID) else {
-                failed(withError: FirmwareUpdaterError.firmwareUpdater(
+            guard let service = peripheral.getService( withUUID: CBUUID.SPOTA_SERVICE_UUID ) else {
+                failed( withError: FirmwareUpdaterError.firmwareUpdater(
                     message: "no SPOTA_SERVICE_UUID service discovered"))
                 return
             }
 
-            guard let characteristic = service.getCharacteristic(forUUID: CBUUID.SPOTA_PATCH_DATA_UUID) else {
-                failed(withError: FirmwareUpdaterError.firmwareUpdater(
+            guard let characteristic = service.getCharacteristic( forUUID: CBUUID.SPOTA_PATCH_DATA_UUID ) else {
+                failed( withError: FirmwareUpdaterError.firmwareUpdater(
                     message: "no SPOTA_PATCH_DATA_UUID characteristic discovered"))
                 return
             }
@@ -412,8 +345,8 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
 
             if (self.chunkId < chunks.count) {
 
-                print(String(format: "SUOTA - sendBlock %d chunk %d", arguments: [self.blockId, self.chunkId]))
-                peripheral.writeValue(chunks[self.chunkId], for: characteristic, type: .withoutResponse)
+                print( String( format: "SUOTA - sendBlock %d chunk %d", arguments: [self.blockId, self.chunkId]))
+                peripheral.writeValue( chunks[self.chunkId], for: characteristic, type: .withoutResponse)
                 self.chunkId++
                 sendBlock()
 
@@ -422,24 +355,13 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
                 self.blockId++
                 self.chunkId = 0
                 print("SPOTA - waiting for notification to send block")
-
             }
         } else {
-
             self.sendEndSignal()
-
         }
     }
 
     private func sendEndSignal() { // -- ✅
-//    private void sendEndSignal(final GlassesGatt gatt, final BluetoothGattService service) {
-//        Log.d("SUOTA", "sendEndSignal"); // -- ✅
-//        final BluetoothGattCharacteristic characteristic = service.getCharacteristic(GlassesGatt.SPOTA_MEM_DEV_UUID);  // -- ✅
-//        characteristic.setValue(0xfe000000, BluetoothGattCharacteristic.FORMAT_UINT32, 0);  // -- ✅
-//        gatt.writeCharacteristic(  // -- ✅
-//            characteristic,
-//            c -> this.sendRebootSignal(gatt, service),  // -- ✅
-//            this::onCharacteristicError); // -- ✅
         guard let service = peripheral.getService(withUUID: CBUUID.SPOTA_SERVICE_UUID) else {
             failed(withError: FirmwareUpdaterError.firmwareUpdater(
                 message: "no SPOTA_SERVICE_UUID service discovered"))
@@ -457,16 +379,6 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
     }
 
     private func sendRebootSignal() { // -- ✅
-//    private void sendRebootSignal(final GlassesGatt gatt, final BluetoothGattService service) {
-//        Log.d("SUOTA", "sendRebootSignal"); // -- ✅ ### -- ✅ -- ❌
-//        final BluetoothGattCharacteristic characteristic = service.getCharacteristic(GlassesGatt.SPOTA_MEM_DEV_UUID); // -- ❌
-//        characteristic.setValue(0xfd000000, BluetoothGattCharacteristic.FORMAT_UINT32, 0); // -- ✅
-//        gatt.writeCharacteristic( // -- ✅
-//            characteristic,
-//            c -> {
-//                Log.d("SUOTA", String.format("REBOOTING")); // -- ✅
-//            },
-//            this::onCharacteristicError); // -- ✅
         print("SUOTA - sendRebootSignal()")
         guard let service = peripheral.getService(withUUID: CBUUID.SPOTA_SERVICE_UUID) else {
             failed(withError: FirmwareUpdaterError.firmwareUpdater(
@@ -484,13 +396,7 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
     }
 
     private func failed(withError error: Error) {
-//        self.initErrorClosure?(ActiveLookError.connectionTimeoutError)
-//        self.initErrorClosure = nil
-//
-//        self.initPollTimer?.invalidate()
         print(error)
-
-        // reset delegate to glasses' own.
         self.glasses.peripheral.delegate = self.glasses.peripheralDelegate
     }
 
@@ -585,6 +491,7 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
             return
         }
 
+        // TODO: REFACTOR!
         switch characteristic.uuid {
         case CBUUID.SUOTA_VERSION_UUID :
             suotaRead_SUOTA_VERSION_UUID()
@@ -624,8 +531,8 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
             return
         }
 
+        // TODO: REFACTOR! SET CHARACTERISTICS TO MATCH
         switch characteristic.uuid {
-
         default :
             failed(withError: FirmwareUpdaterError.firmwareUpdater(
                 message: "Did update notification state for unknown characteristic: \(characteristic.uuid)"))
@@ -646,7 +553,7 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
         switch characteristic.uuid {
         case CBUUID.SPOTA_MEM_DEV_UUID :
             print("SPOTA - Did write value for SPOTA_MEM_DEV_UUID.")
-            switch characteristic.valueAsInt {
+            switch UInt32(characteristic.valueAsInt) {
             case UInt32(0xfe000000):
                 // notification sendEndSignal()
                 self.sendRebootSignal()
