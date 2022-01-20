@@ -54,7 +54,7 @@ public class ActiveLookSDK {
 
         ActiveLookSDK._shared = self
 
-        centralManager = CBCentralManager(delegate: self.centralManagerDelegate, queue: nil) // TODO Use a specific queue
+        centralManager = CBCentralManager(delegate: self.centralManagerDelegate, queue: nil) // TODO: Use a specific queue
     }
 
 
@@ -236,38 +236,46 @@ public class ActiveLookSDK {
         
         public func centralManager(_ central: CBCentralManager,
                                    didConnect peripheral: CBPeripheral) {
+
+            parent?.centralManager.stopScan()
+
             guard let discoveredGlasses = parent?.discoveredGlasses(fromPeripheral: peripheral) else {
                 print("connected to unknown glasses") // TODO Raise error ?
                 return
             }
-            
+
             print("central manager did connect to glasses \(discoveredGlasses.name)")
 
 
             let glasses = Glasses(discoveredGlasses: discoveredGlasses)
-
-            do {
-                try parent?.glassesUpdater.update(glasses: glasses)
-            } catch {
-                print("error updating glasses")
-                parent?.glassesUpdateParameters.onUpdateFailureCallback()
-                return
-            }
+//            parent?.glassesUpdater.update(glasses: glasses)
 
             let glassesInitializer = GlassesInitializer(glasses: glasses)
 
             glassesInitializer.initialize(
             onSuccess: {
-                self.parent?.connectedGlassesArray.append(glasses)
-                discoveredGlasses.connectionCallback?(glasses)
-                discoveredGlasses.connectionCallback = nil
-                discoveredGlasses.connectionErrorCallback = nil
+                print("glasses initialized! Updating!")
+                self.parent?.glassesUpdater.update(glasses: glasses)
+
             },
             onError: { (error) in
-                discoveredGlasses.connectionErrorCallback?(error)
-                discoveredGlasses.connectionCallback = nil
-                discoveredGlasses.connectionErrorCallback = nil
+
             })
+
+//            glassesInitializer.initialize(
+//            onSuccess: {
+//                self.parent?.connectedGlassesArray.append(glasses)
+//                discoveredGlasses.connectionCallback?(glasses)
+//                discoveredGlasses.connectionCallback = nil
+//                discoveredGlasses.connectionErrorCallback = nil
+//            },
+//            onError: { (error) in
+//                discoveredGlasses.connectionErrorCallback?(error)
+//                discoveredGlasses.connectionCallback = nil
+//                discoveredGlasses.connectionErrorCallback = nil
+//            })
+
+
         }
         
         public func centralManager(_ central: CBCentralManager,

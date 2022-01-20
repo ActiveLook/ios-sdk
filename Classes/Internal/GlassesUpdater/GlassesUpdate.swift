@@ -23,14 +23,14 @@ protocol GlassesUpdate {
     func getTargetFirmwareVersion() -> String
     func getSourceConfigurationVersion() -> String
     func getTargetConfigurationVersion() -> String
+}
 
-    enum State {
-        case DOWNLOADING_FIRMWARE
-        case UPDATING_FIRMWARE
-        case DOWNLOADING_CONFIGURATION
-        case UPDATING_CONFIGURATION
-        case ERROR_UPDATE_FAIL
-        case ERROR_UPDATE_FORBIDDEN
-        case ERROR_DOWNGRADE_FORBIDDEN
-    }
+internal enum State {
+    case DOWNLOADING_FIRMWARE
+    case UPDATING_FIRMWARE
+    case DOWNLOADING_CONFIGURATION
+    case UPDATING_CONFIGURATION
+    case ERROR_UPDATE_FAIL
+    case ERROR_UPDATE_FORBIDDEN
+    case ERROR_DOWNGRADE_FORBIDDEN
 }

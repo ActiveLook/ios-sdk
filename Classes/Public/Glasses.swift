@@ -343,17 +343,17 @@ public class Glasses {
     /// Get information relative to the device as published over Bluetooth.
     /// - Returns: The current information about the device, including its manufacturer name, model number, serial number, hardware version, software version and firmware version.
     public func getDeviceInformation() -> DeviceInformation {
-        guard deviceInformationService != nil else {
+        guard let di = deviceInformationService else {
             return DeviceInformation()
         }
         
         return DeviceInformation(
-            deviceInformationService?.getCharacteristic(forUUID: CBUUID.ManufacturerNameCharacteristic)?.valueAsUTF8,
-            deviceInformationService?.getCharacteristic(forUUID: CBUUID.ModelNumberCharacteristic)?.valueAsUTF8,
-            deviceInformationService?.getCharacteristic(forUUID: CBUUID.SerialNumberCharateristic)?.valueAsUTF8,
-            deviceInformationService?.getCharacteristic(forUUID: CBUUID.HardwareVersionCharateristic)?.valueAsUTF8,
-            deviceInformationService?.getCharacteristic(forUUID: CBUUID.FirmwareVersionCharateristic)?.valueAsUTF8,
-            deviceInformationService?.getCharacteristic(forUUID: CBUUID.SoftwareVersionCharateristic)?.valueAsUTF8
+            di.getCharacteristic(forUUID: CBUUID.ManufacturerNameCharacteristic)?.valueAsUTF8,
+            di.getCharacteristic(forUUID: CBUUID.ModelNumberCharacteristic)?.valueAsUTF8,
+            di.getCharacteristic(forUUID: CBUUID.SerialNumberCharateristic)?.valueAsUTF8,
+            di.getCharacteristic(forUUID: CBUUID.HardwareVersionCharateristic)?.valueAsUTF8,
+            di.getCharacteristic(forUUID: CBUUID.FirmwareVersionCharateristic)?.valueAsUTF8,
+            di.getCharacteristic(forUUID: CBUUID.SoftwareVersionCharateristic)?.valueAsUTF8
         )
     }
     
