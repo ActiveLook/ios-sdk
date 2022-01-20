@@ -1,6 +1,6 @@
 /*
 
- Copyright 2021 Microoled
+ Copyright 2022 Microoled
  Licensed under the Apache License, Version 2.0 (the “License”);
  you may not use this file except in compliance with the License.
  You may obtain a copy of the License at
@@ -16,21 +16,23 @@
 import Foundation
 import CoreBluetooth
 
-public enum FirmwareUpdaterError: Error {
+internal enum FirmwareUpdateError: Error {
     case firmwareUpdater(message: String)
-    case sdk
-    case sdkDevelopment(message: String = "")   // Used for development? LET'S TRY...
 }
 
 // The `FirmwareUpdater` class is responsible for providing glasses that are up-to-date Firmware-wise.
 // 
-class FirmwareUpdater: NSObject, CBPeripheralDelegate {
-
+internal class FirmwareUpdater: NSObject, CBPeripheralDelegate {
 
     // MARK: - Private properties
 
-    private var glasses: Glasses
+    private var glasses: Glasses?
+    private var peripheral: CBPeripheral?
     private var firmware: Firmware?
+
+    private var successClosure: (() -> (Void))?
+    private var progressClosure: (( UpdateProgress ) -> (Void))?
+    private var errorClosure: (( FirmwareUpdateError ) -> (Void))?
 
 //    private let initTimeoutDuration: TimeInterval = 5
 //    private let initPollInterval: TimeInterval = 0.2
@@ -70,18 +72,27 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
 
     // MARK: - Internal properties
 
-    internal var peripheral: CBPeripheral
-
     
     // MARK: - Life cycle
 
-    init(with glasses: Glasses) {
-        self.glasses = glasses
-        self.peripheral = glasses.peripheral    // IS IT GOOD HERE ??? MAYBE AFTER...
-
+    override init() {
         super.init()
+    }
 
-        peripheral.delegate = self
+
+    // MARK: - Internal Methods
+
+    internal func update(_ glasses: Glasses,
+                         with firmware: Firmware,
+                         onSuccess successClosure: @escaping ( ) -> (Void),
+                         onProgress progressClosure: @escaping ( UpdateProgress ) -> (Void),
+                         onError errorClosure: @escaping ( FirmwareUpdateError ) -> (Void) )
+    {
+        glasses.peripheral.delegate = self
+        self.glasses = glasses
+        self.firmware = firmware
+
+        suotaUpdate()
     }
 
 
@@ -89,15 +100,24 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
 
     private func suotaUpdate() {
 
-        guard ( let self.spotaService = peripheral.getService( withUUID: CBUUID.SPOTA_SERVICE_UUID ) ) else {
+        guard let peripheral = peripheral else {
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
+                message: "Peripheral should not be nil"))
+            return
+        }
+
+        guard let service = peripheral.getService( withUUID: CBUUID.SPOTA_SERVICE_UUID ) else {
             peripheral.discoverServices( [ CBUUID.SPOTA_SERVICE_UUID ] )
             return
         }
 
-        guard ( let self.spotaCharacteristics = self.spotaService?.characteristics ) else {
-            peripheral.discoverCharacteristics( nil, for: self.spotaService )
+        guard let characteristics = self.spotaService?.characteristics else {
+            peripheral.discoverCharacteristics( nil, for: self.spotaService! )
             return
         }
+
+        self.spotaService = service
+        self.spotaCharacteristics = characteristics
 
         // TODO: REFACTOR --- include timout ?
         self.suotaRead_SUOTA_VERSION_UUID()
@@ -108,13 +128,13 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
         guard let characteristic = self.spotaCharacteristics.first(
             where: { $0.uuid == CBUUID.SUOTA_VERSION_UUID } )
         else {
-            failed( withError: FirmwareUpdaterError.firmwareUpdater(
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
                 message: "SUOTA VERSION: NO SUOTA_VERSION_UUID characteristic"))
             return
         }
 
         guard characteristic.valueAsInt != 0 else {
-            failed( withError: FirmwareUpdaterError.firmwareUpdater(
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
                 message: "SUOTA VERSION: unexpected format") )
             return
         }
@@ -129,18 +149,20 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
     }
 
     private func suotaRead_SUOTA_PATCH_DATA_CHAR_SIZE_UUID() { // -- ✅
+        
         print("2 - suotaRead_SUOTA_PATCH_DATA_CHAR_SIZE_UUID")
 
         guard let characteristic = self.spotaCharacteristics.first(
             where: { $0.uuid == CBUUID.SUOTA_PATCH_DATA_CHAR_SIZE_UUID } )
         else {
-            failed( withError: FirmwareUpdaterError.firmwareUpdater(
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
                 message: "NO SUOTA_PATCH_DATA_CHAR_SIZE_UUID characteristic"))
             return
         }
 
-        guard ( let value = characteristic.valueAsInt ) != 0 else {
-            failed( withError: FirmwareUpdaterError.firmwareUpdater(
+        let value = characteristic.valueAsInt
+        guard value != 0 else {
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
                 message: "SUOTA_PATCH_DATA_CHAR_SIZE_UUID: unexpected format"))
             return
         }
@@ -157,7 +179,7 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
 
         let value = data.map{ UInt16($0) }
         guard let uValue = value.first else {
-            failed(withError: GlassesUpdaterError.glassesUpdater(
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
                 message: "SUOTA SUOTA_MTU_UUID: unexpected format"))
             return
         }
@@ -171,7 +193,7 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
 
         let value = data.map{ UInt16($0) }
         guard let uValue = value.first else {
-            failed(withError: GlassesUpdaterError.glassesUpdater(
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
                 message: "SUOTA SUOTA_L2CAP_PSM_UUID: unexpected format"))
             return
         }
@@ -181,18 +203,28 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
 
     // TODO: REFACTOR ---
     private func enableNotifications() {  // -- ✅
+
         print("SUOTA - enable notification")
+
+        guard let peripheral = peripheral else {
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
+                message: "Peripheral should not be nil"))
+            return
+        }
 
         let service = peripheral.getService(withUUID: CBUUID.SPOTA_SERVICE_UUID)
 
         guard let service = service else {
-            print("no SPOTA_SERVICE_UUID service discovered")
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
+                message: "no SPOTA_SERVICE_UUID service discovered"))
             return
         }
 
         let characteristic = service.getCharacteristic(forUUID: CBUUID.SPOTA_SERV_STATUS_UUID)
+
         guard let characteristic = characteristic else {
-            print("no SPOTA_SERV_STATUS_UUID characteristic discovered")
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
+                message: "no SPOTA_SERV_STATUS_UUID characteristic discovered"))
             return
         }
 
@@ -202,10 +234,11 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
     }
 
     private func onSuotaNotifications(data: Data) { // -- ✅
+
         print("onSuotaNotifications()")
 
         guard let value = data.first else {
-            failed(withError: GlassesUpdaterError.glassesUpdater(
+            failed(withError: FirmwareUpdateError.firmwareUpdater(
                 message: "SUOTA notification: unexpected format"))
             return
         }
@@ -214,11 +247,9 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
 
         switch value {
         case 0x10 :
-            // self.setSpotaGpioMap()
             self.setSpotaGpioMap()
 
         case 0x02 :
-            // self.setPatchLength()
             self.setPatchLength()
 
         default :
@@ -227,17 +258,24 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
     }
 
     private func setSpotaMemDev() {  // -- ✅
+
         let memType: UInt32 = 0x13000000
         print(String(format:"SPOTA - setSpotaMemDev %010x", arguments: [memType]))
 
+        guard let peripheral = peripheral else {
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
+                message: "Peripheral should not be nil"))
+            return
+        }
+
         guard let service = peripheral.getService(withUUID: CBUUID.SPOTA_SERVICE_UUID) else {
-            failed(withError: FirmwareUpdaterError.firmwareUpdater(
+            failed(withError: FirmwareUpdateError.firmwareUpdater(
                 message: "no SPOTA_SERVICE_UUID service discovered"))
             return
         }
 
         guard let characteristic = service.getCharacteristic(forUUID: CBUUID.SPOTA_MEM_DEV_UUID) else {
-            failed(withError: FirmwareUpdaterError.firmwareUpdater(
+            failed(withError: FirmwareUpdateError.firmwareUpdater(
                 message: "no SPOTA_MEM_DEV_UUID characteristic discovered"))
             return
         }
@@ -247,6 +285,13 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
     }
 
     private func setSpotaGpioMap() { // -- ✅
+
+        guard let peripheral = peripheral else {
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
+                message: "Peripheral should not be nil"))
+            return
+        }
+
         let memInfoData: UInt32 = 0x05060300
 
         print(String(format: "SPOTA – setSpotaGpioMap: %010x", arguments: [memInfoData]))
@@ -256,7 +301,7 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
         }
 
         guard let characteristic = service.getCharacteristic(forUUID: CBUUID.SPOTA_GPIO_MAP_UUID) else {
-            failed(withError: FirmwareUpdaterError.firmwareUpdater(
+            failed(withError: FirmwareUpdateError.firmwareUpdater(
                 message: "no SPOTA_MEM_DEV_UUID characteristic discovered"))
             return
         }
@@ -267,8 +312,8 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
     private func setBlocks() { // -- ✅
 
         guard let firmware = firmware else {
-            failed(withError: FirmwareUpdaterError.firmwareUpdater(
-                message: "error updating writing value for characteristic: \(characteristic.uuid)"))
+            failed(withError: FirmwareUpdateError.firmwareUpdater(
+                message: "the firmware cannot be nil"))
             return
         }
 
@@ -276,12 +321,12 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
 
         do {
             try self.blocks = firmware.getSuotaBlocks(Self.BLOCK_SIZE, chunkSize)
-        } catch error {
-            switch error {
-            case E.firmwareNullChunksize :
-                failed(withError: FirmwareUpdaterError.firmwareUpdater(
-                    message: "Chunk size should not be nul"))
-            }
+        } catch FirmwareError.firmwareNullChunksize {
+            failed(withError: FirmwareUpdateError.firmwareUpdater(
+                message: "Chunk size should not be nul"))
+        } catch {
+            failed(withError: FirmwareUpdateError.firmwareUpdater(
+                message: "UNKNOWN ERROR getting SUOTA BLOCKS"))
         }
 
         self.blockId = 0
@@ -293,27 +338,33 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
 
     private func setPatchLength() { // -- ✅
 
+        guard let peripheral = peripheral else {
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
+                message: "Peripheral should not be nil"))
+            return
+        }
+
         if ( self.blockId < self.blocks.count ) {
 
             let block: Block = self.blocks [ self.blockId ]
-            let blockSize: UInt16 = block.size
+            let blockSize: UInt16 = UInt16(block.size)
 
             if ( blockSize != UInt16(self.patchLength)) {
                 print(String(format: "SUOTA setPatchLength: \(blockSize) - %06x", arguments: [blockSize]))
 
                 guard let service = peripheral.getService(withUUID: CBUUID.SPOTA_SERVICE_UUID) else {
-                    failed(withError: FirmwareUpdaterError.firmwareUpdater(
+                    failed(withError: FirmwareUpdateError.firmwareUpdater(
                         message: "no SPOTA_SERVICE_UUID service discovered"))
                     return
                 }
 
                 guard let characteristic = service.getCharacteristic(forUUID: CBUUID.SPOTA_PATCH_LEN_UUID) else {
-                    failed(withError: FirmwareUpdaterError.firmwareUpdater(
+                    failed(withError: FirmwareUpdateError.firmwareUpdater(
                         message: "no SPOTA_PATCH_LEN_UUID characteristic discovered"))
                     return
                 }
 
-                peripheral.writeValue(blockSize,
+                peripheral.writeValue(Data(blockSize.asUInt8Array),
                                       for: characteristic,
                                       type: .withResponse)
             } else {
@@ -326,16 +377,22 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
 
     private func sendBlock() {   // -- ✅
 
+        guard let peripheral = peripheral else {
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
+                message: "Peripheral should not be nil"))
+            return
+        }
+
         if ( self.blockId < self.blocks.count ) {
 
             guard let service = peripheral.getService( withUUID: CBUUID.SPOTA_SERVICE_UUID ) else {
-                failed( withError: FirmwareUpdaterError.firmwareUpdater(
+                failed( withError: FirmwareUpdateError.firmwareUpdater(
                     message: "no SPOTA_SERVICE_UUID service discovered"))
                 return
             }
 
             guard let characteristic = service.getCharacteristic( forUUID: CBUUID.SPOTA_PATCH_DATA_UUID ) else {
-                failed( withError: FirmwareUpdaterError.firmwareUpdater(
+                failed( withError: FirmwareUpdateError.firmwareUpdater(
                     message: "no SPOTA_PATCH_DATA_UUID characteristic discovered"))
                 return
             }
@@ -346,13 +403,13 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
             if (self.chunkId < chunks.count) {
 
                 print( String( format: "SUOTA - sendBlock %d chunk %d", arguments: [self.blockId, self.chunkId]))
-                peripheral.writeValue( chunks[self.chunkId], for: characteristic, type: .withoutResponse)
-                self.chunkId++
+                peripheral.writeValue( Data(chunks[self.chunkId]), for: characteristic, type: .withoutResponse)
+                self.chunkId += 1
                 sendBlock()
 
             } else {
 
-                self.blockId++
+                self.blockId += 1
                 self.chunkId = 0
                 print("SPOTA - waiting for notification to send block")
             }
@@ -362,77 +419,97 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
     }
 
     private func sendEndSignal() { // -- ✅
+
+        guard let peripheral = peripheral else {
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
+                message: "Peripheral should not be nil"))
+            return
+        }
+
         guard let service = peripheral.getService(withUUID: CBUUID.SPOTA_SERVICE_UUID) else {
-            failed(withError: FirmwareUpdaterError.firmwareUpdater(
+            failed(withError: FirmwareUpdateError.firmwareUpdater(
                 message: "no SPOTA_SERVICE_UUID service discovered"))
             return
         }
 
         guard let characteristic = service.getCharacteristic(forUUID: CBUUID.SPOTA_MEM_DEV_UUID) else {
-            failed(withError: FirmwareUpdaterError.firmwareUpdater(
+            failed(withError: FirmwareUpdateError.firmwareUpdater(
                 message: "no SPOTA_MEM_DEV_UUID characteristic discovered"))
             return
         }
 
         print("SUOTA - sendEndSignal()")
-        peripheral.writeValue(UInt32(0xfe000000), for: characteristic, type: .withResponse)
+        peripheral.writeValue( Data( UInt32( 0xfe000000 ).asUInt8Array ),
+                               for: characteristic,
+                               type: .withResponse)
     }
 
     private func sendRebootSignal() { // -- ✅
+
+        guard let peripheral = peripheral else {
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
+                message: "Peripheral should not be nil"))
+            return
+        }
+
         print("SUOTA - sendRebootSignal()")
-        guard let service = peripheral.getService(withUUID: CBUUID.SPOTA_SERVICE_UUID) else {
-            failed(withError: FirmwareUpdaterError.firmwareUpdater(
+        guard let service = peripheral.getService( withUUID: CBUUID.SPOTA_SERVICE_UUID ) else {
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
                 message: "no SPOTA_SERVICE_UUID service discovered"))
             return
         }
 
-        guard let characteristic = service.getCharacteristic(forUUID: CBUUID.SPOTA_MEM_DEV_UUID) else {
-            failed(withError: FirmwareUpdaterError.firmwareUpdater(
+        guard let characteristic = service.getCharacteristic( forUUID: CBUUID.SPOTA_MEM_DEV_UUID ) else {
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
                 message: "no SPOTA_MEM_DEV_UUID characteristic discovered"))
             return
         }
 
-        peripheral.writeValue(UInt32(0xfd000000), for: characteristic, type: .withResponse)
+        peripheral.writeValue( Data( UInt32(0xfd000000).asUInt8Array ),
+                               for: characteristic,
+                               type: .withResponse)
     }
 
-    private func failed(withError error: Error) {
-        print(error)
-        self.glasses.peripheral.delegate = self.glasses.peripheralDelegate
+    private func failed( withError error: Error) {
+
+        guard let glasses = glasses else {
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
+                message: "Glasses should not be nil"))
+            return
+        }
+
+        glasses.peripheral.delegate = glasses.peripheralDelegate
     }
 
 
-    // MARK: - Public methods
-
-    public func update(glasses : Glasses, with firmware : Firmware) {
-    }
-
-
-    // MARK: - CBPeripheralDelegate
+     // MARK: - CBPeripheralDelegate
 
     func peripheral(_ peripheral: CBPeripheral,
                     didDiscoverServices error: Error?) {
 
         guard error == nil else {
             print("error while discovering services: ", error!)
-            failed(withError: error!)
+            failed( withError: error! )
             return
         }
 
         guard let services = peripheral.services else {
-            print("no service discovered for peripheral", peripheral)
-            failed(withError: GlassesUpdaterError.glassesUpdater(
-                message: "no service discovered for peripheral"))
+            print( "no service discovered for peripheral", peripheral )
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
+                message: "no service discovered for peripheral" ) )
             return
         }
 
         for service in services {
             print("discovered service: \(service.uuid)")
 
-            switch service.uuid {
+            switch service.uuid
+            {
             case CBUUID.SPOTA_SERVICE_UUID :
                 print("discovered service SPOTA_SERVICE_UUID")
                 peripheral.discoverCharacteristics(nil, for: service)
                 self.suotaUpdate()
+
             default:
                 // print("discovered unknown service: \(service.uuid)")
                 break
@@ -446,20 +523,21 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
                     error: Error?) {
 
         guard error == nil else {
-            failed(withError: FirmwareUpdaterError.firmwareUpdater(
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
                 message: "error \(error!) while discovering characteristics for service: \(service)"))
             return
         }
 
         guard service.characteristics != nil else {
-            failed(withError: FirmwareUpdaterError.firmwareUpdater(
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
                 message: "no characteristic discovered for service \(service)"))
             return
         }
 
         for characteristic in service.characteristics! {
 
-            switch characteristic.uuid {
+            switch characteristic.uuid
+            {
             case CBUUID.SUOTA_VERSION_UUID :
                 print("discovered SUOTA_VERSION_UUID characteristic")
                 peripheral.readValue(for: characteristic)
@@ -480,19 +558,20 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
                     error: Error?) {
 
         guard error == nil else {
-            failed(withError: FirmwareUpdaterError.firmwareUpdater(
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
                 message: "error \(error!) reading value of characteristic: characteristic.uuid "))
             return
         }
 
         guard let data = characteristic.value else {
-            failed(withError: FirmwareUpdaterError.firmwareUpdater(
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
                 message: "no data read for characteristic: \(characteristic)"))
             return
         }
 
         // TODO: REFACTOR!
-        switch characteristic.uuid {
+        switch characteristic.uuid
+        {
         case CBUUID.SUOTA_VERSION_UUID :
             suotaRead_SUOTA_VERSION_UUID()
 
@@ -520,13 +599,13 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
                     error: Error?) {
 
         guard error == nil else {
-            failed(withError: FirmwareUpdaterError.firmwareUpdater(
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
                 message: "error \(error!) updating notification state for characteristic: \(characteristic.uuid)"))
             return
         }
 
-        guard let data = characteristic.value else {
-            failed(withError: FirmwareUpdaterError.firmwareUpdater(
+        guard let _ = characteristic.value else {
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
                 message: "no data read for characteristic: \(characteristic)"))
             return
         }
@@ -534,7 +613,7 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
         // TODO: REFACTOR! SET CHARACTERISTICS TO MATCH
         switch characteristic.uuid {
         default :
-            failed(withError: FirmwareUpdaterError.firmwareUpdater(
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
                 message: "Did update notification state for unknown characteristic: \(characteristic.uuid)"))
         }
 
@@ -545,7 +624,7 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
                     error: Error?) {
 
         guard error == nil else {
-            failed(withError: FirmwareUpdaterError.firmwareUpdater(
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
                 message: "error \(error!) updating writing value for characteristic: \(characteristic.uuid)"))
             return
         }
@@ -553,13 +632,20 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
         switch characteristic.uuid {
         case CBUUID.SPOTA_MEM_DEV_UUID :
             print("SPOTA - Did write value for SPOTA_MEM_DEV_UUID.")
+
             switch UInt32(characteristic.valueAsInt) {
             case UInt32(0xfe000000):
                 // notification sendEndSignal()
                 self.sendRebootSignal()
+
             case UInt32(0xfd000000):
                 // notification sendRebootSignal()
                 print("REBOOTING")
+
+            default:
+                failed( withError: FirmwareUpdateError.firmwareUpdater(
+                    message: "Did write value for unknown characteristic: \(characteristic.uuid)"))
+                return
             }
 
         case CBUUID.SPOTA_GPIO_MAP_UUID :
@@ -568,11 +654,11 @@ class FirmwareUpdater: NSObject, CBPeripheralDelegate {
 
         case CBUUID.SPOTA_PATCH_LEN_UUID :
             print("SPOTA - Did write value for SPOTA_PATCH_LEN_UUID")
-            self.patchLength = UInt16(characteristic.valueAsInt)
+            self.patchLength = characteristic.valueAsInt
             self.sendBlock()
 
         default:
-            failed(withError: FirmwareUpdaterError.firmwareUpdater(
+            failed( withError: FirmwareUpdateError.firmwareUpdater(
                 message: "Did write value for unknown characteristic: \(characteristic.uuid)"))
             return
         }

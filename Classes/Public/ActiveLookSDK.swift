@@ -54,7 +54,7 @@ public class ActiveLookSDK {
 
         ActiveLookSDK._shared = self
 
-        centralManager = CBCentralManager(delegate: self.centralManagerDelegate, queue: nil) // TODO Use a specific queue
+        centralManager = CBCentralManager(delegate: self.centralManagerDelegate, queue: nil) // TODO: Use a specific queue
     }
 
 
@@ -245,29 +245,22 @@ public class ActiveLookSDK {
 
 
             let glasses = Glasses(discoveredGlasses: discoveredGlasses)
+            parent?.glassesUpdater.update(glasses: glasses)
 
-            do {
-                try parent?.glassesUpdater.update(glasses: glasses)
-            } catch {
-                print("error updating glasses")
-                parent?.glassesUpdateParameters.onUpdateFailureCallback()
-                return
-            }
-
-            let glassesInitializer = GlassesInitializer(glasses: glasses)
-
-            glassesInitializer.initialize(
-            onSuccess: {
-                self.parent?.connectedGlassesArray.append(glasses)
-                discoveredGlasses.connectionCallback?(glasses)
-                discoveredGlasses.connectionCallback = nil
-                discoveredGlasses.connectionErrorCallback = nil
-            },
-            onError: { (error) in
-                discoveredGlasses.connectionErrorCallback?(error)
-                discoveredGlasses.connectionCallback = nil
-                discoveredGlasses.connectionErrorCallback = nil
-            })
+//            let glassesInitializer = GlassesInitializer(glasses: glasses)
+//
+//            glassesInitializer.initialize(
+//            onSuccess: {
+//                self.parent?.connectedGlassesArray.append(glasses)
+//                discoveredGlasses.connectionCallback?(glasses)
+//                discoveredGlasses.connectionCallback = nil
+//                discoveredGlasses.connectionErrorCallback = nil
+//            },
+//            onError: { (error) in
+//                discoveredGlasses.connectionErrorCallback?(error)
+//                discoveredGlasses.connectionCallback = nil
+//                discoveredGlasses.connectionErrorCallback = nil
+//            })
         }
         
         public func centralManager(_ central: CBCentralManager,

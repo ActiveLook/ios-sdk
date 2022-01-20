@@ -85,6 +85,7 @@ class GlassesInitializer: NSObject, CBPeripheralDelegate {
         self.glasses.peripheral.delegate = self.glasses.peripheralDelegate
     }
 
+    
     // MARK: - Public methods
 
     public func initialize(onSuccess successClosure: @escaping () -> (Void),

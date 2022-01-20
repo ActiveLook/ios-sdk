@@ -15,63 +15,75 @@
 
 import Foundation
 
-typealias Chunck = [UInt8]
-typealias Block = (size: Int, bytes: [Chunck])
-typealias Blocks = [Block]
 
-enum E: Error {
+// MARK: - Internal Typealiases
+
+internal typealias Chunck = [UInt8]
+internal typealias Block = (size: Int, bytes: [Chunck])
+internal typealias Blocks = [Block]
+
+
+// MARK: - Internal Enum
+
+internal enum FirmwareError: Error {
     case firmwareNullChunksize
 }
 
-final class Firmware {
 
-    private let bytes: [UInt8]
+// MARK: - Firmware Structure
+
+internal struct Firmware {
+
+    private var bytes: [UInt8]
 
     init(with content : Data) {
 
-        self.bytes = Array[content.count + 1]
-
-        self.bytes = withUnsafeBytes(of: content.littleEndian) {
+        bytes = withUnsafeBytes(of: content) {
             Array($0)
         }
 
-        self.bytes.last = 0
+        bytes.append(0x00)
+
+        // used for the CRC!
+        guard bytes.count == (content.count + 1) else {
+            return
+        }
 
         // basic CRC of the firmware, as defined by SUOTA
-        for ( int i = 0; i < content.count; i++ ) {
-            self.bytes.last ^= self.bytes[i]
+        for index in 0 ..< content.count  {
+            bytes[content.count] ^= bytes[index]
         }
     }
 
 
-    public func getSuotaBlocks(_ blockSize: Int, _ chunkSize: Int) -> Blocks throws {
+    func getSuotaBlocks(_ blockSize: Int, _ chunkSize: Int) throws -> Blocks {
 
         guard chunkSize > 0 else {
-            throw E.firmwareNullChunksize
+            throw FirmwareError.firmwareNullChunksize
         }
 
-        blockSize = min(bytes.count, max(blockSize, chunkSize))
-        chunkSize = min(blockSize, chunkSize)
+        let blockSize = min(bytes.count, max(blockSize, chunkSize))
+        let chunkSize = min(blockSize, chunkSize)
 
-        final var blocks: Blocks
+        var blocks: Blocks = []
 
         var blockOffset = 0
 
-        while blockOffset < self.bytes.count {
-            let currentBlockSize = min(blockSize, self.bytes.count - blockOffset)
+        while blockOffset < bytes.count {
+            let currentBlockSize = min(blockSize, bytes.count - blockOffset)
 
-            final var block:
-            final var chunkOffset = 0
+            var block: [[UInt8]] = []
+            var chunkOffset = 0
 
             while chunkOffset < currentBlockSize {
 
                 let currentChunkSize = min(chunkSize, currentBlockSize - chunkOffset)
-                var chunk: Chunck = Array[currentChunkSize]
+                var chunk: Chunck = []
 
                 let startIndex = blockOffset + chunkOffset
                 let endIndex = startIndex + currentChunkSize
 
-                chunk = self.bytes[startIndex...endIndex]
+                chunk = Array(bytes[startIndex...endIndex])
                 block.append(chunk)
                 chunkOffset += currentChunkSize
             }
