@@ -67,15 +67,6 @@ internal final class VersionChecker: NSObject {
     private let timeoutDuration: TimeInterval = 5
     private var timeoutTimer: Timer?
 
-//    private var serialNumberCharateristic: CBCharacteristic?
-//    private var hardwareVersionCharateristic: CBCharacteristic?
-//    private var firmwareVersionCharateristic: CBCharacteristic?
-//    private var softwareVersionCharateristic: CBCharacteristic?
-//
-//    private var serialNumberDescriptor: CBDescriptor?
-//    private var hardwareVersionDescriptor: CBDescriptor?
-//    private var firmwareVersionDescriptor: CBDescriptor?
-//    private var softwareVersionDescriptor: CBDescriptor?
 
     private var glassesFWVersion: FirmwareVersion? {
         didSet {
@@ -151,7 +142,6 @@ internal final class VersionChecker: NSObject {
         }
 
         successClosure?(result)
-
         cleanUp()
     }
 
@@ -159,7 +149,6 @@ internal final class VersionChecker: NSObject {
     private func failed(with error: VersionCheckError) {
 
         errorClosure?(error)
-
         cleanUp()
     }
 
@@ -167,6 +156,7 @@ internal final class VersionChecker: NSObject {
     private func fetchRemoteFirmwareVersion() {
 
         guard let gfw = glassesFWVersion else {
+
             failed(with: VersionCheckError.versionCheckerError(message: "Glasses FW Version unavailable"))
             return
         }

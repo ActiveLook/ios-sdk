@@ -113,7 +113,6 @@ internal class GlassesUpdater {
 
         updateParameters.onUpdateProgressCallback() // TODO: Implement with UpdateProgress
 
-        
         switch status
         {
         case .needsUpdate(let apiURL):

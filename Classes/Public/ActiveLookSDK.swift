@@ -274,8 +274,6 @@ public class ActiveLookSDK {
 //                discoveredGlasses.connectionCallback = nil
 //                discoveredGlasses.connectionErrorCallback = nil
 //            })
-
-
         }
         
         public func centralManager(_ central: CBCentralManager,

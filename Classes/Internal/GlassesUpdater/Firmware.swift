@@ -37,7 +37,6 @@ internal struct Firmware {
     private var bytes: [UInt8]
 
     init(with content : Data) {
-
         bytes = []
 
         content.forEach( { byte in
@@ -55,7 +54,7 @@ internal struct Firmware {
         for index in 0 ..< content.count  {
             bytes[content.count] ^= bytes[index]
         }
-    }
+}
 
 
     func getSuotaBlocks(_ blockSize: Int, _ chunkSize: Int) throws -> Blocks {
