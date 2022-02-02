@@ -50,7 +50,7 @@ public class Glasses {
     
     internal var centralManager: CBCentralManager
     internal var peripheral: CBPeripheral
-    internal var peripheralDelegate: PeripheralDelegate
+    fileprivate var peripheralDelegate: PeripheralDelegate
 
     internal var disconnectionCallback: (() -> Void)?
     
@@ -140,6 +140,10 @@ public class Glasses {
     private var sensorInterfaceCharacteristic: CBCharacteristic? {
         return activeLookService?.getCharacteristic(forUUID: CBUUID.ActiveLookSensorInterfaceCharacteristic)
     }
+
+    private var spotaService: CBService? {
+        return peripheral.getService(withUUID: CBUUID.SpotaService)
+    }
     
     // MARK: - Initializers
     
@@ -171,6 +175,13 @@ public class Glasses {
             centralManager: discoveredGlasses.centralManager
         )
         self.disconnectionCallback = discoveredGlasses.disconnectionCallback
+    }
+
+
+    // MARK: - Internal methods
+
+    internal func resetPeripheralDelegate() {
+        self.peripheral.delegate = self.peripheralDelegate
     }
     
 
@@ -1116,11 +1127,11 @@ public class Glasses {
     // MARK: - CBPeripheralDelegate
 
     /// Internal class to allow Glasses to not inherit from NSObject and to hide CBPeripheralDelegate methods
-    internal class PeripheralDelegate: NSObject, CBPeripheralDelegate {
+    fileprivate class PeripheralDelegate: NSObject, CBPeripheralDelegate {
         
         weak var parent: Glasses?
 
-        // MARK: - CBPheripheralDelegate
+        
 
         public func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
             guard error == nil else {
@@ -1143,7 +1154,7 @@ public class Glasses {
                 break
             }
 
-//        print("peripheral did update notification state for characteristic: ", characteristic)
+            print("peripheral did update notification state for characteristic: \(characteristic)")
         }
         
         public func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {

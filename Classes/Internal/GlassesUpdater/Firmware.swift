@@ -19,7 +19,7 @@ import Foundation
 // MARK: - Internal Typealiases
 
 internal typealias Chunck = [UInt8]
-internal typealias Block = (size: Int, bytes: [Chunck])
+internal typealias Block = ( size: Int, bytes: [Chunck] )
 internal typealias Blocks = [Block]
 
 
@@ -31,13 +31,23 @@ internal enum FirmwareError: Error {
 
 
 // MARK: - Firmware Structure
+// The `Firmware` structure holds the firmware data.
 
 internal struct Firmware {
 
+
+    // MARK: - Private Properties
+
     private var bytes: [UInt8]
+
+    
+    // MARK: - Internal Properties
+
+    internal var blocks: Blocks
 
     init(with content : Data) {
         bytes = []
+        blocks = []
 
         content.forEach( { byte in
             bytes.append(byte)
@@ -54,10 +64,10 @@ internal struct Firmware {
         for index in 0 ..< content.count  {
             bytes[content.count] ^= bytes[index]
         }
-}
+    }
 
 
-    func getSuotaBlocks(_ blockSize: Int, _ chunkSize: Int) throws -> Blocks {
+    mutating func getSuotaBlocks(_ blockSize: Int, _ chunkSize: Int) throws {
 
         guard chunkSize > 0 else {
             throw FirmwareError.firmwareNullChunksize
@@ -65,8 +75,6 @@ internal struct Firmware {
 
         let blockSize = min(bytes.count, max(blockSize, chunkSize))
         let chunkSize = min(blockSize, chunkSize)
-
-        var blocks: Blocks = []
 
         var blockOffset = 0
 
@@ -89,13 +97,13 @@ internal struct Firmware {
                 chunkOffset += currentChunkSize
             }
 
-            blocks.append(Block(size: currentBlockSize, bytes: block))
+            self.blocks.append(Block(size: currentBlockSize, bytes: block))
             blockOffset += currentBlockSize
         }
-        return blocks
     }
 
+
     func description() -> String {
-        return String("firmare: \(bytes[0...5]) of size: \(bytes.count)")
+        return String("firmware: \(bytes[0...5]) of size: \(bytes.count)")
     }
 }

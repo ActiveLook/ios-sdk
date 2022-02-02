@@ -16,19 +16,39 @@ limitations under the License.
 import Foundation
 import CoreBluetooth
 
-class GlassesInitializer: NSObject, CBPeripheralDelegate {
+
+// MARK: - Internal Structures
+
+internal enum GlassesInitializerError: Error {
+    case glassesInitializer(message: String)
+}
+
+
+// MARK: - Class `GlassesInitializer` definition
+
+internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
+
 
     // MARK: - Private properties
 
-    private let initTimeoutDuration: TimeInterval = 5
+    #warning("SET TIMEOUT BACK TO 5")   // Add pause method to invoke if FW update ?
+    private let initTimeoutDuration: TimeInterval = 2000 // 5
     private let initPollInterval: TimeInterval = 0.2
 
-    private var glasses: Glasses
+    private lazy var updateParameters: GlassesUpdateParameters = {
+        return updateParameters
+    }()
+
+    private lazy var glasses: Glasses = {
+        return glasses
+    }()
 
     private var initSuccessClosure: (() -> (Void))?
     private var initErrorClosure: ((Error) -> (Void))?
     private var initTimeoutTimer: Timer?
     private var initPollTimer: Timer?
+
+    private var spotaService: CBService?
 
     private var batteryLevelCharacteristic: CBCharacteristic?
     private var txCharacteristic: CBCharacteristic?
@@ -36,13 +56,37 @@ class GlassesInitializer: NSObject, CBPeripheralDelegate {
     private var flowControlCharacteristic: CBCharacteristic?
     private var sensorInterfaceCharacteristic: CBCharacteristic?
 
-    // MARK: - Life cycle
-
-    init(glasses: Glasses) {
-        self.glasses = glasses
+    internal var glassesAreUpToDate: Bool = false {
+        didSet {
+            print("glassesAreUpToDate: %b", glassesAreUpToDate)
+            glassesAreUpToDate ? updateParameters.state = .DONE : print("glasses not up to date =(")
+        }
     }
 
+
+    // MARK: - Life cycle
+
+    override init() {
+        super.init()
+        
+        guard let sdk = try? ActiveLookSDK.shared() else {
+            fatalError(String(format: "SDK Singleton NOT AVAILABLE @  %i", #line))
+        }
+
+        updateParameters = sdk.updateParameters
+    }
+
+
     // MARK: - Private methods
+
+    private func updateGlasse() {
+
+        let updater = GlassesUpdater()
+
+//        updater.update(glasses,
+//                       onSuccess: { result in self.glassesAreUpToDate = result},
+//                       onError: { error in self.failed(with: error)})
+    }
 
     private func isReady() -> Bool {
         if glasses.peripheral.state != .connected {
@@ -52,20 +96,40 @@ class GlassesInitializer: NSObject, CBPeripheralDelegate {
         let di = glasses.getDeviceInformation()
 
         let requiredProperties: [Any?] = [
-            rxCharacteristic, txCharacteristic, batteryLevelCharacteristic, flowControlCharacteristic, sensorInterfaceCharacteristic,
-            di.manufacturerName, di.modelNumber, di.serialNumber, di.hardwareVersion, di.firmwareVersion, di.softwareVersion
+            spotaService, rxCharacteristic, txCharacteristic, batteryLevelCharacteristic,
+            flowControlCharacteristic, sensorInterfaceCharacteristic, di.manufacturerName, di.modelNumber,
+            di.serialNumber, di.hardwareVersion, di.firmwareVersion, di.softwareVersion
         ]
 
         for prop in requiredProperties {
-            if prop == nil { return false }
+            if prop == nil {
+                return false
+            }
         }
 
         if !txCharacteristic!.isNotifying { return false }
 
         if !flowControlCharacteristic!.isNotifying { return false }
 
+        if updateParameters.state != .updating {
+            updateParameters.state = .retrievedDeviceInformations
+        }
+
+//        if !glassesAreUpToDate
+//            && updateParameters.state == .retrievedDeviceInformations
+//        {
+//            updateGlasse()
+//            updateParameters.state = .updating
+//            return false
+//        }
+//
+//        if updateParameters.state == .updating {
+//            return false
+//        }
+
         return true
     }
+
 
     private func isDone() {
         self.initSuccessClosure?()
@@ -73,34 +137,44 @@ class GlassesInitializer: NSObject, CBPeripheralDelegate {
 
         self.initTimeoutTimer?.invalidate()
 
-        self.glasses.peripheral.delegate = self.glasses.peripheralDelegate
+        self.glasses.resetPeripheralDelegate()
     }
 
-    private func failed(withError error: Error) {
+
+    private func failed(with error: GlassesInitializerError ) {
+
+        print(error)
+
         self.initErrorClosure?(ActiveLookError.connectionTimeoutError)
         self.initErrorClosure = nil
 
         self.initPollTimer?.invalidate()
 
-        self.glasses.peripheral.delegate = self.glasses.peripheralDelegate
+        self.glasses.resetPeripheralDelegate()
     }
 
     
-    // MARK: - Public methods
+    // MARK: - Internal methods
 
-    public func initialize(onSuccess successClosure: @escaping () -> (Void),
-                           onError errorClosure: @escaping (Error) -> (Void)) {
+    func initialize(_ glasses: Glasses,
+                    onSuccess successClosure: @escaping () -> (Void),
+                    onError errorClosure: @escaping (Error) -> (Void)) {
+
+        self.glasses = glasses
+
         // We're setting ourselves as the peripheral delegate in order to complete the init process.
         // When the process is done, we'll set the original delegate back
-
         glasses.peripheral.delegate = self
+
         initSuccessClosure = successClosure
         initErrorClosure = errorClosure
+        
         print("initializing glasses")
 
         glasses.peripheral.discoverServices([CBUUID.DeviceInformationService,
                                              CBUUID.BatteryService,
-                                             CBUUID.ActiveLookCommandsInterfaceService])
+                                             CBUUID.ActiveLookCommandsInterfaceService,
+                                             CBUUID.SpotaService])
 
         // We're 'polling', or checking regularly that we've received all needed information about the glasses
         initPollTimer = Timer.scheduledTimer(withTimeInterval: initPollInterval, repeats: true) { (timer) in
@@ -112,7 +186,8 @@ class GlassesInitializer: NSObject, CBPeripheralDelegate {
 
         // We're failing after an arbitrary timeout duration
         initTimeoutTimer = Timer.scheduledTimer(withTimeInterval: initTimeoutDuration, repeats: false) { _ in
-            self.failed(withError: ActiveLookError.connectionTimeoutError)
+            self.failed(with: GlassesInitializerError.glassesInitializer(
+                message: String(format: "connectionTimeoutError: ", #line)))
         }
     }
 
@@ -120,15 +195,16 @@ class GlassesInitializer: NSObject, CBPeripheralDelegate {
     // MARK: - CBPeripheralDelegate
 
     public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
+
         guard error == nil else {
-            print("error while discovering services: ", error!)
-            failed(withError: error!)
+            failed(with: GlassesInitializerError.glassesInitializer(
+                message: String(format: "error while discovering services: ", error.debugDescription)))
             return
         }
 
         guard let services = peripheral.services else {
-            print("no services discovered for peripheral", peripheral)
-            failed(withError: ActiveLookError.initializationError)
+            failed(with: GlassesInitializerError.glassesInitializer(
+                message: String(format: "no services discovered for peripheral: ", peripheral )))
             return
         }
 
@@ -145,6 +221,10 @@ class GlassesInitializer: NSObject, CBPeripheralDelegate {
             case CBUUID.DeviceInformationService :
                 peripheral.discoverCharacteristics(CBUUID.DeviceInformationCharacteristicsUUIDs, for: service)
 
+            case CBUUID.SpotaService :
+                spotaService = service
+                peripheral.discoverCharacteristics(nil, for: service)
+
             default:
                 // print("discovered unknown service: \(service.uuid)")
                 break
@@ -156,19 +236,54 @@ class GlassesInitializer: NSObject, CBPeripheralDelegate {
                            didDiscoverCharacteristicsFor service: CBService,
                            error: Error?) {
         guard error == nil else {
-            print("error while discovering characteristics: ", error!, ", for service: ", service)
-            failed(withError: error!)
+            failed(with: GlassesInitializerError.glassesInitializer(
+                message: String(format: "error while discovering characteristics: ", error.debugDescription,
+                                ", for service: ", service, "@ ", #line)))
             return
         }
 
-        guard service.characteristics != nil else {
-            print("no characteristics found for service: ", service)
-            failed(withError: ActiveLookError.initializationError)
+        guard let characteristics = service.characteristics else {
+            failed(with: GlassesInitializerError.glassesInitializer(
+                message: String(format: "error while discovering characteristics: ", error.debugDescription,
+                                ", for service: ", service, "@ ", #line)))
             return
         }
 
-        for characteristic in service.characteristics! {
-            switch characteristic.uuid {
+
+        switch service.uuid {
+        case CBUUID.DeviceInformationService :
+            service.characteristics?.forEach({
+                peripheral.readValue(for: $0)
+            })
+            
+        case CBUUID.SpotaService :
+            for characteristic in characteristics {
+                switch characteristic.uuid {
+                case CBUUID.SPOTA_SERV_STATUS_UUID:
+                    print("setting NOTIFY TRUE for SPOTA_SERV_STATUS_UUID")
+                    peripheral.setNotifyValue(true, for: characteristic)
+
+                case CBUUID.SUOTA_VERSION_UUID :
+                    print("discovered SUOTA_VERSION_UUID characteristic")
+                    peripheral.readValue(for: characteristic)
+
+                case CBUUID.SUOTA_PATCH_DATA_CHAR_SIZE_UUID :
+                    print("discovered SUOTA_PATCH_DATA_CHAR_SIZE_UUID characteristic")
+                    peripheral.readValue(for: characteristic)
+
+                default:
+                    peripheral.readValue(for: characteristic)
+                }
+            }
+
+        default :
+            break
+        }
+
+        for characteristic in characteristics
+        {
+            switch characteristic.uuid
+            {
             case CBUUID.ActiveLookRxCharacteristic:
                 rxCharacteristic = characteristic
 
@@ -190,27 +305,31 @@ class GlassesInitializer: NSObject, CBPeripheralDelegate {
                 break
             }
 
-            peripheral.discoverDescriptors(for: characteristic)
-
-            //TODO: is the following call needed here?
-            if service.uuid == CBUUID.DeviceInformationService {
-                peripheral.readValue(for: characteristic)
-            }
+            self.glasses.peripheral.discoverDescriptors(for: characteristic)
         }
     }
 
-    public func peripheral(_ peripheral: CBPeripheral,
-                           didDiscoverDescriptorsFor characteristic: CBCharacteristic,
-                           error: Error?) {
-//        print("peripheral did discover descriptors: ",
-//              characteristic.descriptors!,
-//              " for characteristic: ",
-//              characteristic)
+    func peripheral(_ peripheral: CBPeripheral,
+                    didUpdateValueFor characteristic: CBCharacteristic,
+                    error: Error?)
+    {
+        guard error == nil else {
+            failed(with: GlassesInitializerError.glassesInitializer(
+                message: String(format: "error reading value for characteristics", error.debugDescription,
+                                ", for characteristic: ", characteristic, "@ ", #line)))
+            return
+        }
     }
 
-    public func peripheral(_ peripheral: CBPeripheral,
-                           didUpdateValueFor characteristic: CBCharacteristic,
-                           error: Error?) {
-//        print("peripheral did update value for characteristic: ", characteristic.uuid)
+    func peripheral(_ peripheral: CBPeripheral,
+                    didDiscoverDescriptorsFor characteristic: CBCharacteristic,
+                    error: Error?)
+    {
+        guard error == nil else {
+            failed(with: GlassesInitializerError.glassesInitializer(
+                message: String(format: "error discovering descriptors for characteristics",
+                                error.debugDescription, ", for characteristic: ", characteristic, "@ ", #line)))
+            return
+        }
     }
 }

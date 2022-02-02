@@ -25,7 +25,6 @@ internal class Downloader: NSObject {
 
     // MARK: - Private Structures
 
-
     // MARK: - FilePrivate Structures
 
     // MARK: - Public Variables
@@ -41,22 +40,26 @@ internal class Downloader: NSObject {
 
     internal func downloadFile(at url: URL,
                                    onSuccess successClosure: @escaping ( Data ) -> (Void),
-                                   onError errorClosure: @escaping ( DownloaderError ) -> (Void))
+                                   onError errorClosure: @escaping ( GlassesUpdateError ) -> (Void))
     {
         let task = URLSession.shared.dataTask( with: url ) { data, response, error in
             guard error == nil else {
-                errorClosure( DownloaderError.DownloaderError( message: "Client error" ) )
+                errorClosure( GlassesUpdateError.downloader(
+                    message: String(format: "Client error @", #line) ) )
                 return
             }
 
             guard let httpResponse = response as? HTTPURLResponse,
-                  (200...299).contains(httpResponse.statusCode) else {
-                      errorClosure( DownloaderError.DownloaderError( message: "Server error" ) )
-                      return
-                  }
+                  (200...299).contains(httpResponse.statusCode)
+            else {
+                errorClosure( GlassesUpdateError.downloader(
+                    message: String(format: "Server error @", #line) ) )
+                return
+            }
 
             guard let data = data else {
-                errorClosure( DownloaderError.DownloaderError( message: "ERROR while downloading file" ))
+                errorClosure( GlassesUpdateError.downloader(
+                    message: String(format: "ERROR while downloading file @", #line) ))
                 return
             }
 
@@ -71,6 +74,5 @@ internal class Downloader: NSObject {
     // MARK: - Public Methods
 
     // MARK: - Private Methods
-
-    // MARK: - CBPeripheralDelegate
+    
 }

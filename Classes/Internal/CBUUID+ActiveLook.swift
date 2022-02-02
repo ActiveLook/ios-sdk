@@ -75,7 +75,8 @@ extension CBUUID {
 
     static let NOTIFICATION_DESCRIPTOR = CBUUID.init(string: "00002902-0000-1000-8000-00805f9b34fb") // NOT NEEDED FOR iOS...
 
-    static let SPOTA_SERVICE_UUID = CBUUID.init(string: "0000fef5-0000-1000-8000-00805f9b34fb")
+//    static let SPOTA_SERVICE_UUID = CBUUID.init(string: "0000fef5-0000-1000-8000-00805f9b34fb")
+    static let SpotaService = CBUUID.init(string: "0000fef5-0000-1000-8000-00805f9b34fb")
     static let SPOTA_SERV_STATUS_UUID = CBUUID.init(string: "5f78df94-798c-46f5-990a-b3eb6a065c88")
     static let SPOTA_MEM_DEV_UUID = CBUUID.init(string: "8082caa8-41a6-4021-91c6-56f9b954cc34")
     static let SPOTA_GPIO_MAP_UUID = CBUUID.init(string: "724249f0-5eC3-4b5f-8804-42345af08651")
@@ -88,7 +89,7 @@ extension CBUUID {
     static let SUOTA_L2CAP_PSM_UUID = CBUUID.init(string: "61C8849C-F639-4765-946E-5C3419BEBB2A")
 
     static let SUOTA_UUIDS = [NOTIFICATION_DESCRIPTOR,
-                              SPOTA_SERVICE_UUID,
+                              SpotaService,
                               SPOTA_SERV_STATUS_UUID,
                               SPOTA_MEM_DEV_UUID,
                               SPOTA_GPIO_MAP_UUID,

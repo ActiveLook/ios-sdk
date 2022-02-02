@@ -15,51 +15,63 @@
 
 import Foundation
 import CoreBluetooth
+import CoreText
+
+// MARK: - Internal Structures
 
 
-internal enum GlassesUpdaterError: Error {
-    case glassesUpdater(message: String = "")   // Used for development? LET'S TRY...
+// MARK: - Internal Enumerations
+
+internal enum GlassesUpdateError: Error {
+    case glassesUpdater(message: String = "")
+    case versionChecker(message: String = "")
+    case downloader(message: String = "")
+    case firmwareUpdater(message: String = "")
 }
+
+
+// MARK: - Class `GlassesUpdater` definition
 
 internal class GlassesUpdater {
 
 
     // MARK: - Private properties
 
+    private var updateParameters: GlassesUpdateParameters?
+
     private var glasses: Glasses?
 
-    private var updateParameters: GlassesUpdateParameters
+    private lazy var successClosure: ( Bool ) -> () = {
+        return successClosure
+    }()
 
-    private var softwareVersionCheckResult: VersionCheckResult? = nil {
-        didSet {
-            guard let result = softwareVersionCheckResult else {
-                return
-            }
+    private lazy var errorClosure: ( GlassesUpdateError ) -> () = {
+        return errorClosure
+    }()
 
-            self.process(result)
-        }
-    }
 
     // MARK: - Life cycle
 
-    init(with parameters: GlassesUpdateParameters) {
+    init() {
+        guard let sdk = try? ActiveLookSDK.shared() else {
+            fatalError(String(format: "SDK Singleton NOT AVAILABLE @  %i", #line))
+        }
 
-        self.updateParameters = parameters
-    }
-
-    deinit {
-        self.glasses = nil
-        self.softwareVersionCheckResult = nil
+        self.updateParameters = sdk.updateParameters
     }
 
 
     // MARK: - Internal methods
 
-    public func update(glasses: Glasses) {
+    func update(_ glasses: Glasses,
+                onSuccess successClosure: @escaping ( Bool ) -> (),
+                onError errorClosure: @escaping ( GlassesUpdateError ) -> ( Void) ) {
 
         self.glasses = glasses
+        self.successClosure = successClosure
+        self.errorClosure = errorClosure
 
-        updateParameters.onUpdateStartCallback()    // TODO: Implement with UpdateProgress
+        updateParameters?.progressClosure()    // TODO: Implement with UpdateProgress
 
         // Start update process
         self.checkFirmwareRecency()
@@ -68,16 +80,17 @@ internal class GlassesUpdater {
 
     // MARK: - Private methods
 
-    private func failed(with error: Error) {
+    private func failed(with error: GlassesUpdateError) {
+
         print(error)
 
-        updateParameters.onUpdateFailureCallback() // TODO: Implement with UpdateProgress
+        errorClosure( error )
     }
 
 
     private func process(_ versCheckResult: VersionCheckResult) {
 
-        updateParameters.onUpdateProgressCallback() // TODO: Implement with UpdateProgress
+        updateParameters?.progressClosure() // TODO: Implement with UpdateProgress
 
         switch versCheckResult.software
         {
@@ -94,31 +107,26 @@ internal class GlassesUpdater {
 
     private func checkFirmwareRecency() {
 
-        updateParameters.onUpdateProgressCallback() // TODO: Implement with UpdateProgress
+        updateParameters?.progressClosure() // TODO: Implement with UpdateProgress
 
-        guard let glasses = glasses else {
-            failed(with: GlassesUpdaterError.glassesUpdater(message: "Glasses NOT set"))
-            return
-        }
+        let versionChecker = VersionChecker()
 
-        let versionChecker = VersionChecker(for: glasses)
-
-        versionChecker.isFirmwareUpToDate(
-            onSuccess: { (result) in self.process( result ) },
-            onError: { (error) in self.failed(with: error ) })
+        versionChecker.isFirmwareUpToDate(for: glasses!,
+                                             onSuccess: { ( result ) in self.process( result ) },
+                                             onError: { ( error ) in self.failed(with: error ) })
     }
 
 
     private func processFirmwareResponse(_ status: VersionStatus ) {
 
-        updateParameters.onUpdateProgressCallback() // TODO: Implement with UpdateProgress
+        updateParameters?.progressClosure() // TODO: Implement with UpdateProgress
 
         switch status
         {
         case .needsUpdate(let apiURL):
             let downloader = Downloader()
 
-            updateParameters.onUpdateProgressCallback() // TODO: Implement with UpdateProgress
+            updateParameters?.progressClosure() // TODO: Implement with UpdateProgress
 
             downloader.downloadFile(at: apiURL,
                                     onSuccess: { ( data ) in self.updateFirmware( with: Firmware( with: data )) },
@@ -131,20 +139,14 @@ internal class GlassesUpdater {
 
     private func updateFirmware(with firmware: Firmware) {
 
-        print("FW downloaded...")
-        print(firmware.description())
+        updateParameters?.progressClosure() // TODO: Implement with UpdateProgress
 
-        updateParameters.onUpdateProgressCallback() // TODO: Implement with UpdateProgress
+        let fwUpdater = FirmwareUpdater(onSuccess: { self.checkConfigurationRecency() },
+                                        onError: { error in self.failed(with: error) })
 
-        let firmwareUpdater = FirmwareUpdater()
+        fwUpdater.update(glasses!, with: firmware)
 
-        guard let glasses = glasses else {
-            failed(with: GlassesUpdaterError.glassesUpdater(message: "Glasses MUST NOT be nil"))
-            return
-        }
-        firmwareUpdater.update(glasses, with: firmware, onSuccess: { self.checkConfigurationRecency() },
-                               onProgress: { updateProgress in self.updateParameters.onUpdateProgressCallback() },
-                               onError: { error in self.failed(with: error )} )
+//        self.successClosure( true )
     }
 
 
@@ -159,22 +161,21 @@ internal class GlassesUpdater {
 
     private func processConfigurationResponse(_ status: VersionStatus ) {
 
-        updateParameters.onUpdateProgressCallback() // TODO: Implement with UpdateProgress
+        updateParameters?.progressClosure() // TODO: Implement with UpdateProgress
 
         switch status {
         case .needsUpdate(let apiURL):
 //            let downloader = Downloader()
 
 
-            updateParameters.onUpdateProgressCallback() // TODO: Implement with UpdateProgress
+            updateParameters?.progressClosure() // TODO: Implement with UpdateProgress
 
             // TODO: IMPLEMENT CONFIGURATION DOWNLOADER
 //            downloader.downloadFirmware(at: apiUrl,
 //                                        onSuccess: { { data } in self.updateFirmware( with: Firmware( with: data )) },
 //                                        onError: { ( error ) in self.failed(with: error ) })
         case .isUpToDate:
-            updateParameters.onUpdateSuccessCallback() // TODO: Implement with UpdateProgress
+            updateParameters?.progressClosure() // TODO: Implement with UpdateProgress
         }
     }
-
 }

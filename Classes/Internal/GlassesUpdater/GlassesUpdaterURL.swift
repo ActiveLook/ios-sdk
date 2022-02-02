@@ -47,7 +47,6 @@ internal final class GlassesUpdaterURL {
 
     internal static func shared() -> GlassesUpdaterURL
     {
-
         switch (self._shared) {
         case let (i?):
             return i

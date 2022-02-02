@@ -14,12 +14,59 @@
  */
 
 import Foundation
+import CoreBluetooth
 
-struct GlassesUpdateParameters {
+
+internal enum UpdateState : Int {
+    case NOT_INITIALIZED = 0
+    case retrievedDeviceInformations
+    case updating
+    case checkingFWVersion
+    case updatingFW
+    case checkingConfigVersion
+    case updatingConfig
+    case DONE
+}
+
+
+internal class GlassesUpdateParameters {
+
     var token: String
-    var onUpdateStartCallback: () -> Void
-    var onUpdateProgressCallback: () -> Void
-    var onUpdateSuccessCallback: () -> Void
-    var onUpdateFailureCallback: () -> Void
+    var startClosure: () -> Void
+    var progressClosure: () -> Void
+    var successClosure: () -> Void
+    var failureClosure: () -> Void
+
+    var state: UpdateState = .checkingFWVersion
+
+//    var firmware: Firmware?
+
+//    var successClosure: (() -> (Void))?
+//    var progressClosure: (( UpdateProgress ) -> (Void))?
+//    var errorClosure: (( FirmwareUpdateError ) -> (Void))?
+
+//    private let initTimeoutDuration: TimeInterval = 5
+//    private let initPollInterval: TimeInterval = 0.2
+//
+//    private var initTimeoutTimer: Timer?
+//    private var initPollTimer: Timer?
+
+    init(_ token: String,
+    _ onUpdateStartCallback: @escaping () -> Void,
+    _ onUpdateProgressCallback: @escaping () -> Void,
+    _ onUpdateSuccessCallback: @escaping () -> Void,
+    _ onUpdateFailureCallback: @escaping () -> Void ) {
+        self.token = token
+        self.startClosure = onUpdateStartCallback
+        self.progressClosure = onUpdateProgressCallback
+        self.successClosure = onUpdateSuccessCallback
+        self.failureClosure = onUpdateFailureCallback
+    }
+
+
+    func isReady() -> Bool {
+        return state == .DONE
+    }
+
 }
 
