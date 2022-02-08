@@ -15,39 +15,38 @@
 
 import Foundation
 import CoreBluetooth
-import CoreText
-
-// MARK: - Internal Structures
-
 
 // MARK: - Internal Enumerations
 
 internal enum GlassesUpdateError: Error {
-    case glassesUpdater(message: String = "")
-    case versionChecker(message: String = "")
-    case downloader(message: String = "")
-    case firmwareUpdater(message: String = "")
+    case glassesUpdater(message: String = "")   // 0
+    case versionChecker(message: String = "")   // 1
+    case downloader(message: String = "")       // 2
+    case firmwareUpdater(message: String = "")  // 3
 }
 
 
-// MARK: - Class `GlassesUpdater` definition
-
+// MARK: -
 internal class GlassesUpdater {
 
 
     // MARK: - Private properties
 
+    private var sdk: ActiveLookSDK?
+
     private var updateParameters: GlassesUpdateParameters?
 
     private var glasses: Glasses?
 
-    private lazy var successClosure: ( Bool ) -> () = {
+    private lazy var successClosure: () -> () = {
         return successClosure
     }()
 
-    private lazy var errorClosure: ( GlassesUpdateError ) -> () = {
+    private lazy var errorClosure: () -> () = {
         return errorClosure
     }()
+
+    private var firmwareUpdater: FirmwareUpdater?
 
 
     // MARK: - Life cycle
@@ -57,15 +56,15 @@ internal class GlassesUpdater {
             fatalError(String(format: "SDK Singleton NOT AVAILABLE @  %i", #line))
         }
 
-        self.updateParameters = sdk.updateParameters
+        self.sdk = sdk
     }
 
 
     // MARK: - Internal methods
 
     func update(_ glasses: Glasses,
-                onSuccess successClosure: @escaping ( Bool ) -> (),
-                onError errorClosure: @escaping ( GlassesUpdateError ) -> ( Void) ) {
+                onSuccess successClosure: @escaping () -> (),
+                onError errorClosure: @escaping () -> () ) {
 
         self.glasses = glasses
         self.successClosure = successClosure
@@ -75,16 +74,19 @@ internal class GlassesUpdater {
 
         // Start update process
         self.checkFirmwareRecency()
+
+        sdk?.updateParameters.state = .updating
     }
 
 
     // MARK: - Private methods
 
     private func failed(with error: GlassesUpdateError) {
+        dlog(message: error.localizedDescription, line: #line, function: #function, file: #fileID)
 
-        print(error)
+        sdk?.updateParameters.state = .FAILED
 
-        errorClosure( error )
+        errorClosure()
     }
 
 
@@ -107,7 +109,11 @@ internal class GlassesUpdater {
 
     private func checkFirmwareRecency() {
 
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+
         updateParameters?.progressClosure() // TODO: Implement with UpdateProgress
+
+        sdk?.updateParameters.state = .checkingFWVersion
 
         let versionChecker = VersionChecker()
 
@@ -119,15 +125,20 @@ internal class GlassesUpdater {
 
     private func processFirmwareResponse(_ status: VersionStatus ) {
 
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+
         updateParameters?.progressClosure() // TODO: Implement with UpdateProgress
 
         switch status
         {
         case .needsUpdate(let apiURL):
-            let downloader = Downloader()
+
+            sdk?.updateParameters.state = .updatingFW
 
             updateParameters?.progressClosure() // TODO: Implement with UpdateProgress
 
+
+            let downloader = Downloader()
             downloader.downloadFile(at: apiURL,
                                     onSuccess: { ( data ) in self.updateFirmware( with: Firmware( with: data )) },
                                     onError: { ( error ) in self.failed(with: error ) })
@@ -139,23 +150,29 @@ internal class GlassesUpdater {
 
     private func updateFirmware(with firmware: Firmware) {
 
+        dlog(message: firmware.description(), line: #line, function: #function, file: #fileID)
+
+        sdk?.updateParameters.state = .updatingFW
+
         updateParameters?.progressClosure() // TODO: Implement with UpdateProgress
 
-        let fwUpdater = FirmwareUpdater(onSuccess: { self.checkConfigurationRecency() },
+        firmwareUpdater = FirmwareUpdater(onSuccess: { self.checkConfigurationRecency() },
                                         onError: { error in self.failed(with: error) })
 
-        fwUpdater.update(glasses!, with: firmware)
+        firmwareUpdater?.update(glasses!, with: firmware)
 
-//        self.successClosure( true )
     }
 
 
     // MARK: Configuration Methods
 
     private func checkConfigurationRecency() {
-        print("FIRMWARE IS UPTODATE, NOW ON CONFIGURATION...")
 
-
+        // TODO: FOR NOW...
+        sdk?.updateParameters.state = .DONE
+        successClosure()
+        return
+        
         //updateParameters.onUpdateProgressCallback() // TODO: Implement with UpdateProgress
     }
 

@@ -162,8 +162,10 @@ public class Glasses {
         self.commandQueue = ConcurrentDataQueue(for: self.availableMTU)
         self.flowControlState = .on
         self.rxCharacteristicState = .available
+        print("backingup peripheral delegate")
         self.peripheralDelegate = PeripheralDelegate()
         self.peripheralDelegate.parent = self
+        self.peripheral.delegate = self.peripheralDelegate
     }
 
     internal convenience init(discoveredGlasses: DiscoveredGlasses) {
@@ -181,7 +183,15 @@ public class Glasses {
     // MARK: - Internal methods
 
     internal func resetPeripheralDelegate() {
+
+        print("restoring peripheral delegate")
+
         self.peripheral.delegate = self.peripheralDelegate
+    }
+
+    internal func setDelegate(to delegate: CBPeripheralDelegate) {
+        print("peripheral delegate changed")
+        self.peripheral.delegate = delegate
     }
     
 
@@ -350,7 +360,12 @@ public class Glasses {
     public func onDisconnect(_ disconnectionCallback: (() -> Void)?) {
         self.disconnectionCallback = disconnectionCallback
     }
-    
+
+
+    public func discoverSpotaChars() {
+        self.peripheral.discoverCharacteristics(nil, for: spotaService!)
+    }
+
     /// Get information relative to the device as published over Bluetooth.
     /// - Returns: The current information about the device, including its manufacturer name, model number, serial number, hardware version, software version and firmware version.
     public func getDeviceInformation() -> DeviceInformation {
@@ -1128,10 +1143,9 @@ public class Glasses {
 
     /// Internal class to allow Glasses to not inherit from NSObject and to hide CBPeripheralDelegate methods
     fileprivate class PeripheralDelegate: NSObject, CBPeripheralDelegate {
-        
+
         weak var parent: Glasses?
 
-        
 
         public func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
             guard error == nil else {
@@ -1150,6 +1164,7 @@ public class Glasses {
                         parent?.flowControlUpdateCallback?(flowControlState)
                     }
                 }
+
             default:
                 break
             }

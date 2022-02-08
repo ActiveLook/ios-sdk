@@ -67,27 +67,20 @@ public struct FirmwareVersion: SoftwareClassProtocol, Equatable {
 
     public static func >(lhs: FirmwareVersion, rhs: FirmwareVersion) -> Bool {
 
-        guard lhs.major >= rhs.major else {
-            return false
+        if (lhs.major == rhs.major) && (lhs.minor > rhs.minor) {
+            return true
         }
 
-        guard lhs.major == rhs.major, lhs.minor >= rhs.minor else {
-            return false
+        if (lhs.major == rhs.major) && (lhs.minor == rhs.minor) && (lhs.patch > rhs.patch) {
+            return true
         }
 
-        guard lhs.major == rhs.major, lhs.minor == rhs.minor, lhs.patch > rhs.patch else {
-            return false
-        }
-
-        return true
+        return false
     }
 }
 
+// TODO: ConfigurationVersion...
 public struct ConfigurationVersion: SoftwareClassProtocol {
-    // # version config = Major FW + Minor FW + Patch FW + Config Version ex: 4.2.1.6
-    // seul le config version peut changer pour un firmware donné.
-    // Et il y a une correpondance FW.m.m.p <> CONFIG.m.m.p.#
-#warning("NOT YET DONE! – only version #")
     public var description: String {
         get {
             return "NOT YET DONE!"

@@ -15,7 +15,9 @@
 
 import Foundation
 
+
 // MARK: - Internal Enums
+
 internal enum DownloaderError: Error {
     case DownloaderError(message: String)
 }
@@ -23,19 +25,11 @@ internal enum DownloaderError: Error {
 internal class Downloader: NSObject {
 
 
-    // MARK: - Private Structures
-
-    // MARK: - FilePrivate Structures
-
-    // MARK: - Public Variables
-
-    // MARK: - Private Variables
-
-    // MARK: - Initializer
+    // MARK: - Life Cycle
+    
     override init() { }
 
-    // MARK: - Life Cycle
-
+    
     // MARK: - Internal Methods
 
     internal func downloadFile(at url: URL,
@@ -70,9 +64,4 @@ internal class Downloader: NSObject {
         }
         task.resume()
     }
-
-    // MARK: - Public Methods
-
-    // MARK: - Private Methods
-    
 }

@@ -26,8 +26,8 @@ public enum ActiveLookError: Error {
     case startScanningAlreadyCalled
     case sdkInitMissingParameters
     case sdkCannotChangeParameters
+    case sdkUpdateFailed
     case sdkDevelopment
-    case sdkSUOTAError
 }
 
 extension ActiveLookError: LocalizedError {
@@ -51,10 +51,10 @@ extension ActiveLookError: LocalizedError {
             return "You need to provide all parameters at initialization!"
         case .sdkCannotChangeParameters:
             return "You cannot change parameters after initialization!"
+        case .sdkUpdateFailed:
+            return "Glasses update failed"
         case .sdkDevelopment:
-            return "YOU HAVE AN ERROR!!!!"
-        case .sdkSUOTAError:
-            return "Error while uploading firmware"
+            return "SDK development ERROR"
         }
     }
 

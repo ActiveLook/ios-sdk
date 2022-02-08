@@ -16,6 +16,10 @@
 import Foundation
 import CoreBluetooth
 
+typealias startClosureSignature = () -> ()
+typealias progressClosureSignature = () -> ()
+typealias successClosureSignature = () -> ()
+typealias failureClosureSignature = () -> ()
 
 internal enum UpdateState : Int {
     case NOT_INITIALIZED = 0
@@ -26,36 +30,25 @@ internal enum UpdateState : Int {
     case checkingConfigVersion
     case updatingConfig
     case DONE
+    case FAILED
 }
 
 
 internal class GlassesUpdateParameters {
 
     var token: String
-    var startClosure: () -> Void
-    var progressClosure: () -> Void
-    var successClosure: () -> Void
-    var failureClosure: () -> Void
+    var startClosure: startClosureSignature
+    var progressClosure: progressClosureSignature
+    var successClosure: successClosureSignature
+    var failureClosure: failureClosureSignature
 
     var state: UpdateState = .checkingFWVersion
 
-//    var firmware: Firmware?
-
-//    var successClosure: (() -> (Void))?
-//    var progressClosure: (( UpdateProgress ) -> (Void))?
-//    var errorClosure: (( FirmwareUpdateError ) -> (Void))?
-
-//    private let initTimeoutDuration: TimeInterval = 5
-//    private let initPollInterval: TimeInterval = 0.2
-//
-//    private var initTimeoutTimer: Timer?
-//    private var initPollTimer: Timer?
-
     init(_ token: String,
-    _ onUpdateStartCallback: @escaping () -> Void,
-    _ onUpdateProgressCallback: @escaping () -> Void,
-    _ onUpdateSuccessCallback: @escaping () -> Void,
-    _ onUpdateFailureCallback: @escaping () -> Void ) {
+    _ onUpdateStartCallback: @escaping startClosureSignature,
+    _ onUpdateProgressCallback: @escaping progressClosureSignature,
+    _ onUpdateSuccessCallback: @escaping successClosureSignature,
+    _ onUpdateFailureCallback: @escaping failureClosureSignature ) {
         self.token = token
         self.startClosure = onUpdateStartCallback
         self.progressClosure = onUpdateProgressCallback

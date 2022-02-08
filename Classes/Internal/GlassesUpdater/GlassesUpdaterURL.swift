@@ -15,8 +15,7 @@
 
 import Foundation
 
-// The `GlassesUpdaterURL` class provides the URL to query the different endpoints,
-// with the correct arguments
+// MARK: - 
 internal final class GlassesUpdaterURL {
 
 
@@ -26,6 +25,7 @@ internal final class GlassesUpdaterURL {
 
     private let scheme: String = "http"
     private let host: String = "vps468290.ovh.net"
+//    private let host: String = "http://vps468290.ovh.net/v1"
     private let port: Int? = 8000   // Set to `nil` if no port number assigned
 
     private let minCompatibility = "4"

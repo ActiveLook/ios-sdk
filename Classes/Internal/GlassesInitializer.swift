@@ -24,15 +24,13 @@ internal enum GlassesInitializerError: Error {
 }
 
 
-// MARK: - Class `GlassesInitializer` definition
-
+// MARK: -
 internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
 
 
     // MARK: - Private properties
 
-    #warning("SET TIMEOUT BACK TO 5")   // Add pause method to invoke if FW update ?
-    private let initTimeoutDuration: TimeInterval = 2000 // 5
+    private let initTimeoutDuration: TimeInterval = 5
     private let initPollInterval: TimeInterval = 0.2
 
     private lazy var updateParameters: GlassesUpdateParameters = {
@@ -79,15 +77,6 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
 
     // MARK: - Private methods
 
-    private func updateGlasse() {
-
-        let updater = GlassesUpdater()
-
-//        updater.update(glasses,
-//                       onSuccess: { result in self.glassesAreUpToDate = result},
-//                       onError: { error in self.failed(with: error)})
-    }
-
     private func isReady() -> Bool {
         if glasses.peripheral.state != .connected {
             return false
@@ -96,7 +85,7 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
         let di = glasses.getDeviceInformation()
 
         let requiredProperties: [Any?] = [
-            spotaService, rxCharacteristic, txCharacteristic, batteryLevelCharacteristic,
+            rxCharacteristic, txCharacteristic, batteryLevelCharacteristic,
             flowControlCharacteristic, sensorInterfaceCharacteristic, di.manufacturerName, di.modelNumber,
             di.serialNumber, di.hardwareVersion, di.firmwareVersion, di.softwareVersion
         ]
@@ -110,22 +99,6 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
         if !txCharacteristic!.isNotifying { return false }
 
         if !flowControlCharacteristic!.isNotifying { return false }
-
-        if updateParameters.state != .updating {
-            updateParameters.state = .retrievedDeviceInformations
-        }
-
-//        if !glassesAreUpToDate
-//            && updateParameters.state == .retrievedDeviceInformations
-//        {
-//            updateGlasse()
-//            updateParameters.state = .updating
-//            return false
-//        }
-//
-//        if updateParameters.state == .updating {
-//            return false
-//        }
 
         return true
     }
@@ -158,7 +131,8 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
 
     func initialize(_ glasses: Glasses,
                     onSuccess successClosure: @escaping () -> (Void),
-                    onError errorClosure: @escaping (Error) -> (Void)) {
+                    onError errorClosure: @escaping (Error) -> (Void))
+    {
 
         self.glasses = glasses
 
@@ -173,8 +147,7 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
 
         glasses.peripheral.discoverServices([CBUUID.DeviceInformationService,
                                              CBUUID.BatteryService,
-                                             CBUUID.ActiveLookCommandsInterfaceService,
-                                             CBUUID.SpotaService])
+                                             CBUUID.ActiveLookCommandsInterfaceService])
 
         // We're 'polling', or checking regularly that we've received all needed information about the glasses
         initPollTimer = Timer.scheduledTimer(withTimeInterval: initPollInterval, repeats: true) { (timer) in
@@ -194,8 +167,8 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
 
     // MARK: - CBPeripheralDelegate
 
-    public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
-
+    public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?)
+    {
         guard error == nil else {
             failed(with: GlassesInitializerError.glassesInitializer(
                 message: String(format: "error while discovering services: ", error.debugDescription)))
@@ -221,10 +194,6 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
             case CBUUID.DeviceInformationService :
                 peripheral.discoverCharacteristics(CBUUID.DeviceInformationCharacteristicsUUIDs, for: service)
 
-            case CBUUID.SpotaService :
-                spotaService = service
-                peripheral.discoverCharacteristics(nil, for: service)
-
             default:
                 // print("discovered unknown service: \(service.uuid)")
                 break
@@ -232,9 +201,11 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
         }
     }
 
+
     public func peripheral(_ peripheral: CBPeripheral,
                            didDiscoverCharacteristicsFor service: CBService,
-                           error: Error?) {
+                           error: Error?)
+    {
         guard error == nil else {
             failed(with: GlassesInitializerError.glassesInitializer(
                 message: String(format: "error while discovering characteristics: ", error.debugDescription,
@@ -255,26 +226,6 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
             service.characteristics?.forEach({
                 peripheral.readValue(for: $0)
             })
-            
-        case CBUUID.SpotaService :
-            for characteristic in characteristics {
-                switch characteristic.uuid {
-                case CBUUID.SPOTA_SERV_STATUS_UUID:
-                    print("setting NOTIFY TRUE for SPOTA_SERV_STATUS_UUID")
-                    peripheral.setNotifyValue(true, for: characteristic)
-
-                case CBUUID.SUOTA_VERSION_UUID :
-                    print("discovered SUOTA_VERSION_UUID characteristic")
-                    peripheral.readValue(for: characteristic)
-
-                case CBUUID.SUOTA_PATCH_DATA_CHAR_SIZE_UUID :
-                    print("discovered SUOTA_PATCH_DATA_CHAR_SIZE_UUID characteristic")
-                    peripheral.readValue(for: characteristic)
-
-                default:
-                    peripheral.readValue(for: characteristic)
-                }
-            }
 
         default :
             break
@@ -309,6 +260,7 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
         }
     }
 
+
     func peripheral(_ peripheral: CBPeripheral,
                     didUpdateValueFor characteristic: CBCharacteristic,
                     error: Error?)
@@ -320,6 +272,7 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
             return
         }
     }
+
 
     func peripheral(_ peripheral: CBPeripheral,
                     didDiscoverDescriptorsFor characteristic: CBCharacteristic,

@@ -20,7 +20,7 @@ extension UInt32 {
     /// is returning the same output as `asUInt8Array`.
     /// Not tested performance wise...
     var byteArray: [UInt8] {
-        withUnsafeBytes(of: self.bigEndian) {
+        withUnsafeBytes(of: self.littleEndian) {
             Array($0)
         }
     }

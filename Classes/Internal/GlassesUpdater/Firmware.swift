@@ -19,7 +19,7 @@ import Foundation
 // MARK: - Internal Typealiases
 
 internal typealias Chunck = [UInt8]
-internal typealias Block = ( size: Int, bytes: [Chunck] )
+internal typealias Block = ( size: Int, chunks: [Chunck] )
 internal typealias Blocks = [Block]
 
 
@@ -30,9 +30,7 @@ internal enum FirmwareError: Error {
 }
 
 
-// MARK: - Firmware Structure
-// The `Firmware` structure holds the firmware data.
-
+// MARK: -
 internal struct Firmware {
 
 
@@ -44,6 +42,9 @@ internal struct Firmware {
     // MARK: - Internal Properties
 
     internal var blocks: Blocks
+
+
+    // MARK: - Life Cycle
 
     init(with content : Data) {
         bytes = []
@@ -81,7 +82,7 @@ internal struct Firmware {
         while blockOffset < bytes.count {
             let currentBlockSize = min(blockSize, bytes.count - blockOffset)
 
-            var block: [[UInt8]] = []
+            var chunks: [Chunck] = []
             var chunkOffset = 0
 
             while chunkOffset < currentBlockSize {
@@ -90,14 +91,14 @@ internal struct Firmware {
                 var chunk: Chunck = []
 
                 let startIndex = blockOffset + chunkOffset
-                let endIndex = startIndex + currentChunkSize
+                let endIndex = startIndex + currentChunkSize - 1
 
                 chunk = Array(bytes[startIndex...endIndex])
-                block.append(chunk)
+                chunks.append(chunk)
                 chunkOffset += currentChunkSize
             }
 
-            self.blocks.append(Block(size: currentBlockSize, bytes: block))
+            self.blocks.append(Block(size: currentBlockSize, chunks: chunks))
             blockOffset += currentBlockSize
         }
     }
