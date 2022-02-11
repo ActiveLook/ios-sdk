@@ -19,8 +19,9 @@ import CoreBluetooth
 // MARK: - Internal Enumerations
 
 internal enum VersionStatus {
-    case needsUpdate( apiURL: URL )
     case isUpToDate
+    case needsUpdate( apiURL: URL )
+    case noUpdateAvailable
 }
 
 
@@ -160,7 +161,6 @@ internal final class VersionChecker: NSObject {
 
         let task = URLSession.shared.dataTask( with: url ) { data, response, error in
             guard error == nil else {
-                // Client error
                 self.failed(with: GlassesUpdateError.versionChecker(
                     message: String(format: "Client error @", #line)))
                 return
@@ -169,9 +169,12 @@ internal final class VersionChecker: NSObject {
             guard let httpResponse = response as? HTTPURLResponse,
                   (200...299).contains(httpResponse.statusCode)
             else {
-                // Server error
-                self.failed(with: GlassesUpdateError.versionChecker(
-                    message: String(format: "Server error @", #line)))
+                self.remoteFWVersion =
+                    FirmwareVersion(major:0,
+                                    minor:0,
+                                    patch:0,
+                                    extra: "",
+                                    path: GlassesUpdateError.versionCheckerNoUpdateAvailable.localizedDescription)
                 return
             }
 
@@ -205,6 +208,8 @@ internal final class VersionChecker: NSObject {
 
     private func compareFWVersions() {
 
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+
         guard let rfw = remoteFWVersion, let gfw = glassesFWVersion else {
             failed(with: GlassesUpdateError.versionChecker(
                 message: String(format: "compareFWVersions: rfw or gfw NOT SET @", #line)))
@@ -222,10 +227,18 @@ internal final class VersionChecker: NSObject {
             result = VersionCheckResult( software: .firmware, status: .needsUpdate(apiURL: apiURL) )
         } else {
             // up-to-date
-            result = VersionCheckResult( software: .firmware, status: .isUpToDate )
-            
-            dlog(message: "Firmware up-to-date",
+            var message = ""
+            if rfw.path == GlassesUpdateError.versionCheckerNoUpdateAvailable.localizedDescription {
+                message = "No update available"
+                result = VersionCheckResult( software: .firmware, status: .noUpdateAvailable )
+
+            } else {
+                message = "Firmware up-to-date"
+                result = VersionCheckResult( software: .firmware, status: .isUpToDate )
+            }
+            dlog(message: message,
                  line: #line, function: #function, file: #fileID)
+
         }
     }
 

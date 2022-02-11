@@ -23,14 +23,18 @@ typealias failureClosureSignature = () -> ()
 
 internal enum UpdateState : Int {
     case NOT_INITIALIZED = 0
-    case retrievedDeviceInformations
-    case updating
-    case checkingFWVersion
-    case updatingFW
+    case startingUpdate
+    case retrievingDeviceInformations
+    case deviceInformationsRetrieved
+    case checkingFwVersion
+    case downloadingFw
+    case noFwUpdateAvailable
+    case updatingFw
     case checkingConfigVersion
+    case downloadingConfig
     case updatingConfig
-    case DONE
-    case FAILED
+    case updateDone
+    case updateFailed
 }
 
 
@@ -42,7 +46,7 @@ internal class GlassesUpdateParameters {
     var successClosure: successClosureSignature
     var failureClosure: failureClosureSignature
 
-    var state: UpdateState = .checkingFWVersion
+    var state: UpdateState = .checkingFwVersion
 
     init(_ token: String,
     _ onUpdateStartCallback: @escaping startClosureSignature,
@@ -58,7 +62,7 @@ internal class GlassesUpdateParameters {
 
 
     func isReady() -> Bool {
-        return state == .DONE
+        return state == .updateDone
     }
 
 }

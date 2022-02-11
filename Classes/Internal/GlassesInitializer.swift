@@ -57,7 +57,7 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
     internal var glassesAreUpToDate: Bool = false {
         didSet {
             print("glassesAreUpToDate: %b", glassesAreUpToDate)
-            glassesAreUpToDate ? updateParameters.state = .DONE : print("glasses not up to date =(")
+            glassesAreUpToDate ? updateParameters.state = .updateDone : print("glasses not up to date =(")
         }
     }
 
