@@ -15,7 +15,7 @@
 
 import Foundation
 
-// MARK: - 
+// MARK: -
 internal final class GlassesUpdaterURL {
 
 
@@ -25,27 +25,37 @@ internal final class GlassesUpdaterURL {
 
     private let scheme: String = "http"
     private let host: String = "vps468290.ovh.net"
-//    private let host: String = "http://vps468290.ovh.net/v1"
-    private let port: Int? = 8000   // Set to `nil` if no port number assigned
+    private let port: Int? = nil   // Set to `nil` if no port number assigned
 
     private let minCompatibility = "4"
 
+    private let apiVersion = "v1"
     private var softwareClass: String = ""
-    private var hardware: String = "ALK01A"
-    private var channel: String = "BETA"
+    private var hardware: String = ""
+    private var channel: String = ""
 
-    public var generatedURLComponents = URLComponents()
+    private var generatedURLComponents = URLComponents()
+
+    private var sdk: ActiveLookSDK?
+
+
 
 
     // MARK: - Initializers
 
     init() {
         GlassesUpdaterURL._shared = self
+
+        guard let sdk = try? ActiveLookSDK.shared() else {
+            fatalError(String(format: "SDK Singleton NOT AVAILABLE @  %i", #line))
+        }
+
+        self.sdk = sdk
     }
 
     // MARK: - Internal Methods
 
-    internal static func shared() -> GlassesUpdaterURL
+    static func shared() -> GlassesUpdaterURL
     {
         switch (self._shared) {
         case let (i?):
@@ -56,13 +66,12 @@ internal final class GlassesUpdaterURL {
         }
     }
 
-    internal func firmwareHistoryURL(for firmwareVersion: FirmwareVersion) -> URL {
+    func firmwareHistoryURL(for firmwareVersion: FirmwareVersion) -> URL {
         self.softwareClass = "firmwares"
-        generateURL(for: firmwareVersion)
-        return generatedURLComponents.url!
+        return generateURL(for: firmwareVersion)
     }
 
-    internal func firmwareDownloadURL(using apiPathString: String) -> URL {
+    func firmwareDownloadURL(using apiPathString: String) -> URL {
         self.softwareClass = "firmwares"
         generateDownloadURL(for: apiPathString)
         return generatedURLComponents.url!
@@ -70,11 +79,21 @@ internal final class GlassesUpdaterURL {
 
     // MARK: - Private Methods
 
-    func generateURL(for firmwareVersion: FirmwareVersion) {
+    private func generateURL(for firmwareVersion: FirmwareVersion) -> URL {
+
+        guard let hardware = sdk?.updateParameters.hardware else {
+            fatalError("NO HARDWARE SET")
+        }
+
+        guard let token = sdk?.updateParameters.token else {
+            fatalError("NO TOKEN SET")
+        }
+
         let pathComponents = [
+            self.apiVersion,
             self.softwareClass,
-            self.hardware,
-            self.channel
+            hardware,
+            token
         ]
 
         let separator: Character = "/"
@@ -92,10 +111,11 @@ internal final class GlassesUpdaterURL {
             URLQueryItem(name: "compatibility", value: self.minCompatibility),
             URLQueryItem(name: "min-version", value: firmwareVersion.minVersion)
         ]
-        self.generatedURLComponents = tempURLCompts
+
+        return tempURLCompts.url!
     }
 
-    func generateDownloadURL(for apiPathString: String) {
+    private func generateDownloadURL(for apiPathString: String) {
         var tempURLCompts = URLComponents()
         tempURLCompts.scheme = self.scheme
         tempURLCompts.host = self.host
