@@ -54,14 +54,6 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
     private var flowControlCharacteristic: CBCharacteristic?
     private var sensorInterfaceCharacteristic: CBCharacteristic?
 
-    internal var glassesAreUpToDate: Bool = false {
-        didSet {
-            print("glassesAreUpToDate: %b", glassesAreUpToDate)
-            glassesAreUpToDate ? updateParameters.state = .updateDone : print("glasses not up to date =(")
-        }
-    }
-
-
     // MARK: - Life cycle
 
     override init() {
@@ -95,6 +87,8 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
                 return false
             }
         }
+
+        updateParameters.hardware = di.hardwareVersion!
 
         if !txCharacteristic!.isNotifying { return false }
 

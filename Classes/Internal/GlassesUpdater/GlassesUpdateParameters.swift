@@ -48,6 +48,8 @@ internal class GlassesUpdateParameters {
 
     var state: UpdateState = .checkingFwVersion
 
+    var hardware: String = ""
+
     init(_ token: String,
     _ onUpdateStartCallback: @escaping startClosureSignature,
     _ onUpdateProgressCallback: @escaping progressClosureSignature,

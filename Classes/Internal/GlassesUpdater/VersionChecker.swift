@@ -169,12 +169,15 @@ internal final class VersionChecker: NSObject {
             guard let httpResponse = response as? HTTPURLResponse,
                   (200...299).contains(httpResponse.statusCode)
             else {
-                self.remoteFWVersion =
-                    FirmwareVersion(major:0,
-                                    minor:0,
-                                    patch:0,
-                                    extra: "",
-                                    path: GlassesUpdateError.versionCheckerNoUpdateAvailable.localizedDescription)
+                DispatchQueue.main.async {
+                    self.remoteFWVersion =
+                        FirmwareVersion(major:0,
+                                        minor:0,
+                                        patch:0,
+                                        extra: "",
+                                        path:
+                                          GlassesUpdateError.versionCheckerNoUpdateAvailable.localizedDescription)
+                }
                 return
             }
 
