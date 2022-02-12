@@ -17,7 +17,8 @@ import Foundation
 import CoreBluetooth
 
 
-// MARK: -
+// MARK: - Definition
+
 public final class FirmwareUpdater: NSObject {
 
 
@@ -108,6 +109,26 @@ public final class FirmwareUpdater: NSObject {
 
     // MARK: - Private methods
 
+    private func failed(with error: GlassesUpdateError) {
+
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+
+        errorClosure(error)
+    }
+
+
+    private func rebooting() {
+
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+
+        sdk?.updateParameters.state = .rebooting
+
+        successClosure()
+    }
+
+
+    // MARK: - SUOTA Update
+
     private func suotaUpdate() {
 
         dlog(message: "",line: #line, function: #function, file: #fileID)
@@ -196,6 +217,7 @@ public final class FirmwareUpdater: NSObject {
 
         peripheral?.readValue(for: characteristic)
     }
+
 
     private func enableNotifications() {
 
@@ -407,6 +429,7 @@ public final class FirmwareUpdater: NSObject {
 
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
+        print("SEND END SIGNAL")
         peripheral?.setNotifyValue(false, for: spotaServiceStatusCharacteristic!)
     }
 
@@ -425,30 +448,14 @@ public final class FirmwareUpdater: NSObject {
         peripheral?.writeValue( Data( UInt32(0xfd000000).byteArray ),
                                for: characteristic,
                                type: .withResponse)
-    }
-
-    // TODO: RECONNECT AFTER REBOOT!
-    private func reconnectAfterReboot() {
-
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(10), execute: {
-            // TODO: FOR NOW TO FORCE RECONNECT
-            self.errorClosure(GlassesUpdateError.firmwareUpdater(message: "FIRMWARE UPDATED =)"))
-        })
-    }
-
-
-    private func failed(with error: GlassesUpdateError) {
-
-        print(error)
-        errorClosure(error)
+        rebooting()
     }
 }
 
 
 // MARK: -
 extension FirmwareUpdater: CBPeripheralDelegate {
+
 
     public func peripheral(_ peripheral: CBPeripheral,
                            didDiscoverServices error: Error?) {
@@ -465,6 +472,7 @@ extension FirmwareUpdater: CBPeripheralDelegate {
 
         peripheral.discoverCharacteristics(nil, for: spotaService)
     }
+
 
     public func peripheral(_ peripheral: CBPeripheral,
                            didDiscoverCharacteristicsFor service: CBService,
@@ -488,6 +496,7 @@ extension FirmwareUpdater: CBPeripheralDelegate {
 
         suotaUpdate()
     }
+
 
     public func peripheral(_ peripheral: CBPeripheral,
                            didUpdateValueFor characteristic: CBCharacteristic,
@@ -581,8 +590,8 @@ extension FirmwareUpdater: CBPeripheralDelegate {
             dlog(message: "Did update notification state for unknown characteristic",
                  line: #line, function: #function, file: #fileID)
         }
-
     }
+
 
     public func peripheral(_ peripheral: CBPeripheral,
                            didWriteValueFor characteristic: CBCharacteristic,
@@ -600,13 +609,15 @@ extension FirmwareUpdater: CBPeripheralDelegate {
         switch characteristic.uuid {
         case CBUUID.SPOTA_MEM_DEV_UUID :
             if !spotaServiceStatusCharacteristic!.isNotifying {
+                dlog(message: "Did WRITE END SIGNAL",
+                     line: #line, function: #function, file: #fileID)
+
                 sendRebootSignal()
             }
 
         case CBUUID.SPOTA_GPIO_MAP_UUID :
             dlog(message: "Did write value for SPOTA_GPIO_MAP_UUID",
                  line: #line, function: #function, file: #fileID)
-
             setBlocks()
 
         case CBUUID.SPOTA_PATCH_LEN_UUID :

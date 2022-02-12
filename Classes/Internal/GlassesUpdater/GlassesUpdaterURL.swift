@@ -15,7 +15,9 @@
 
 import Foundation
 
-// MARK: -
+
+// MARK: - Definition
+
 internal final class GlassesUpdaterURL {
 
 
@@ -36,9 +38,7 @@ internal final class GlassesUpdaterURL {
 
     private var generatedURLComponents = URLComponents()
 
-    private var sdk: ActiveLookSDK?
-
-
+    private weak var sdk: ActiveLookSDK?
 
 
     // MARK: - Initializers
@@ -52,6 +52,7 @@ internal final class GlassesUpdaterURL {
 
         self.sdk = sdk
     }
+
 
     // MARK: - Internal Methods
 
@@ -67,15 +68,21 @@ internal final class GlassesUpdaterURL {
     }
 
     func firmwareHistoryURL(for firmwareVersion: FirmwareVersion) -> URL {
+
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+
         self.softwareClass = "firmwares"
         return generateURL(for: firmwareVersion)
     }
 
     func firmwareDownloadURL(using apiPathString: String) -> URL {
+
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+        
         self.softwareClass = "firmwares"
-        generateDownloadURL(for: apiPathString)
-        return generatedURLComponents.url!
+        return generateDownloadURL(for: apiPathString)
     }
+
 
     // MARK: - Private Methods
 
@@ -115,13 +122,34 @@ internal final class GlassesUpdaterURL {
         return tempURLCompts.url!
     }
 
-    private func generateDownloadURL(for apiPathString: String) {
+    
+    private func generateDownloadURL(for apiPathString: String) -> URL {
+
+        let separator: Character = "/"
+
+        var apiPath = apiPathString
+
+        if ( apiPath.first == separator ) {
+            _ = apiPath.removeFirst()
+        }
+
+        let pathComponents = [
+            self.apiVersion,
+            apiPath,
+
+        ]
+
+        var path = pathComponents.joined(separator: separator.description)
+        if ( separator != path.first ) {
+            path.insert(separator, at: path.startIndex)
+        }
+
         var tempURLCompts = URLComponents()
         tempURLCompts.scheme = self.scheme
         tempURLCompts.host = self.host
         tempURLCompts.port = self.port
-        tempURLCompts.path = apiPathString
+        tempURLCompts.path = path
 
-        self.generatedURLComponents = tempURLCompts
+        return tempURLCompts.url!
     }
 }

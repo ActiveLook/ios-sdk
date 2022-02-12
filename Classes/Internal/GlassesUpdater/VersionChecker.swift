@@ -97,8 +97,12 @@ internal final class VersionChecker: NSObject {
 
 
     // MARK: - Life-Cycle
-    
     private func cleanUp() {
+
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+        
+        self.glasses = nil
+        self.peripheral = nil
         self.successClosure = nil
         self.errorClosure = nil
         self.timeoutTimer?.invalidate()

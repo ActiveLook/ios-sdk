@@ -45,7 +45,7 @@ public struct FirmwareVersion: SoftwareClassProtocol, Equatable {
 
     public var description: String {
         get {
-            return "\(major).\(minor).\(patch)\(extra ?? "") – path: \(path ?? "NO PATH!!!")"
+            return "\(major).\(minor).\(patch)\(extra ?? "")"
         }
     }
 

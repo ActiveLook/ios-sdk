@@ -22,6 +22,9 @@ internal enum DownloaderError: Error {
     case DownloaderError(message: String)
 }
 
+
+// MARK: - Definition
+
 internal class Downloader: NSObject {
 
 

@@ -16,13 +16,19 @@
 import Foundation
 import CoreBluetooth
 
+
+// MARK: -  Type Alias
+
 typealias startClosureSignature = () -> ()
 typealias progressClosureSignature = () -> ()
 typealias successClosureSignature = () -> ()
 typealias failureClosureSignature = () -> ()
 
-internal enum UpdateState : Int {
-    case NOT_INITIALIZED = 0
+
+// MARK: - Internal Enum
+
+internal enum UpdateState : String {
+    case NOT_INITIALIZED
     case startingUpdate
     case retrievingDeviceInformations
     case deviceInformationsRetrieved
@@ -30,6 +36,7 @@ internal enum UpdateState : Int {
     case downloadingFw
     case noFwUpdateAvailable
     case updatingFw
+    case rebooting
     case checkingConfigVersion
     case downloadingConfig
     case updatingConfig
@@ -37,6 +44,8 @@ internal enum UpdateState : Int {
     case updateFailed
 }
 
+
+// MARK: - Definition
 
 internal class GlassesUpdateParameters {
 
@@ -46,10 +55,13 @@ internal class GlassesUpdateParameters {
     var successClosure: successClosureSignature
     var failureClosure: failureClosureSignature
 
-    var state: UpdateState = .checkingFwVersion
+    var hardware: String
 
-    var hardware: String = ""
+    var state: UpdateState?
 
+
+    // MARK: - Life Cycle
+    
     init(_ token: String,
     _ onUpdateStartCallback: @escaping startClosureSignature,
     _ onUpdateProgressCallback: @escaping progressClosureSignature,
@@ -60,8 +72,10 @@ internal class GlassesUpdateParameters {
         self.progressClosure = onUpdateProgressCallback
         self.successClosure = onUpdateSuccessCallback
         self.failureClosure = onUpdateFailureCallback
+        self.hardware = ""
     }
 
+    // MARK: - Internal Functions
 
     func isReady() -> Bool {
         return state == .updateDone

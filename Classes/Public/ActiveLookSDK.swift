@@ -45,6 +45,8 @@ public class ActiveLookSDK {
     private var didAskForScan: (glassesDiscoveredCallback: (DiscoveredGlasses) -> Void,
                                    scanErrorCallback: (Error) -> Void)?
 
+    private var rebootingGlasses: Glasses?
+
 
     // MARK: - LifeCycle
 
@@ -231,15 +233,24 @@ public class ActiveLookSDK {
                 print("ignoring non ActiveLook peripheral")
                 return
             }
-            
-            guard parent?.discoveredGlasses(fromPeripheral: peripheral) == nil else {
-                print("glasses already discovered")
-                return
-            }
 
             let discoveredGlasses = DiscoveredGlasses(peripheral: peripheral,
                                                       centralManager: central,
                                                       advertisementData: advertisementData)
+
+            guard parent?.discoveredGlasses(fromPeripheral: peripheral) == nil else {
+                print("glasses already discovered")
+                if ( parent?.rebootingGlasses != nil ) && ( parent?.rebootingGlasses?.peripheral == peripheral ) {
+
+                    dlog(message: "glasses are in the update process, have rebooted. RECONNECTING!",
+                         line: #line, function: #function, file: #fileID)
+
+
+                    parent?.stopScanning()
+                    central.connect(peripheral, options: nil)
+                }
+                return
+            }
 
             parent?.discoveredGlassesArray.append(discoveredGlasses)
             parent?.glassesDiscoveredCallback?(discoveredGlasses)
@@ -268,12 +279,25 @@ public class ActiveLookSDK {
 
                 self.parent?.updater?.update(glasses,
                                         onSuccess: {
-                    self.parent?.connectedGlassesArray.append(glasses)
-                    self.parent?.updateParameters.successClosure()
+                    if ( self.parent?.updateParameters.state == .rebooting ) {
+                        dlog(message: "Firmware Update Succeeded. Glasses are rebooting",
+                             line: #line, function: #function, file: #fileID)
 
-                    discoveredGlasses.connectionCallback?(glasses)
-                    discoveredGlasses.connectionCallback = nil
-                    discoveredGlasses.connectionErrorCallback = nil
+                        self.parent?.rebootingGlasses = glasses
+
+                        // stopping scan to ensure state
+                        central.stopScan()
+                        central.scanForPeripherals(withServices: nil,
+                                                   options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
+                        return
+                    } else {
+                        self.parent?.connectedGlassesArray.append(glasses)
+                        self.parent?.updateParameters.successClosure()
+
+                        discoveredGlasses.connectionCallback?(glasses)
+                        discoveredGlasses.connectionCallback = nil
+                        discoveredGlasses.connectionErrorCallback = nil
+                    }
                 },
                                         onError: {
                 discoveredGlasses.connectionErrorCallback?(ActiveLookError.sdkUpdateFailed)
@@ -293,6 +317,7 @@ public class ActiveLookSDK {
                                    didDisconnectPeripheral peripheral: CBPeripheral,
                                    error: Error?)
         {
+
             guard let glasses = parent?.connectedGlasses(fromPeripheral: peripheral) else {
                 print("disconnected from unknown glasses")
                 return

@@ -24,7 +24,8 @@ internal enum GlassesInitializerError: Error {
 }
 
 
-// MARK: -
+// MARK: - Definition
+
 internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
 
 
@@ -33,9 +34,7 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
     private let initTimeoutDuration: TimeInterval = 5
     private let initPollInterval: TimeInterval = 0.2
 
-    private lazy var updateParameters: GlassesUpdateParameters = {
-        return updateParameters
-    }()
+    private var updateParameters: GlassesUpdateParameters?
 
     private lazy var glasses: Glasses = {
         return glasses
@@ -53,6 +52,8 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
     private var rxCharacteristic: CBCharacteristic?
     private var flowControlCharacteristic: CBCharacteristic?
     private var sensorInterfaceCharacteristic: CBCharacteristic?
+
+    private var deviceNameCharacteristic: CBCharacteristic?
 
     // MARK: - Life cycle
 
@@ -87,8 +88,8 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
                 return false
             }
         }
-
-        updateParameters.hardware = di.hardwareVersion!
+        
+        updateParameters?.hardware = di.hardwareVersion!
 
         if !txCharacteristic!.isNotifying { return false }
 
