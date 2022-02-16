@@ -32,7 +32,7 @@ internal final class GlassesUpdaterURL {
     private let minCompatibility = "4"
 
     private let apiVersion = "v1"
-    private var softwareClass: String = ""
+    private var softwareClass: SoftwareClass = .firmwares
     private var hardware: String = ""
     private var channel: String = ""
 
@@ -67,19 +67,39 @@ internal final class GlassesUpdaterURL {
         }
     }
 
+
+    func configurationHistoryURL(for firmwareVersion: FirmwareVersion) -> URL {
+
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+
+        softwareClass = .configurations
+        return generateURL(for: firmwareVersion)
+    }
+
+
+    func configurationDownloadURL(using apiPathString: String) -> URL {
+
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+        
+        softwareClass = .configurations
+        return generateDownloadURL(for: apiPathString)
+    }
+
+
     func firmwareHistoryURL(for firmwareVersion: FirmwareVersion) -> URL {
 
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
-        self.softwareClass = "firmwares"
+        softwareClass = .firmwares
         return generateURL(for: firmwareVersion)
     }
+
 
     func firmwareDownloadURL(using apiPathString: String) -> URL {
 
         dlog(message: "",line: #line, function: #function, file: #fileID)
-        
-        self.softwareClass = "firmwares"
+
+        softwareClass = .firmwares
         return generateDownloadURL(for: apiPathString)
     }
 
@@ -97,8 +117,8 @@ internal final class GlassesUpdaterURL {
         }
 
         let pathComponents = [
-            self.apiVersion,
-            self.softwareClass,
+            apiVersion,
+            softwareClass.rawValue,
             hardware,
             token
         ]
@@ -114,9 +134,18 @@ internal final class GlassesUpdaterURL {
         tempURLCompts.host = self.host
         tempURLCompts.port = self.port
         tempURLCompts.path = path
+
+        let versionQueryTag: String
+
+        if softwareClass == .firmwares {
+            versionQueryTag = "min-version"
+        } else {
+            versionQueryTag = "max-version"
+        }
+
         tempURLCompts.queryItems = [
             URLQueryItem(name: "compatibility", value: self.minCompatibility),
-            URLQueryItem(name: "min-version", value: firmwareVersion.minVersion)
+            URLQueryItem(name: versionQueryTag, value: firmwareVersion.minVersion)
         ]
 
         return tempURLCompts.url!

@@ -16,9 +16,9 @@ limitations under the License.
 import Foundation
 
 
-public enum SoftwareClass {
-    case firmware
-    case configuration
+public enum SoftwareClass: String {
+    case firmwares
+    case configurations
 }
 
 public struct HardwareProperties {
@@ -79,12 +79,23 @@ public struct FirmwareVersion: SoftwareClassProtocol, Equatable {
     }
 }
 
-// TODO: ConfigurationVersion...
-public struct ConfigurationVersion: SoftwareClassProtocol {
+public struct ConfigurationVersion: SoftwareClassProtocol, Equatable {
+    let major: Int
+    var path: String?
+    var error: Error?
+
     public var description: String {
         get {
-            return "NOT YET DONE!"
+            return "\(major)"
         }
+    }
+
+    public static func ==(lhs: ConfigurationVersion, rhs: ConfigurationVersion) -> Bool {
+        return lhs.major == rhs.major
+    }
+
+    public static func >(lhs: ConfigurationVersion, rhs: ConfigurationVersion) -> Bool {
+        return (lhs.major > rhs.major)
     }
 }
 
@@ -167,7 +178,7 @@ public struct GlassesVersion {
                                  serialNumber: serialNumber)
 
         let firmware = FirmwareVersion(major: major, minor: minor, patch: patch, extra: extra)
-        let configuration = ConfigurationVersion()
+        let configuration = ConfigurationVersion(major: 0)
         self.softwares = SoftwareVersions(firmware: firmware, configuration: configuration)
     }
 

@@ -34,3 +34,27 @@ internal enum State {
     case ERROR_UPDATE_FORBIDDEN // UNAVAILABLE
     case ERROR_DOWNGRADE_FORBIDDEN
 }
+
+//public class GlassesUpdate {
+//
+//    private var discoveredGlasses: DiscoveredGlasses
+//    private var state
+//    func getDiscoveredGlasses() -> DiscoveredGlasses {
+//    }
+//    func getState() -> State {}
+//    func getProgress() -> Int {}
+//    func getSourceFirmwareVersion() -> String {}
+//    func getTargetFirmwareVersion() -> String {}
+//    func getSourceConfigurationVersion() -> String {}
+//    func getTargetConfigurationVersion() -> String {}
+//}
+//
+//public enum State {
+//    case DOWNLOADING_FIRMWARE
+//    case UPDATING_FIRMWARE
+//    case DOWNLOADING_CONFIGURATION
+//    case UPDATING_CONFIGURATION
+//    case ERROR_UPDATE_FAIL
+//    case ERROR_UPDATE_FORBIDDEN // UNAVAILABLE
+//    case ERROR_DOWNGRADE_FORBIDDEN
+//}

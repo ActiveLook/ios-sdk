@@ -35,10 +35,12 @@ internal class Downloader: NSObject {
     
     // MARK: - Internal Methods
 
-    internal func downloadFile(at url: URL,
-                                   onSuccess successClosure: @escaping ( Data ) -> (Void),
-                                   onError errorClosure: @escaping ( GlassesUpdateError ) -> (Void))
+    internal func downloadFirmware(at url: URL,
+                               onSuccess successClosure: @escaping ( Data ) -> (Void),
+                               onError errorClosure: @escaping ( GlassesUpdateError ) -> (Void))
     {
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+        
         let task = URLSession.shared.dataTask( with: url ) { data, response, error in
             guard error == nil else {
                 errorClosure( GlassesUpdateError.downloader(
@@ -62,6 +64,41 @@ internal class Downloader: NSObject {
 
             DispatchQueue.main.async {
                 successClosure( Data(data) )
+            }
+
+        }
+        task.resume()
+    }
+
+    internal func downloadConfiguration(at url: URL,
+                                        onSuccess successClosure: @escaping ( String ) -> (Void),
+                                        onError errorClosure: @escaping ( GlassesUpdateError ) -> (Void))
+    {
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+
+        let task = URLSession.shared.dataTask( with: url ) { data, response, error in
+            guard error == nil else {
+                errorClosure( GlassesUpdateError.downloader(
+                    message: String(format: "Client error @", #line) ) )
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse,
+                  (200...299).contains(httpResponse.statusCode)
+            else {
+                errorClosure( GlassesUpdateError.downloader(
+                    message: String(format: "Server error @", #line) ) )
+                return
+            }
+
+            guard let data = data else {
+                errorClosure( GlassesUpdateError.downloader(
+                    message: String(format: "ERROR while downloading file @", #line) ))
+                return
+            }
+
+            DispatchQueue.main.async {
+                successClosure( String(decoding: data, as: UTF8.self) )
             }
 
         }

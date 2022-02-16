@@ -31,7 +31,7 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
 
     // MARK: - Private properties
 
-    private let initTimeoutDuration: TimeInterval = 5
+    private let initTimeoutDuration: TimeInterval = 2 // 5
     private let initPollInterval: TimeInterval = 0.2
 
     private var updateParameters: GlassesUpdateParameters?
@@ -132,8 +132,9 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
         self.glasses = glasses
 
         // We're setting ourselves as the peripheral delegate in order to complete the init process.
-        // When the process is done, we'll set the original delegate back
-        glasses.peripheral.delegate = self
+        // When the process is done, we'll set the original delegate back in `isDone()`
+        glasses.setPeripheralDelegate(to: self)
+//        glasses.peripheral.delegate = self
 
         initSuccessClosure = successClosure
         initErrorClosure = errorClosure
@@ -154,8 +155,8 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
 
         // We're failing after an arbitrary timeout duration
         initTimeoutTimer = Timer.scheduledTimer(withTimeInterval: initTimeoutDuration, repeats: false) { _ in
-            self.failed(with: GlassesInitializerError.glassesInitializer(
-                message: String(format: "connectionTimeoutError: ", #line)))
+//            self.failed(with: GlassesInitializerError.glassesInitializer(
+//                message: String(format: "connectionTimeoutError: ", #line)))
         }
     }
 

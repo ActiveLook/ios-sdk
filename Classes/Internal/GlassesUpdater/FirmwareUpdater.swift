@@ -94,15 +94,17 @@ public final class FirmwareUpdater: NSObject {
     {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
+        // We're setting ourselves as the peripheral delegate in order update the firmware.
+        // If the update succeeds, the device reboots.
+        // If the update fails, it will be set back to original one in `failed(with)`.
+        glasses.setPeripheralDelegate(to: self)
         self.glasses = glasses
         self.peripheral = glasses.peripheral
 
         self.firmware = firmware
 
-        // We're setting ourselves as the peripheral delegate in order to complete the init process.
-        // When the process is done, we'll set the original delegate back
 
-        peripheral?.delegate = self
+//        peripheral?.delegate = self
         peripheral?.discoverServices([CBUUID.SpotaService])
     }
 
@@ -112,6 +114,8 @@ public final class FirmwareUpdater: NSObject {
     private func failed(with error: GlassesUpdateError) {
 
         dlog(message: "",line: #line, function: #function, file: #fileID)
+
+        glasses?.resetPeripheralDelegate()
 
         errorClosure(error)
     }

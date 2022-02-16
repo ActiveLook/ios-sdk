@@ -15,10 +15,12 @@
 
 import Foundation
 import CoreBluetooth
+//import CoreText
 
 // MARK: - Internal Enumerations
 
-internal enum GlassesUpdateError: Error {
+internal enum GlassesUpdateError: Error
+{
     case glassesUpdater(message: String = "")   // 0
     case versionChecker(message: String = "")   // 1
     case versionCheckerNoUpdateAvailable       // 2
@@ -41,21 +43,20 @@ internal class GlassesUpdater {
 
     private var glasses: Glasses?
 
-    private lazy var successClosure: () -> () = {
-        return successClosure
-    }()
+    private var successClosure: ( () -> () )?
 
-    private lazy var errorClosure: () -> () = {
-        return errorClosure
-    }()
+    private var errorClosure: ( () -> () )?
 
     private var firmwareUpdater: FirmwareUpdater?
+    private var versionChecker: VersionChecker?
 
 
     // MARK: - Life cycle
 
-    init() {
-        guard let sdk = try? ActiveLookSDK.shared() else {
+    init()
+    {
+        guard let sdk = try? ActiveLookSDK.shared() else
+        {
             fatalError(String(format: "SDK Singleton NOT AVAILABLE @  %i", #line))
         }
 
@@ -67,90 +68,83 @@ internal class GlassesUpdater {
 
     func update(_ glasses: Glasses,
                 onSuccess successClosure: @escaping () -> (),
-                onError errorClosure: @escaping () -> () ) {
-
+                onError errorClosure: @escaping () -> () )
+    {
         self.glasses = glasses
         self.successClosure = successClosure
         self.errorClosure = errorClosure
 
-        guard sdk?.updateParameters.state != .rebooting else {
-            print("glasses are rebooting, GO TO CheckConfig directly...")
-            checkConfigurationRecency()
-            return
-        }
-
-        sdk?.updateParameters?.state = .startingUpdate
+        versionChecker = VersionChecker()
 
         // Start update process
-        self.checkFirmwareRecency()
-
         sdk?.updateParameters.state = .startingUpdate
+        
+        self.checkFirmwareRecency()
     }
 
 
     // MARK: - Private methods
 
-    private func failed(with error: GlassesUpdateError) {
+    private func failed(with error: GlassesUpdateError)
+    {
         dlog(message: error.localizedDescription, line: #line, function: #function, file: #fileID)
 
         sdk?.updateParameters.state = .updateFailed
 
-        errorClosure()
+        errorClosure?()
     }
 
 
-    private func process(_ versCheckResult: VersionCheckResult) {
-
-        sdk?.updateParameters.state = .checkingFwVersion
+    private func process(_ versCheckResult: VersionCheckResult)
+    {
+        dlog(message: "",line: #line, function: #function, file: #fileID)
 
         switch versCheckResult.software
         {
-        case .firmware :
-            processFirmwareResponse( versCheckResult.status )
+        case .firmwares :
+            sdk?.updateParameters.state = .checkingFwVersion
+            processFirmwareResponse( versCheckResult )
 
-        case .configuration :
-            processConfigurationResponse( versCheckResult.status )
+        case .configurations :
+            sdk?.updateParameters.state = .checkingConfigVersion
+            processConfigurationResponse( versCheckResult )
         }
     }
 
 
     // MARK: Firmware Methods
 
-    private func checkFirmwareRecency() {
-
+    private func checkFirmwareRecency()
+    {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
         sdk?.updateParameters.state = .checkingFwVersion
 
-        let versionChecker = VersionChecker()
-
-        versionChecker.isFirmwareUpToDate(for: glasses!,
+        versionChecker?.isFirmwareUpToDate(for: glasses!,
                                              onSuccess: { ( result ) in self.process( result ) },
                                              onError: { ( error ) in self.failed(with: error ) })
     }
 
 
-    private func processFirmwareResponse(_ status: VersionStatus ) {
-
+    private func processFirmwareResponse(_ result: VersionCheckResult )
+    {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
-        switch status
+        switch result.status
         {
-        case .needsUpdate(let apiURL):
-
+        case .needsUpdate(let apiUrl) :
             let downloader = Downloader()
-            downloader.downloadFile(at: apiURL,
-                                    onSuccess: { ( data ) in self.updateFirmware( with: Firmware( with: data )) },
-                                    onError: { ( error ) in self.failed(with: error ) })
+            downloader.downloadFirmware(at: apiUrl,
+                                         onSuccess: {( data ) in self.updateFirmware(using: Firmware( with: data))},
+                                         onError: {( error ) in self.failed(with: error )})
 
         case .isUpToDate, .noUpdateAvailable:
-
             checkConfigurationRecency()
         }
     }
 
-    private func updateFirmware(with firmware: Firmware) {
-
+    private func updateFirmware(using firmware: Firmware)
+    {
         dlog(message: firmware.description(), line: #line, function: #function, file: #fileID)
 
         sdk?.updateParameters.state = .updatingFw
@@ -163,47 +157,75 @@ internal class GlassesUpdater {
     }
 
 
-    private func waitingForGlassesReboot() {
-
+    private func waitingForGlassesReboot()
+    {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
-        successClosure()
+        successClosure?()
     }
 
 
     // MARK: Configuration Methods
 
-    private func checkConfigurationRecency() {
-
+    private func checkConfigurationRecency()
+    {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
-        // TODO: FOR NOW...
-        sdk?.updateParameters.state = .updateDone
-        successClosure()
-        return
-        // ---------------
+        sdk?.updateParameters.state = .checkingFwVersion
 
-//        sdk?.updateParameters.state = .checkingConfigVersion
-//        return
-
+        versionChecker?.isConfigurationUpToDate( for: glasses!,
+                                                    onSuccess: { ( result ) in self.process( result ) },
+                                                    onError: { ( error ) in self.failed(with: error ) })
     }
 
-    private func processConfigurationResponse(_ status: VersionStatus ) {
+    private func processConfigurationResponse(_ result: VersionCheckResult )
+    {
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+
+        switch result.status
+        {
+        case .needsUpdate(let apiUrl):
+            dlog(message: "Configuration needs update", 
+                 line: #line, function: #function, file: #fileID)
+
+            sdk?.updateParameters.state = .updatingConfig
+            print(apiUrl)
+            let downloader = Downloader()
+            downloader.downloadConfiguration(at: apiUrl,
+                                              onSuccess: { ( cfg ) in self.updateConfiguration(with: cfg ) },
+                                              onError: { ( error ) in self.failed(with: error ) })
+//            if let filePath = Bundle.main.path(forResource: "configTEST", ofType: "txt") {
+//                do {
+//                    let cfg = try String(contentsOfFile: filePath)
+//                    self.updateConfiguration(with: cfg )
+//                } catch {}
+//            }
+
+        case .isUpToDate, .noUpdateAvailable:
+            dlog(message: "Configuration is up-to-date!",
+                 line: #line, function: #function, file: #fileID)
+
+            configurationUpToDate()
+        }
+    }
+
+    private func updateConfiguration(with configuration: String)
+    {
+        dlog(message: "", line: #line, function: #function, file: #fileID)
+
+        print("ConfigurationString.count: \(configuration.count)")
+
+        glasses?.loadConfigurationWithClosures(cfg: configuration,
+                                               onProgress: { progress in print("progress: \(progress)") },
+                                               onSuccess: { print("success"); self.configurationUpToDate()},
+                                               onError: { print("ERROR") })
+    }
+
+    private func configurationUpToDate() {
 
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
-        switch status {
-        case .needsUpdate(let apiURL):
-//            let downloader = Downloader()
-
-            sdk?.updateParameters.state = .updatingConfig
-
-            // TODO: IMPLEMENT CONFIGURATION DOWNLOADER
-//            downloader.downloadFirmware(at: apiUrl,
-//                                        onSuccess: { { data } in self.updateFirmware( with: Firmware( with: data )) },
-//                                        onError: { ( error ) in self.failed(with: error ) })
-        case .isUpToDate, .noUpdateAvailable:
-            break
-        }
+        sdk?.updateParameters.state = .updateDone
+        successClosure?()
     }
 }

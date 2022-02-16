@@ -41,6 +41,10 @@ fileprivate struct Latest: Codable {
 }
 
 
+fileprivate struct ConfigurationJSON: Codable {
+    let latest: Latest
+}
+
 fileprivate struct FirmwareJSON: Codable {
     let latest: Latest
 }
@@ -61,14 +65,14 @@ internal final class VersionChecker: NSObject {
     private var successClosure: (( VersionCheckResult ) -> (Void))?
     private var errorClosure: (( GlassesUpdateError ) -> (Void))?
 
-    private let timeoutDuration: TimeInterval = 5
-    private var timeoutTimer: Timer?
+//    private let timeoutDuration: TimeInterval = 1000//5
+//    private var timeoutTimer: Timer?
 
 
     private var glassesFWVersion: FirmwareVersion? {
         didSet {
             if glassesFWVersion != nil {
-                self.fetchRemoteFirmwareVersion()
+                self.fetchFirmwareHistory()
             }
         }
     }
@@ -77,6 +81,22 @@ internal final class VersionChecker: NSObject {
         didSet {
             if remoteFWVersion != nil {
                 self.compareFWVersions()
+            }
+        }
+    }
+
+    private var glassesConfigurationVersion: UInt32? {
+        didSet {
+            if (glassesConfigurationVersion != nil) && (remoteConfigurationVersion != nil) {
+                self.compareConfigurationVersions()
+            }
+        }
+    }
+
+    private var remoteConfigurationVersion: ConfigurationVersion? {
+        didSet {
+            if (glassesConfigurationVersion != nil) && (remoteConfigurationVersion != nil) {
+                self.compareConfigurationVersions()
             }
         }
     }
@@ -90,22 +110,32 @@ internal final class VersionChecker: NSObject {
 
     // MARK: - Initializers
     
-    override init() {
+    override init()
+    {
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+
         urlGenerator = GlassesUpdaterURL()
         super.init()
     }
 
-
+    
     // MARK: - Life-Cycle
-    private func cleanUp() {
 
+    deinit
+    {
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+
+        self.cleanUp()
+    }
+
+    private func cleanUp()
+    {
         dlog(message: "",line: #line, function: #function, file: #fileID)
         
         self.glasses = nil
-        self.peripheral = nil
         self.successClosure = nil
         self.errorClosure = nil
-        self.timeoutTimer?.invalidate()
+//        self.timeoutTimer?.invalidate()
     }
 
 
@@ -113,9 +143,8 @@ internal final class VersionChecker: NSObject {
 
     internal func isFirmwareUpToDate(for glasses: Glasses,
                                      onSuccess successClosure: @escaping ( VersionCheckResult ) -> (Void),
-                                     onError errorClosure: @escaping ( GlassesUpdateError ) -> (Void)) {
-
-        self.peripheral = glasses.peripheral
+                                     onError errorClosure: @escaping ( GlassesUpdateError ) -> (Void))
+    {
         self.glasses = glasses
 
         self.urlGenerator = GlassesUpdaterURL.shared()
@@ -125,16 +154,33 @@ internal final class VersionChecker: NSObject {
         readDeviceFWVersion()
     }
 
-    // TODO: iConfigurationUpToDate()...
-//    internal func isConfigurationUpToDate(for glasses: Glasses,
-//                          onSuccess successClosure: @escaping ( VersionCheckResult ) -> (Void),
-//                          onError errorClosure: @escaping ( GlassesUpdateError ) -> (Void)) {
-//    }
+
+    internal func isConfigurationUpToDate(for glasses: Glasses,
+                                     onSuccess successClosure: @escaping ( VersionCheckResult ) -> (Void),
+                                     onError errorClosure: @escaping ( GlassesUpdateError ) -> (Void))
+    {
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+
+        self.glasses = glasses
+
+        self.urlGenerator = GlassesUpdaterURL.shared()
+        self.successClosure = successClosure
+        self.errorClosure = errorClosure
+
+        // call to retrieve glasses configuration concurrently with remote configuration
+        glasses.cfgRead(name: "ALooK", callback: { (config: ConfigurationElementsInfo) in
+            self.glassesConfigurationVersion = config.version
+        })
+
+        fetchConfigurationHistory()
+    }
 
 
     // MARK: - Private Methods
 
     private func failed(with error: GlassesUpdateError) {
+        print(error)
+
         errorClosure?( error )
         cleanUp()
     }
@@ -148,11 +194,112 @@ internal final class VersionChecker: NSObject {
         }
 
         successClosure?(result)
-        cleanUp()
     }
 
 
-    private func fetchRemoteFirmwareVersion() {
+    // MARK: Configuration
+
+    private func fetchConfigurationHistory()
+    {
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+
+        guard let gfw = glassesFWVersion else {
+            failed(with: GlassesUpdateError.versionChecker(
+                message: String(format: "Glasses FW Version unavailable @", #line)))
+            return
+        }
+
+        // format URL string
+        let url = urlGenerator.configurationHistoryURL(for: gfw)
+
+        let task = URLSession.shared.dataTask( with: url ) { data, response, error in
+            guard error == nil else {
+                self.failed(with: GlassesUpdateError.versionChecker(
+                    message: String(format: "Client error @", #line)))
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse,
+                  (200...299).contains(httpResponse.statusCode)
+            else {
+                DispatchQueue.main.async {
+                    self.remoteConfigurationVersion =
+                    ConfigurationVersion(
+                        major:0,
+                        path: GlassesUpdateError.versionCheckerNoUpdateAvailable.localizedDescription
+                    )
+                }
+                return
+            }
+
+            guard let data = data else {
+                self.failed(with: GlassesUpdateError.versionChecker(
+                    message: String(format: "Retrieved data is nil @", #line)))
+                return
+            }
+
+            guard let decodedData = try? JSONDecoder().decode( ConfigurationJSON.self, from: data ) else {
+                self.failed(with: GlassesUpdateError.versionChecker(
+                    message: String(format: "JSON decoding error: \(String(describing: error)) @", #line)))
+                return
+            }
+
+            let vers = decodedData.latest.version
+            let apiPath = decodedData.latest.api_path
+
+            DispatchQueue.main.async {
+                self.remoteConfigurationVersion = ConfigurationVersion(
+                                                                        major: vers[3],
+                                                                        path: apiPath)
+            }
+        }
+        task.resume()
+    }
+
+
+    private func compareConfigurationVersions() {
+
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+
+        guard let rcfg = remoteConfigurationVersion, let gcfgVersion = glassesConfigurationVersion else {
+            failed(with: GlassesUpdateError.versionChecker(
+                message: String(format: "compareConfigurationVersions: rcfg or gcfg NOT SET @", #line)))
+            return
+        }
+
+        // The 'ALooK' configuration version is only one #
+        if rcfg.major > gcfgVersion {
+            // needs update
+            guard let apiPath = rcfg.path else {
+                failed(with: GlassesUpdateError.versionChecker(
+                    message: String(format: "remote Configuration path NOT SET @", #line)))
+                return
+            }
+
+            let apiURL = urlGenerator.configurationDownloadURL(using: apiPath)
+            result = VersionCheckResult( software: .configurations, status: .needsUpdate(apiURL: apiURL) )
+
+        } else {
+            // up-to-date
+            var message = ""
+            if rcfg.path == GlassesUpdateError.versionCheckerNoUpdateAvailable.localizedDescription {
+                message = "No update available"
+                result = VersionCheckResult( software: .configurations, status: .noUpdateAvailable )
+
+            } else {
+                message = "Configuration up-to-date"
+                result = VersionCheckResult( software: .configurations, status: .isUpToDate )
+            }
+            dlog(message: message,
+                 line: #line, function: #function, file: #fileID)
+
+        }
+    }
+
+
+    // MARK: Firmware
+
+    private func fetchFirmwareHistory() {
 
         guard let gfw = glassesFWVersion else {
             failed(with: GlassesUpdateError.versionChecker(
@@ -231,21 +378,20 @@ internal final class VersionChecker: NSObject {
                 return
             }
             let apiURL = urlGenerator.firmwareDownloadURL(using: apiPath)
-            result = VersionCheckResult( software: .firmware, status: .needsUpdate(apiURL: apiURL) )
+            result = VersionCheckResult( software: .firmwares, status: .needsUpdate(apiURL: apiURL) )
         } else {
             // up-to-date
             var message = ""
             if rfw.path == GlassesUpdateError.versionCheckerNoUpdateAvailable.localizedDescription {
                 message = "No update available"
-                result = VersionCheckResult( software: .firmware, status: .noUpdateAvailable )
+                result = VersionCheckResult( software: .firmwares, status: .noUpdateAvailable )
 
             } else {
                 message = "Firmware up-to-date"
-                result = VersionCheckResult( software: .firmware, status: .isUpToDate )
+                result = VersionCheckResult( software: .firmwares, status: .isUpToDate )
             }
             dlog(message: message,
                  line: #line, function: #function, file: #fileID)
-
         }
     }
 
@@ -276,10 +422,12 @@ internal final class VersionChecker: NSObject {
         let minor = Int(components[1] ?? 0)
         let patch = Int(components[2] ?? 0)
 
-        print("firmware Vers: \(major).\(minor).\(patch)")
+        dlog(message: "firmware Vers: \(major).\(minor).\(patch)",
+             line: #line, function: #function, file: #fileID)
+
         glassesFWVersion = FirmwareVersion(major: major,
-                                                minor: minor,
-                                                patch: patch,
-                                                extra: nil, path: nil, error: nil)
+                                           minor: minor,
+                                           patch: patch,
+                                           extra: nil, path: nil, error: nil)
     }
 }

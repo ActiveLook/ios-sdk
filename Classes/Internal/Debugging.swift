@@ -17,7 +17,7 @@ import Foundation
 
 // TODO: add timestamp capability?
 func dlog(message:String?, line: Int, function: String, file: String) {
-#if DEBUG
+#if !DEBUG
     var mess: String
     if let message = message {
         mess = message.appending(" ")

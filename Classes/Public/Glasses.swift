@@ -47,22 +47,26 @@ public class Glasses {
     
 
     // MARK: - Internal properties
-    
+
     internal var centralManager: CBCentralManager
     internal var peripheral: CBPeripheral
-    fileprivate var peripheralDelegate: PeripheralDelegate
 
     internal var disconnectionCallback: (() -> Void)?
     
-    
+
+    // MARK: - Fileprivate properties
+
+    fileprivate var peripheralDelegate: PeripheralDelegate
+
+
     // MARK: - Private properties
 
     private var batteryLevelUpdateCallback: ((Int) -> Void)?
     private var flowControlUpdateCallback: ((FlowControlState) -> Void)?
     private var sensorInterfaceTriggeredCallback: (() -> Void)?
     
-    // Query ids are handled internally by the SDK. The queryId variable is used to keep track of
-    // the last queryId sent to the glasses and increment the value for each new command
+    // Query ids are handled internally by the SDK. The `queryId` variable is used to keep track of
+    // the last queryId sent to the glasses and increment the value for each new command.
     private var queryId: UInt8
     
     // The maximum amount of data, in bytes, you can send to a characteristic in a single write type.
@@ -86,7 +90,7 @@ public class Glasses {
         }
     }
     
-    /// RXCharacteristicState
+    // RXCharacteristicState
     private enum RXCharacteristicState: Int {
         case available = 0
         case busy = 1
@@ -99,6 +103,13 @@ public class Glasses {
             }
         }
     }
+
+    // used for loading configurations
+    private var isUpdating = false
+    private var configSize = 0
+    private var progressClosure: ((UInt8) -> Void)?
+    private var successClosure: (() -> Void)?
+    private var errorClosure: (() -> Void)?
     
     // An array used to track queries (commands expecting a response) and match them to a corresponding callback returning the response data as a byte array ([UInt8]).
     private var pendingQueries: [UInt8: (CommandResponseData) -> Void]
@@ -144,10 +155,16 @@ public class Glasses {
     private var spotaService: CBService? {
         return peripheral.getService(withUUID: CBUUID.SpotaService)
     }
-    
+
+
     // MARK: - Initializers
     
-    internal init(name: String, identifier: UUID, manufacturerId: String, peripheral: CBPeripheral, centralManager: CBCentralManager) {
+    internal init(name: String,
+                  identifier: UUID,
+                  manufacturerId: String,
+                  peripheral: CBPeripheral,
+                  centralManager: CBCentralManager )
+    {
         self.name = name
         self.identifier = identifier
         self.manufacturerId = manufacturerId
@@ -158,17 +175,20 @@ public class Glasses {
         self.pendingQueries = [:]
         self.responseBuffer = nil
         self.expectedResponseBufferLength = 0
-        self.availableMTU = self.peripheral.maximumWriteValueLength(for: .withResponse) - 3
-        self.commandQueue = ConcurrentDataQueue(for: self.availableMTU)
+//        self.availableMTU = (self.peripheral.maximumWriteValueLength(for: .withResponse)) / 2 - 3
+        self.availableMTU = 256
+        self.commandQueue = ConcurrentDataQueue(using: self.availableMTU - 3)
         self.flowControlState = .on
         self.rxCharacteristicState = .available
-        print("backingup peripheral delegate")
         self.peripheralDelegate = PeripheralDelegate()
         self.peripheralDelegate.parent = self
+        self.commandQueue.set(parent: self)
         self.peripheral.delegate = self.peripheralDelegate
     }
 
-    internal convenience init(discoveredGlasses: DiscoveredGlasses) {
+
+    internal convenience init(discoveredGlasses: DiscoveredGlasses)
+    {
         self.init(
             name: discoveredGlasses.name,
             identifier: discoveredGlasses.identifier,
@@ -182,27 +202,33 @@ public class Glasses {
 
     // MARK: - Internal methods
 
-    internal func resetPeripheralDelegate() {
-
-        print("restoring peripheral delegate")
+    internal func resetPeripheralDelegate()
+    {
+        dlog(message: "",line: #line, function: #function, file: #fileID)
 
         self.peripheral.delegate = self.peripheralDelegate
     }
 
-    internal func setDelegate(to delegate: CBPeripheralDelegate) {
-        print("peripheral delegate changed")
+    internal func setPeripheralDelegate(to delegate: CBPeripheralDelegate)
+    {
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+
         self.peripheral.delegate = delegate
     }
     
 
     // MARK: - Private methods
     
-    private func getNextQueryId() -> UInt8 {
+    private func getNextQueryId() -> UInt8
+    {
         queryId = (queryId + 1) % 255
         return queryId
     }
 
-    private func sendCommand(id commandId: CommandID, withData data: [UInt8]? = [], callback: ((CommandResponseData) -> Void)? = nil) {
+    private func sendCommand(id commandId: CommandID,
+                             withData data: [UInt8]? = [],
+                             callback: ((CommandResponseData) -> Void)? = nil )
+    {
         let header: UInt8 = 0xFF, footer: UInt8 = 0xAA
         let queryId = getNextQueryId()
         
@@ -236,31 +262,54 @@ public class Glasses {
         commandQueue.enqueue(bytes)
     }
     
-    private func sendCommand(id: CommandID, withValue value: Bool) {
+    private func sendCommand(id: CommandID, withValue value: Bool)
+    {
         sendCommand(id: id, withData: value ? [0x01] : [0x00])
     }
     
-    private func sendCommand(id: CommandID, withValue value: UInt8) {
+    private func sendCommand(id: CommandID, withValue value: UInt8)
+    {
         sendCommand(id: id, withData: [value])
     }
 
     /// sends the bytes queued in commandQueue
-    private func sendBytes() {
+    private func sendBytes()
+    {
+//        dlog(message: "",line: #line, function: #function, file: #fileID)
+
         if flowControlState != FlowControlState.on { return }
-        
+
         if rxCharacteristicState == .busy { return }
         
-        guard let value = commandQueue.dequeue() else { return }
-        
+        guard let value = commandQueue.dequeue() else {
+            if isUpdating {
+                dlog(message: "Config ALooK updated",
+                     line: #line, function: #function, file: #fileID)
+
+                successClosure?()
+                isUpdating = false
+            }
+            return
+        }
+
+        if isUpdating {
+            let elementsLeft = commandQueue.count
+            dlog(message: "\(elementsLeft) left",
+                 line: #line, function: #function, file: #fileID)
+            let ratio = UInt8((elementsLeft * 100) / configSize)
+            if ratio % 10 == 0 {
+                progressClosure?( 100 - ratio )
+            }
+        }
+
         peripheral.writeValue(value, for: rxCharacteristic!, type: .withResponse)
+
         rxCharacteristicState = .busy
-        
-        //print("sending bytes \(value) to peripheral")
     }
     
     private func handleTxNotification(withData data: Data) {
         let bytes = [UInt8](data)
-        print("received notification for tx characteristic with data: \(bytes)")
+        //print("received notification for tx characteristic with data: \(bytes)")
         
         if responseBuffer != nil { // If we're currently filling up the response buffer, handle differently
             handleChunkedResponse(withData: bytes)
@@ -410,6 +459,33 @@ public class Glasses {
             commandQueue.enqueue(line.hexaBytes)
         }
     }
+
+    /// load a configuration file
+    public func loadConfigurationWithClosures(cfg: String,
+                                              onProgress progressClosure: @escaping (UInt8) -> (),
+                                              onSuccess successClosure: @escaping () -> (),
+                                              onError errorClosure: @escaping () -> () ) -> Void
+    {
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+
+        isUpdating = true
+        self.progressClosure = progressClosure
+        self.successClosure = successClosure
+        self.errorClosure = errorClosure
+
+        let comps = cfg.components(separatedBy: "\n")
+
+        configSize = comps.count
+
+        for line in comps {
+            commandQueue.enqueue(line.hexaBytes)
+        }
+    }
+
+
+//    internal func provideConfigUploadProgress(_ value: ) {
+//
+//    }
 
     // MARK: - General commands
     
@@ -1090,7 +1166,8 @@ public class Glasses {
             callback(Int(commandResponseData[0]))
         }
     }
-    
+
+
     // MARK: - Device Commands
     
     /// Shutdown the device
@@ -1098,7 +1175,8 @@ public class Glasses {
     public func shutdown() {
         sendCommand(id: .shutdown, withData: [0x6F, 0x7F, 0xC4, 0xEE])
     }
-    
+
+
     // MARK: - Notifications
     
     /// Subscribe to battery level notifications. The specified callback will return the battery value about once every thirty seconds.
@@ -1171,7 +1249,8 @@ public class Glasses {
 
             print("peripheral did update notification state for characteristic: \(characteristic)")
         }
-        
+
+
         public func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
             guard error == nil else {
                 // TODO Raise error
@@ -1193,12 +1272,21 @@ public class Glasses {
             case CBUUID.ActiveLookSensorInterfaceCharacteristic:
                 parent?.sensorInterfaceTriggeredCallback?()
 
+            case CBUUID.ActiveLookFlowControlCharacteristic:
+                if let flowControlState = FlowControlState(rawValue: characteristic.valueAsInt) {
+                    parent?.flowControlState = flowControlState
+                }
+
             default:
                 break
             }
         }
-        
-        public func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
+
+
+        public func peripheral(_ peripheral: CBPeripheral,
+                               didWriteValueFor characteristic: CBCharacteristic,
+                               error: Error?)
+        {
             guard error == nil else {
                 // TODO Raise error
                 print("error while writing value : \(error!.localizedDescription) for characteristic: \(characteristic.uuid)")
@@ -1209,7 +1297,7 @@ public class Glasses {
             
             case CBUUID.ActiveLookRxCharacteristic:
                 parent?.rxCharacteristicState = .available
-            
+
             default:
                 break
             }
@@ -1217,65 +1305,98 @@ public class Glasses {
             //print("peripheral did write value for characteristic: ", characteristic.uuid)
         }
     }
+
     
     // MARK: - DataStructure
-    
-    /* largely inspired from Pasquier, B (2020) Atomic properties and Thread-safe data structure in Swift [Source code].
-     * https://benoitpasquier.com/atomic-properties-thread-safe-data-structure-swift/
-     */
-    fileprivate struct ConcurrentDataQueue {
-        
-        private let dispatchQueue = DispatchQueue(label: "com.activelook.queueOperations", attributes: .concurrent)
+
+    fileprivate struct ConcurrentDataQueue
+    {
+        weak var parent: Glasses?
+
+        private let dispatchQueue = DispatchQueue(label: "com.activelook.queueOperations",
+                                                  attributes: .concurrent)
         private var mtu: Int
         private var elements: [Data]
         
-        public var isEmpty: Bool { return elements.isEmpty }
-        public var count: Int { return elements.count }
+        var isEmpty: Bool { return elements.isEmpty }
+        var count: Int { return elements.count }
+
         
-        public init(for mtu: Int = 20, withElements elements: [Data] = []) {
+        init( using mtu: Int = 20,
+              with elements: [Data] = [] )
+        {
+            dlog(message: "mtu: \(mtu)", 
+                 line: #line, function: #function, file: #fileID)
+
             self.mtu = mtu
             self.elements = elements
         }
-        
-        
-        public mutating func enqueue(_ values: [UInt8]) {
-            dispatchQueue.sync(flags: .barrier) {
 
-                #warning("TEMPORARILY DISABLED --- ALSO HOW COMMANDS > MTU ARE HANDLED")
-                /// TEMPORARY DISABLED WHILE ACTIVELOOK IS WORKING
-                /// ON CONTROLFLOW
-                /*
-                if elements.isEmpty {
-                    elements.append(Data(capacity: mtu))
-                }
-                for value in values {
-                    if (elements.last!.count >= mtu) {
-                        elements.append(Data(capacity: mtu))
+
+        mutating func set( parent: Glasses )
+        {
+            self.parent = parent
+        }
+
+
+        mutating func enqueue(_ values: [UInt8])
+        {
+            dispatchQueue.sync(flags: .barrier)
+            {
+                elements.append(Data(values))
+
+                // we are setting configSize to provide progression
+                if let isUpdating = parent?.isUpdating
+                {
+                    if isUpdating
+                    {
+                        parent?.configSize = elements.count
+                        dlog(message: "configSize: \(elements.count)",
+                             line: #line, function: #function, file: #fileID)
                     }
-                    elements[elements.count-1].append(Data (_: [value]))
                 }
-                 */
-                elements.append(Data(_: values))
             }
         }
-        
-        public mutating func dequeue() -> Data? {
-            return dispatchQueue.sync(flags: .barrier) {
-                guard !self.elements.isEmpty else {
+
+
+        mutating func dequeue() -> Data?
+        {
+            return dispatchQueue.sync(flags: .barrier)
+            {
+                guard !self.elements.isEmpty else
+                {
                     return nil
                 }
-                return self.elements.removeFirst()
+
+                let first = self.elements.removeFirst()
+
+                if first.count <= mtu {
+                    return first
+                }
+
+                let firstHead = Data(first[0...mtu-1])
+                let firstTail = Data(first[mtu...first.count-1])
+
+                self.elements.insert(firstTail, at: 0)
+
+                return firstHead
             }
         }
-        
-        public var head: Data? {
-            return dispatchQueue.sync {
+
+
+        var head: Data?
+        {
+            return dispatchQueue.sync
+            {
                 return elements.first
             }
         }
-        
-        public var tail: Data? {
-            return dispatchQueue.sync {
+
+
+        var tail: Data?
+        {
+            return dispatchQueue.sync
+            {
                 return elements.last
             }
         }
