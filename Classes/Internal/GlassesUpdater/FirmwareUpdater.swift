@@ -380,8 +380,6 @@ public final class FirmwareUpdater: NSObject {
 
                 peripheral?.writeValue( Data( chunks[ chunkId ]), for: characteristic, type: .withoutResponse)
 
-
-                #warning("RRRR!!!!!")
                 sdk?.updateParameters.update(.updatingFw, (blockId * 100) / firmware.blocks.count)
                 chunkId += 1
                 sendBlock()

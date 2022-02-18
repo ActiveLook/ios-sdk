@@ -392,7 +392,7 @@ public class ActiveLookSDK {
             }
 
             // glasses are rebooting. Will reconnect shorter...
-            guard let updateParameters = parent?.updateParameters, updateParameters.state == .rebooting
+            guard let updateParameters = parent?.updateParameters, updateParameters.state != .rebooting
             else { return }
 
             print("central manager did disconnect from glasses \(glasses.name)")
