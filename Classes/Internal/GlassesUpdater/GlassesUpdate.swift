@@ -15,7 +15,7 @@
 
 import Foundation
 
-protocol GlassesUpdate {
+public protocol GlassesUpdate {
     func getDiscoveredGlasses() -> DiscoveredGlasses
     func getState() -> State
     func getProgress() -> Int
@@ -25,36 +25,74 @@ protocol GlassesUpdate {
     func getTargetConfigurationVersion() -> String
 }
 
-internal enum State {
+
+public enum State: Int {
     case DOWNLOADING_FIRMWARE
     case UPDATING_FIRMWARE
     case DOWNLOADING_CONFIGURATION
     case UPDATING_CONFIGURATION
     case ERROR_UPDATE_FAIL
-    case ERROR_UPDATE_FORBIDDEN // UNAVAILABLE
-    case ERROR_DOWNGRADE_FORBIDDEN
+    case ERROR_UPDATE_FORBIDDEN     // file UNAVAILABLE -- UNUSED in iOS SDK at the moment
+    case ERROR_DOWNGRADE_FORBIDDEN  // UNUSED in iOS SDK at the moment
 }
 
-//public class GlassesUpdate {
-//
-//    private var discoveredGlasses: DiscoveredGlasses
-//    private var state
-//    func getDiscoveredGlasses() -> DiscoveredGlasses {
-//    }
-//    func getState() -> State {}
-//    func getProgress() -> Int {}
-//    func getSourceFirmwareVersion() -> String {}
-//    func getTargetFirmwareVersion() -> String {}
-//    func getSourceConfigurationVersion() -> String {}
-//    func getTargetConfigurationVersion() -> String {}
-//}
-//
-//public enum State {
-//    case DOWNLOADING_FIRMWARE
-//    case UPDATING_FIRMWARE
-//    case DOWNLOADING_CONFIGURATION
-//    case UPDATING_CONFIGURATION
-//    case ERROR_UPDATE_FAIL
-//    case ERROR_UPDATE_FORBIDDEN // UNAVAILABLE
-//    case ERROR_DOWNGRADE_FORBIDDEN
-//}
+
+public class SdkGlassesUpdate: GlassesUpdate {
+
+    private var discoveredGlasses: DiscoveredGlasses?
+    private var state: State
+    private var progress: Int
+    private var sourceFirmwareVersion: String
+    private var targetFirmwareVersion: String
+    private var sourceConfigurationVersion: String
+    private var targetConfigurationVersion: String
+
+    internal init(for discoveredGlasses: DiscoveredGlasses?,
+         state : State = .DOWNLOADING_FIRMWARE,
+         progress: Int = 0,
+         sourceFirmwareVersion: String = "",
+         targetFirmwareVersion: String = "",
+         sourceConfigurationVersion: String = "",
+         targetConfigurationVersion: String = ""
+    ) {
+        self.discoveredGlasses = discoveredGlasses
+        self.state = state
+        self.progress = progress
+        self.sourceFirmwareVersion = sourceFirmwareVersion
+        self.targetFirmwareVersion = targetFirmwareVersion
+        self.sourceConfigurationVersion = sourceConfigurationVersion
+        self.targetConfigurationVersion = targetConfigurationVersion
+    }
+
+    public func getDiscoveredGlasses() -> DiscoveredGlasses {
+        return discoveredGlasses!
+    }
+
+    public func getState() -> State {
+        return state
+    }
+
+    public func getProgress() -> Int {
+        return progress
+    }
+
+    public func getSourceFirmwareVersion() -> String {
+        return sourceFirmwareVersion
+    }
+
+    public func getTargetFirmwareVersion() -> String {
+        return targetFirmwareVersion
+    }
+
+    public func getSourceConfigurationVersion() -> String {
+        return sourceConfigurationVersion
+    }
+
+    public func getTargetConfigurationVersion() -> String {
+        return targetConfigurationVersion
+    }
+
+    public func description() -> String {
+        return "state: \(state) - progress: \(progress)"
+    }
+}

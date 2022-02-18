@@ -15,7 +15,6 @@
 
 import Foundation
 import CoreBluetooth
-//import CoreText
 
 // MARK: - Internal Enumerations
 
@@ -77,7 +76,7 @@ internal class GlassesUpdater {
         versionChecker = VersionChecker()
 
         // Start update process
-        sdk?.updateParameters.state = .startingUpdate
+        sdk?.updateParameters.update(.startingUpdate)
         
         self.checkFirmwareRecency()
     }
@@ -87,26 +86,19 @@ internal class GlassesUpdater {
 
     private func failed(with error: GlassesUpdateError)
     {
-        dlog(message: error.localizedDescription, line: #line, function: #function, file: #fileID)
-
-        sdk?.updateParameters.state = .updateFailed
-
+        sdk?.updateParameters.update(.updateFailed)
         errorClosure?()
     }
 
 
     private func process(_ versCheckResult: VersionCheckResult)
     {
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
         switch versCheckResult.software
         {
         case .firmwares :
-            sdk?.updateParameters.state = .checkingFwVersion
             processFirmwareResponse( versCheckResult )
 
         case .configurations :
-            sdk?.updateParameters.state = .checkingConfigVersion
             processConfigurationResponse( versCheckResult )
         }
     }
@@ -116,9 +108,7 @@ internal class GlassesUpdater {
 
     private func checkFirmwareRecency()
     {
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
-        sdk?.updateParameters.state = .checkingFwVersion
+        sdk?.updateParameters.update(.checkingFwVersion)
 
         versionChecker?.isFirmwareUpToDate(for: glasses!,
                                              onSuccess: { ( result ) in self.process( result ) },
@@ -128,26 +118,28 @@ internal class GlassesUpdater {
 
     private func processFirmwareResponse(_ result: VersionCheckResult )
     {
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
         switch result.status
         {
         case .needsUpdate(let apiUrl) :
+            dlog(message: "Firmware needs update",
+                 line: #line, function: #function, file: #fileID)
+
             let downloader = Downloader()
             downloader.downloadFirmware(at: apiUrl,
                                          onSuccess: {( data ) in self.updateFirmware(using: Firmware( with: data))},
                                          onError: {( error ) in self.failed(with: error )})
 
         case .isUpToDate, .noUpdateAvailable:
+            dlog(message: "Firmware is up-to-date", 
+                 line: #line, function: #function, file: #fileID)
+
             checkConfigurationRecency()
         }
     }
 
     private func updateFirmware(using firmware: Firmware)
     {
-        dlog(message: firmware.description(), line: #line, function: #function, file: #fileID)
-
-        sdk?.updateParameters.state = .updatingFw
+        sdk?.updateParameters.update(.updatingFw)
 
         firmwareUpdater = FirmwareUpdater(onSuccess: { self.waitingForGlassesReboot() },
                                         onError: { error in self.failed(with: error) })
@@ -159,8 +151,6 @@ internal class GlassesUpdater {
 
     private func waitingForGlassesReboot()
     {
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
         successClosure?()
     }
 
@@ -169,9 +159,7 @@ internal class GlassesUpdater {
 
     private func checkConfigurationRecency()
     {
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
-        sdk?.updateParameters.state = .checkingFwVersion
+        sdk?.updateParameters.update(.checkingConfigVersion)
 
         versionChecker?.isConfigurationUpToDate( for: glasses!,
                                                     onSuccess: { ( result ) in self.process( result ) },
@@ -180,26 +168,16 @@ internal class GlassesUpdater {
 
     private func processConfigurationResponse(_ result: VersionCheckResult )
     {
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
         switch result.status
         {
         case .needsUpdate(let apiUrl):
             dlog(message: "Configuration needs update", 
                  line: #line, function: #function, file: #fileID)
 
-            sdk?.updateParameters.state = .updatingConfig
-            print(apiUrl)
             let downloader = Downloader()
             downloader.downloadConfiguration(at: apiUrl,
                                               onSuccess: { ( cfg ) in self.updateConfiguration(with: cfg ) },
                                               onError: { ( error ) in self.failed(with: error ) })
-//            if let filePath = Bundle.main.path(forResource: "configTEST", ofType: "txt") {
-//                do {
-//                    let cfg = try String(contentsOfFile: filePath)
-//                    self.updateConfiguration(with: cfg )
-//                } catch {}
-//            }
 
         case .isUpToDate, .noUpdateAvailable:
             dlog(message: "Configuration is up-to-date!",
@@ -211,21 +189,17 @@ internal class GlassesUpdater {
 
     private func updateConfiguration(with configuration: String)
     {
-        dlog(message: "", line: #line, function: #function, file: #fileID)
-
-        print("ConfigurationString.count: \(configuration.count)")
+        sdk?.updateParameters.update(.updatingConfig)
 
         glasses?.loadConfigurationWithClosures(cfg: configuration,
-                                               onProgress: { progress in print("progress: \(progress)") },
-                                               onSuccess: { print("success"); self.configurationUpToDate()},
-                                               onError: { print("ERROR") })
+                                               onProgress: { progress in
+            self.sdk?.updateParameters.update(.updatingConfig, Int(progress)) },
+                                               onSuccess: { self.configurationUpToDate()},
+                                               onError: {})
     }
 
-    private func configurationUpToDate() {
-
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
-        sdk?.updateParameters.state = .updateDone
+    private func configurationUpToDate()
+    {
         successClosure?()
     }
 }

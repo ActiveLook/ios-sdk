@@ -73,10 +73,8 @@ public final class FirmwareUpdater: NSObject {
     // MARK: - Life cycle
 
     init(onSuccess successClosure: @escaping () -> (Void),
-         onError errorClosure: @escaping ( GlassesUpdateError ) -> (Void)) {
-
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
+         onError errorClosure: @escaping ( GlassesUpdateError ) -> (Void))
+    {
         self.successClosure = successClosure
         self.errorClosure = errorClosure
 
@@ -92,8 +90,6 @@ public final class FirmwareUpdater: NSObject {
 
     func update(_ glasses: Glasses, with firmware: Firmware)
     {
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
         // We're setting ourselves as the peripheral delegate in order update the firmware.
         // If the update succeeds, the device reboots.
         // If the update fails, it will be set back to original one in `failed(with)`.
@@ -103,40 +99,35 @@ public final class FirmwareUpdater: NSObject {
 
         self.firmware = firmware
 
+        sdk?.updateParameters.update(.updatingFw)
 
-//        peripheral?.delegate = self
         peripheral?.discoverServices([CBUUID.SpotaService])
     }
 
 
     // MARK: - Private methods
 
-    private func failed(with error: GlassesUpdateError) {
-
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
+    private func failed(with error: GlassesUpdateError)
+    {
         glasses?.resetPeripheralDelegate()
 
         errorClosure(error)
     }
 
 
-    private func rebooting() {
-
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
+    private func rebooting()
+    {
         sdk?.updateParameters.state = .rebooting
 
+        // TODO: success? error? dedicated closure?
         successClosure()
     }
 
 
     // MARK: - SUOTA Update
 
-    private func suotaUpdate() {
-
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
+    private func suotaUpdate()
+    {
         guard let spotaService = peripheral?.services?.first(
             where: { $0.uuid == CBUUID.SpotaService})
         else {
@@ -159,10 +150,8 @@ public final class FirmwareUpdater: NSObject {
     }
 
 
-    private func suotaRead_SUOTA_VERSION_UUID() {
-
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
+    private func suotaRead_SUOTA_VERSION_UUID()
+    {
         guard let characteristic = spotaCharacteristics.first(
             where: { $0.uuid == CBUUID.SUOTA_VERSION_UUID } )
         else {
@@ -175,10 +164,8 @@ public final class FirmwareUpdater: NSObject {
     }
 
 
-    private func suotaRead_SUOTA_PATCH_DATA_CHAR_SIZE_UUID() {
-
-        dlog(message: "", line: #line, function: #function, file: #fileID)
-
+    private func suotaRead_SUOTA_PATCH_DATA_CHAR_SIZE_UUID()
+    {
         guard let characteristic = spotaCharacteristics.first(
             where: { $0.uuid == CBUUID.SUOTA_PATCH_DATA_CHAR_SIZE_UUID } )
         else {
@@ -191,10 +178,8 @@ public final class FirmwareUpdater: NSObject {
     }
 
 
-    private func suotaRead_SUOTA_MTU_UUID() {
-
-        dlog(message: "", line: #line, function: #function, file: #fileID)
-
+    private func suotaRead_SUOTA_MTU_UUID()
+    {
         guard let characteristic = spotaCharacteristics.first(
             where: { $0.uuid == CBUUID.SUOTA_MTU_UUID } )
         else {
@@ -207,10 +192,8 @@ public final class FirmwareUpdater: NSObject {
     }
 
 
-    private func suotaRead_SUOTA_L2CAP_PSM_UUID() {
-
-        dlog(message: "", line: #line, function: #function, file: #fileID)
-
+    private func suotaRead_SUOTA_L2CAP_PSM_UUID()
+    {
         guard let characteristic = spotaCharacteristics.first(
             where: { $0.uuid == CBUUID.SUOTA_L2CAP_PSM_UUID } )
         else {
@@ -223,10 +206,8 @@ public final class FirmwareUpdater: NSObject {
     }
 
 
-    private func enableNotifications() {
-
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
+    private func enableNotifications()
+    {
         guard let characteristic = spotaCharacteristics.first(
             where: { $0.uuid == CBUUID.SPOTA_SERV_STATUS_UUID })
         else {
@@ -241,10 +222,8 @@ public final class FirmwareUpdater: NSObject {
     }
 
 
-    private func onSuotaNotifications() {
-
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
+    private func onSuotaNotifications()
+    {
         guard let data = spotaServiceStatusCharacteristic?.value else {
             failed(with: GlassesUpdateError.firmwareUpdater(
                 message: String(format: "NO VALUE for SPOTA_SERV_STATUS_UUID characteristic @", #line)))
@@ -274,10 +253,8 @@ public final class FirmwareUpdater: NSObject {
     }
 
 
-    private func setSpotaMemDev() {
-
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
+    private func setSpotaMemDev()
+    {
         let memType: UInt32 = 0x13000000
 
         let message = String(format:"SPOTA - setSpotaMemDev %010x",memType)
@@ -297,10 +274,8 @@ public final class FirmwareUpdater: NSObject {
     }
 
 
-    private func setSpotaGpioMap() {
-
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
+    private func setSpotaGpioMap()
+    {
         let memInfoData: UInt32 = 0x05060300
 
         let message = String(format: "SPOTA – setSpotaGpioMap: %010x", arguments: [memInfoData])
@@ -318,10 +293,8 @@ public final class FirmwareUpdater: NSObject {
     }
 
 
-    private func setBlocks() {
-
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
+    private func setBlocks()
+    {
         let chunkSize = min(suotaPatchDataSize, suotaMtu - 3)
 
         do {
@@ -343,8 +316,6 @@ public final class FirmwareUpdater: NSObject {
 
 
     private func setPatchLength() {
-
-        dlog(message: "",line: #line, function: #function, file: #fileID)
 
         guard let firmware = firmware else {
             fatalError(String(format: "FIRMWARE NOT SET @", #line))
@@ -384,8 +355,6 @@ public final class FirmwareUpdater: NSObject {
 
     private func sendBlock() {
 
-        dlog(message: "", line: #line, function: #function, file: #fileID)
-
         guard let firmware = firmware else {
             fatalError("FIRMWARE NOT SET")
         }
@@ -411,6 +380,9 @@ public final class FirmwareUpdater: NSObject {
 
                 peripheral?.writeValue( Data( chunks[ chunkId ]), for: characteristic, type: .withoutResponse)
 
+
+                #warning("RRRR!!!!!")
+                sdk?.updateParameters.update(.updatingFw, (blockId * 100) / firmware.blocks.count)
                 chunkId += 1
                 sendBlock()
 
@@ -429,19 +401,14 @@ public final class FirmwareUpdater: NSObject {
     }
 
 
-    private func sendEndSignal() {
-
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
-        print("SEND END SIGNAL")
+    private func sendEndSignal()
+    {
         peripheral?.setNotifyValue(false, for: spotaServiceStatusCharacteristic!)
     }
 
 
-    private func sendRebootSignal() {
-
-        dlog(message: "", line: #line, function: #function, file: #fileID)
-
+    private func sendRebootSignal()
+    {
         guard let characteristic = spotaService?.getCharacteristic( forUUID: CBUUID.SPOTA_MEM_DEV_UUID )
         else {
             failed(with: GlassesUpdateError.firmwareUpdater(
@@ -458,14 +425,12 @@ public final class FirmwareUpdater: NSObject {
 
 
 // MARK: -
-extension FirmwareUpdater: CBPeripheralDelegate {
-
+extension FirmwareUpdater: CBPeripheralDelegate
+{
 
     public func peripheral(_ peripheral: CBPeripheral,
-                           didDiscoverServices error: Error?) {
-
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
+                           didDiscoverServices error: Error?)
+    {
         guard let services = peripheral.services else {
             fatalError("NO SERVICES FOUND")
         }
@@ -480,10 +445,8 @@ extension FirmwareUpdater: CBPeripheralDelegate {
 
     public func peripheral(_ peripheral: CBPeripheral,
                            didDiscoverCharacteristicsFor service: CBService,
-                           error: Error?) {
-
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
+                           error: Error?)
+    {
         guard error == nil else {
             failed(with: GlassesUpdateError.firmwareUpdater(
                 message: String(
@@ -504,10 +467,8 @@ extension FirmwareUpdater: CBPeripheralDelegate {
 
     public func peripheral(_ peripheral: CBPeripheral,
                            didUpdateValueFor characteristic: CBCharacteristic,
-                           error: Error?) {
-
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
+                           error: Error?)
+    {
         guard error == nil else {
             failed(with: GlassesUpdateError.firmwareUpdater(
                 message: String(
@@ -536,9 +497,6 @@ extension FirmwareUpdater: CBPeripheralDelegate {
             suotaL2capPsm = Int(value.withUnsafeBytes( { $0.load(as: UInt16.self ) }))
 
         case CBUUID.SPOTA_SERV_STATUS_UUID :
-            dlog(message: "received notification on SPOTA_SERV_STATUS_UUID",
-                 line: #line, function: #function, file: #fileID)
-
             onSuotaNotifications()
 
         case CBUUID.SPOTA_MEM_DEV_UUID :
@@ -563,10 +521,8 @@ extension FirmwareUpdater: CBPeripheralDelegate {
 
     public func peripheral(_ peripheral: CBPeripheral,
                            didUpdateNotificationStateFor characteristic: CBCharacteristic,
-                           error: Error?) {
-
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
+                           error: Error?)
+    {
         guard error == nil else {
             failed(with: GlassesUpdateError.firmwareUpdater(
                 message: String(
@@ -599,10 +555,8 @@ extension FirmwareUpdater: CBPeripheralDelegate {
 
     public func peripheral(_ peripheral: CBPeripheral,
                            didWriteValueFor characteristic: CBCharacteristic,
-                           error: Error?) {
-
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
+                           error: Error?)
+    {
         guard error == nil else {
             failed(with: GlassesUpdateError.firmwareUpdater(
                 message: String(

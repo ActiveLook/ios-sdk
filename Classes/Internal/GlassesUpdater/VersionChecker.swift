@@ -179,7 +179,8 @@ internal final class VersionChecker: NSObject {
     // MARK: - Private Methods
 
     private func failed(with error: GlassesUpdateError) {
-        print(error)
+        dlog(message: error.localizedDescription,
+             line: #line, function: #function, file: #fileID)
 
         errorClosure?( error )
         cleanUp()

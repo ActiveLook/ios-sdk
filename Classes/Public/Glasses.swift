@@ -175,9 +175,10 @@ public class Glasses {
         self.pendingQueries = [:]
         self.responseBuffer = nil
         self.expectedResponseBufferLength = 0
-//        self.availableMTU = (self.peripheral.maximumWriteValueLength(for: .withResponse)) / 2 - 3
-        self.availableMTU = 256
-        self.commandQueue = ConcurrentDataQueue(using: self.availableMTU - 3)
+        // MTU not retrieved dynamically as maximumWriteValueLength() is flawed for now...
+        // self.availableMTU = (self.peripheral.maximumWriteValueLength(for: .withResponse)) / 2 - 3 //
+        self.availableMTU = 256 - 3
+        self.commandQueue = ConcurrentDataQueue(using: self.availableMTU)
         self.flowControlState = .on
         self.rxCharacteristicState = .available
         self.peripheralDelegate = PeripheralDelegate()
@@ -275,8 +276,6 @@ public class Glasses {
     /// sends the bytes queued in commandQueue
     private func sendBytes()
     {
-//        dlog(message: "",line: #line, function: #function, file: #fileID)
-
         if flowControlState != FlowControlState.on { return }
 
         if rxCharacteristicState == .busy { return }
@@ -296,10 +295,8 @@ public class Glasses {
             let elementsLeft = commandQueue.count
             dlog(message: "\(elementsLeft) left",
                  line: #line, function: #function, file: #fileID)
-            let ratio = UInt8((elementsLeft * 100) / configSize)
-            if ratio % 10 == 0 {
-                progressClosure?( 100 - ratio )
-            }
+            let ratio = UInt8((elementsLeft * 99) / configSize)
+            progressClosure?( 100 - ratio )
         }
 
         peripheral.writeValue(value, for: rxCharacteristic!, type: .withResponse)
@@ -460,32 +457,19 @@ public class Glasses {
         }
     }
 
-    /// load a configuration file
+    /// load a configuration file with closures for feedback
     public func loadConfigurationWithClosures(cfg: String,
                                               onProgress progressClosure: @escaping (UInt8) -> (),
                                               onSuccess successClosure: @escaping () -> (),
                                               onError errorClosure: @escaping () -> () ) -> Void
     {
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
         isUpdating = true
         self.progressClosure = progressClosure
         self.successClosure = successClosure
         self.errorClosure = errorClosure
 
-        let comps = cfg.components(separatedBy: "\n")
-
-        configSize = comps.count
-
-        for line in comps {
-            commandQueue.enqueue(line.hexaBytes)
-        }
+        commandQueue.enqueueFile(cfg)
     }
-
-
-//    internal func provideConfigUploadProgress(_ value: ) {
-//
-//    }
 
     // MARK: - General commands
     
@@ -1344,20 +1328,36 @@ public class Glasses {
             dispatchQueue.sync(flags: .barrier)
             {
                 elements.append(Data(values))
-
-                // we are setting configSize to provide progression
-                if let isUpdating = parent?.isUpdating
-                {
-                    if isUpdating
-                    {
-                        parent?.configSize = elements.count
-                        dlog(message: "configSize: \(elements.count)",
-                             line: #line, function: #function, file: #fileID)
-                    }
-                }
             }
         }
 
+
+        // this function is called only when loading configuration, so isUpdating always true
+        mutating func enqueueFile(_ file: String)
+        {
+            dispatchQueue.sync(flags: .barrier)
+            {
+                guard let isUpdating = parent?.isUpdating else { return }
+
+                var tempQueue: [Data] = []
+
+                let comps = file.components(separatedBy: "\n")
+
+                for line in comps {
+                    tempQueue.append(line.hexaData)
+                }
+
+                if isUpdating
+                {
+                    // we are setting configSize to provide progression
+                    parent?.configSize = tempQueue.count
+                    dlog(message: "configSize: \(elements.count)",
+                         line: #line, function: #function, file: #fileID)
+                }
+
+                elements.append(contentsOf: tempQueue)
+            }
+        }
 
         mutating func dequeue() -> Data?
         {

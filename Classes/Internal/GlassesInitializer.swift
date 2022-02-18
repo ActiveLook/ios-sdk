@@ -111,7 +111,7 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
 
     private func failed(with error: GlassesInitializerError ) {
 
-        print(error)
+        dlog(message: "",line: #line, function: #function, file: #fileID)
 
         self.initErrorClosure?(ActiveLookError.connectionTimeoutError)
         self.initErrorClosure = nil
