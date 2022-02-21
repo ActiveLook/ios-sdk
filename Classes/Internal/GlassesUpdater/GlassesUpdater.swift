@@ -49,6 +49,9 @@ internal class GlassesUpdater {
     private var firmwareUpdater: FirmwareUpdater?
     private var versionChecker: VersionChecker?
 
+    private let timeoutDuration: TimeInterval = 15
+    private var timeoutTimer: Timer?
+
 
     // MARK: - Life cycle
 
@@ -75,6 +78,8 @@ internal class GlassesUpdater {
 
         versionChecker = VersionChecker()
 
+        initTimeoutTimer()
+
         // Start update process
         sdk?.updateParameters.update(.startingUpdate)
         
@@ -84,8 +89,27 @@ internal class GlassesUpdater {
 
     // MARK: - Private methods
 
+    private func initTimeoutTimer()
+    {
+        // We're failing after an arbitrary timeout duration
+        timeoutTimer = Timer.scheduledTimer(withTimeInterval: timeoutDuration, repeats: false) { _ in
+            self.failed(with: GlassesUpdateError.glassesUpdater(message: ""))
+        }
+    }
+
+    private func resetTimeoutTimer(for duration: Double, _ message: String) {
+        self.timeoutTimer?.invalidate()
+
+        timeoutTimer = Timer.scheduledTimer(withTimeInterval: duration, repeats: false) { _ in
+            self.failed(with: GlassesUpdateError.glassesUpdater(message: message))
+        }
+
+    }
+
     private func failed(with error: GlassesUpdateError)
     {
+        timeoutTimer?.invalidate()
+        
         sdk?.updateParameters.update(.updateFailed)
         errorClosure?()
     }
@@ -124,6 +148,10 @@ internal class GlassesUpdater {
             dlog(message: "Firmware needs update",
                  line: #line, function: #function, file: #fileID)
 
+            timeoutTimer?.invalidate()
+
+            resetTimeoutTimer(for: 120, "Firmware update timed out")
+
             let downloader = Downloader()
             downloader.downloadFirmware(at: apiUrl,
                                          onSuccess: {( data ) in self.updateFirmware(using: Firmware( with: data))},
@@ -145,12 +173,13 @@ internal class GlassesUpdater {
                                         onError: { error in self.failed(with: error) })
 
         firmwareUpdater?.update(glasses!, with: firmware)
-
     }
 
 
     private func waitingForGlassesReboot()
     {
+        timeoutTimer?.invalidate()
+
         successClosure?()
     }
 
@@ -173,6 +202,9 @@ internal class GlassesUpdater {
         case .needsUpdate(let apiUrl):
             dlog(message: "Configuration needs update", 
                  line: #line, function: #function, file: #fileID)
+
+            timeoutTimer?.invalidate()
+            resetTimeoutTimer(for: 120, "Configuration update timed out")
 
             let downloader = Downloader()
             downloader.downloadConfiguration(at: apiUrl,
@@ -198,6 +230,7 @@ internal class GlassesUpdater {
 
     private func configurationUpToDate()
     {
+        timeoutTimer?.invalidate()
         successClosure?()
     }
 }
