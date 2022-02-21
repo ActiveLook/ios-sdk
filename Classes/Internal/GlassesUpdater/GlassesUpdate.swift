@@ -18,7 +18,7 @@ import Foundation
 public protocol GlassesUpdate {
     func getDiscoveredGlasses() -> DiscoveredGlasses
     func getState() -> State
-    func getProgress() -> Int
+    func getProgress() -> UInt8
     func getSourceFirmwareVersion() -> String
     func getTargetFirmwareVersion() -> String
     func getSourceConfigurationVersion() -> String
@@ -41,7 +41,7 @@ public class SdkGlassesUpdate: GlassesUpdate {
 
     private var discoveredGlasses: DiscoveredGlasses?
     private var state: State
-    private var progress: Int
+    private var progress: UInt8
     private var sourceFirmwareVersion: String
     private var targetFirmwareVersion: String
     private var sourceConfigurationVersion: String
@@ -49,7 +49,7 @@ public class SdkGlassesUpdate: GlassesUpdate {
 
     internal init(for discoveredGlasses: DiscoveredGlasses?,
          state : State = .DOWNLOADING_FIRMWARE,
-         progress: Int = 0,
+         progress: UInt8 = 0,
          sourceFirmwareVersion: String = "",
          targetFirmwareVersion: String = "",
          sourceConfigurationVersion: String = "",
@@ -72,7 +72,7 @@ public class SdkGlassesUpdate: GlassesUpdate {
         return state
     }
 
-    public func getProgress() -> Int {
+    public func getProgress() -> UInt8 {
         return progress
     }
 

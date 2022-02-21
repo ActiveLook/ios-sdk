@@ -50,8 +50,6 @@ public class ActiveLookSDK {
     private var didAskForScan: (glassesDiscoveredCallback: (DiscoveredGlasses) -> Void,
                                 scanErrorCallback: (Error) -> Void)?
 
-    private var updatingGlasses: Glasses?
-
     private var rebootingGlasses: Glasses?
 
 
@@ -76,7 +74,8 @@ public class ActiveLookSDK {
         self.centralManagerDelegate.parent = self
         self.didAskForScan = nil
 
-        centralManager = CBCentralManager(delegate: self.centralManagerDelegate, queue: nil) // TODO: Use a specific queue
+        // TODO: Use a specific queue
+        centralManager = CBCentralManager(delegate: self.centralManagerDelegate, queue: nil)
     }
 
 
@@ -98,8 +97,6 @@ public class ActiveLookSDK {
     //     - onUpdateError             Registered callback for update error event notification.
     //  - returns: the `ActiveLookSDK`'s singleton
     //
-
-
     public static func shared(token: String? = nil,
                               onUpdateStartCallback: startClosureSignature? = nil,
                               onUpdateProgressCallback: progressClosureSignature? = nil,
@@ -234,9 +231,10 @@ public class ActiveLookSDK {
         }
 
         updater?.update(glasses,
-                        onSuccess: {
-            if ( self.updateParameters.state == .rebooting ) {
-                // Firmware Update Succeeded. Glasses are rebooting.
+                        onSuccess:
+                            {
+            if ( self.updateParameters.state == .rebooting )
+            {
                 dlog(message: "Firmware update Succeeded. Glasses are rebooting.",
                      line: #line, function: #function, file: #fileID)
 
@@ -248,7 +246,6 @@ public class ActiveLookSDK {
                                                        options:
                                                         [CBCentralManagerScanOptionAllowDuplicatesKey: false])
             } else {
-
                 dlog(message: "UPDATER DONE - NO FW update...",
                      line: #line, function: #function, file: #fileID)
 
@@ -265,10 +262,11 @@ public class ActiveLookSDK {
                                                 targetConfigurationVersion: "tCfgV")
 
                 self.updateParameters.successClosure(sdkGU)
+                self.updateParameters.reset()
             }
         },
-                        onError: {
-
+                        onError:
+                            {
             dlog(message: "UPDATER ERROR",
                  line: #line, function: #function, file: #fileID)
 
@@ -324,11 +322,12 @@ public class ActiveLookSDK {
             guard parent?.discoveredGlasses(fromPeripheral: peripheral) == nil
             else {
                 print("glasses already discovered")
-                if ( parent?.rebootingGlasses != nil ) && ( parent?.rebootingGlasses?.peripheral == peripheral ) {
+                if  let rebootingGlasses = parent?.rebootingGlasses, rebootingGlasses.peripheral == peripheral  {
 
                     dlog(message: "glasses are updating and have rebooted. RECONNECTING!",
                          line: #line, function: #function, file: #fileID)
 
+                    parent?.rebootingGlasses = nil
                     parent?.stopScanning()
                     central.connect(peripheral, options: nil)
                 }
@@ -359,7 +358,6 @@ public class ActiveLookSDK {
             let glassesInitializer = GlassesInitializer()
             glassesInitializer.initialize( glasses,
                                            onSuccess: {
-                self.parent?.updatingGlasses = glasses
                 self.parent?.connectedGlassesArray.append(glasses)
                 self.parent?.updateGlasses()
             },

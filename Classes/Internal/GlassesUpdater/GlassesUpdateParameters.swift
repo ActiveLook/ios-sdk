@@ -48,31 +48,33 @@ internal enum UpdateState : String {
 
 internal class GlassesUpdateParameters {
 
-    #warning("CREATE NEW class `UpdaterParameters{}`")
+    // TODO: CREATE NEW class `UpdaterParameters{}`? to dissociate GlassesUpdate parameters from SDK ones?
     var token: String
     var startClosure: startClosureSignature
     var progressClosure: progressClosureSignature
     var successClosure: successClosureSignature
     var failureClosure: failureClosureSignature
 
+    var discoveredGlasses: DiscoveredGlasses?
+    
     var hardware: String
 
     var state: UpdateState?
 
-    var progress = 0
+    private var progress: UInt8 = 0
 
-    var updateStateToGlassesUpdate: [[UpdateState]]
+    private var updateStateToGlassesUpdate: [[UpdateState]]
 
-    let downloadingFW: [UpdateState] = [.startingUpdate,
+    private let downloadingFW: [UpdateState] = [.startingUpdate,
                                         .retrievingDeviceInformations,
                                         .deviceInformationsRetrieved,
                                         .checkingFwVersion,
                                         .downloadingFw]
-    let updatingFW: [UpdateState] = [.noFwUpdateAvailable, .updatingFw, .rebooting]
-    let downloadingCfg: [UpdateState] = [.checkingConfigVersion,
-                                            .downloadingConfig]
-    let updatingCfg: [UpdateState] = [.updatingConfig]
-    let updateFailed: [UpdateState] = [.updateFailed]
+    private let updatingFW: [UpdateState] = [.noFwUpdateAvailable, .updatingFw, .rebooting]
+    private let downloadingCfg: [UpdateState] = [.checkingConfigVersion,
+                                                 .downloadingConfig]
+    private let updatingCfg: [UpdateState] = [.updatingConfig]
+    private let updateFailed: [UpdateState] = [.updateFailed]
 
     
     // MARK: - Life Cycle
@@ -92,16 +94,10 @@ internal class GlassesUpdateParameters {
         self.updateStateToGlassesUpdate = [downloadingFW, updatingFW, downloadingCfg, updatingCfg, updateFailed]
     }
 
+
     // MARK: - Internal Functions
-
-    func isReady() -> Bool {
-        return state == .updateDone
-    }
-
     
-    func update(_ stateUpdate: UpdateState, _ progress: Int = 0) {
-
-        state = stateUpdate
+    func update(_ stateUpdate: UpdateState, _ progress: UInt8 = 0) {
         
         guard let index = updateStateToGlassesUpdate.firstIndex(where: {
             updateStateArr in updateStateArr.contains(stateUpdate) })
@@ -109,24 +105,29 @@ internal class GlassesUpdateParameters {
             return
         }
 
+        var stateProgress: UInt8 = 0
+
         switch index {
         case State.DOWNLOADING_FIRMWARE.rawValue:
-            self.progress = 1
+            stateProgress = 1
+
         case State.UPDATING_FIRMWARE.rawValue:
-            self.progress = 1 + Int(progress / 2) < 48 ? Int(progress / 2) : 48
-            break
+            stateProgress = 1 + (UInt8(progress / 2) < 48 ? UInt8(progress / 2) : 48)
+
         case State.DOWNLOADING_CONFIGURATION.rawValue:
-            self.progress = 50
-            break
+            stateProgress = 50
+
         case State.UPDATING_CONFIGURATION.rawValue:
-            self.progress = 51 + (Int(progress / 2) <= 48 ? Int(progress / 2) : 48)
-            break
+            stateProgress = 51 + (UInt8(progress / 2) <= 48 ? UInt8(progress / 2) : 48)
+
         case State.ERROR_UPDATE_FAIL.rawValue:
-            self.progress = 0
-            break
+            stateProgress = 200
         default:
             return
         }
+
+        if (stateProgress <= self.progress) { return }
+        self.progress = stateProgress
 
         // new glassUpdate
         let state = State(rawValue: index)!
@@ -146,6 +147,14 @@ internal class GlassesUpdateParameters {
         case .ERROR_UPDATE_FAIL:
             failureClosure(sdkGU)
         }
+    }
+
+
+    func reset() {
+        discoveredGlasses = nil
+        hardware = ""
+        state = nil
+        progress = 0
     }
 }
 

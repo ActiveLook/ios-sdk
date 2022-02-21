@@ -104,14 +104,17 @@ public class Glasses {
         }
     }
 
+    private weak var sdk: ActiveLookSDK?
+
     // used for loading configurations
     private var isUpdating = false
     private var configSize = 0
-    private var progressClosure: ((UInt8) -> Void)?
+    private var currentProgress: UInt8 = 0
     private var successClosure: (() -> Void)?
     private var errorClosure: (() -> Void)?
     
-    // An array used to track queries (commands expecting a response) and match them to a corresponding callback returning the response data as a byte array ([UInt8]).
+    // An array used to track queries (commands expecting a response) and match them to
+    // the corresponding callback returning the response data as a byte array ([UInt8]).
     private var pendingQueries: [UInt8: (CommandResponseData) -> Void]
     
     // A buffer used to squash response chunks into a single CommandResponseData
@@ -176,7 +179,7 @@ public class Glasses {
         self.responseBuffer = nil
         self.expectedResponseBufferLength = 0
         // MTU not retrieved dynamically as maximumWriteValueLength() is flawed for now...
-        // self.availableMTU = (self.peripheral.maximumWriteValueLength(for: .withResponse)) / 2 - 3 //
+        // self.availableMTU = (self.peripheral.maximumWriteValueLength(for: .withResponse)) / 2 - 3
         self.availableMTU = 256 - 3
         self.commandQueue = ConcurrentDataQueue(using: self.availableMTU)
         self.flowControlState = .on
@@ -185,6 +188,13 @@ public class Glasses {
         self.peripheralDelegate.parent = self
         self.commandQueue.set(parent: self)
         self.peripheral.delegate = self.peripheralDelegate
+
+        guard let sdk = try? ActiveLookSDK.shared() else {
+            fatalError("Cannot retrieve SDK Singleton")
+        }
+
+        self.sdk = sdk
+
     }
 
 
@@ -285,8 +295,9 @@ public class Glasses {
                 dlog(message: "Config ALooK updated",
                      line: #line, function: #function, file: #fileID)
 
-                successClosure?()
                 isUpdating = false
+                currentProgress = 0
+                successClosure?()
             }
             return
         }
@@ -295,8 +306,11 @@ public class Glasses {
             let elementsLeft = commandQueue.count
             dlog(message: "\(elementsLeft) left",
                  line: #line, function: #function, file: #fileID)
-            let ratio = UInt8((elementsLeft * 99) / configSize)
-            progressClosure?( 100 - ratio )
+            let done = UInt8(100 - (elementsLeft * 99) / configSize)
+            if done > currentProgress {
+                currentProgress = done
+                sdk?.updateParameters.update(.updatingConfig, done)
+            }
         }
 
         peripheral.writeValue(value, for: rxCharacteristic!, type: .withResponse)
@@ -459,12 +473,10 @@ public class Glasses {
 
     /// load a configuration file with closures for feedback
     public func loadConfigurationWithClosures(cfg: String,
-                                              onProgress progressClosure: @escaping (UInt8) -> (),
                                               onSuccess successClosure: @escaping () -> (),
                                               onError errorClosure: @escaping () -> () ) -> Void
     {
         isUpdating = true
-        self.progressClosure = progressClosure
         self.successClosure = successClosure
         self.errorClosure = errorClosure
 

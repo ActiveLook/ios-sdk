@@ -192,8 +192,6 @@ internal class GlassesUpdater {
         sdk?.updateParameters.update(.updatingConfig)
 
         glasses?.loadConfigurationWithClosures(cfg: configuration,
-                                               onProgress: { progress in
-            self.sdk?.updateParameters.update(.updatingConfig, Int(progress)) },
                                                onSuccess: { self.configurationUpToDate()},
                                                onError: {})
     }

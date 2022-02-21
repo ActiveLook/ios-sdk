@@ -24,9 +24,6 @@ public final class FirmwareUpdater: NSObject {
 
     // MARK: - Private properties
 
-    private var successClosure: () -> (Void)
-    private var errorClosure: ( GlassesUpdateError ) -> (Void)
-
     private let BLOCK_SIZE = 240
 
     private var suotaVersion: Int = 0 {
@@ -68,6 +65,10 @@ public final class FirmwareUpdater: NSObject {
     private var firmware: Firmware?
 
     private var spotaServiceStatusCharacteristic: CBCharacteristic?
+
+    private var currentProgress: UInt8 = 0
+    private var successClosure: () -> (Void)
+    private var errorClosure: ( GlassesUpdateError ) -> (Void)
 
     
     // MARK: - Life cycle
@@ -380,7 +381,12 @@ public final class FirmwareUpdater: NSObject {
 
                 peripheral?.writeValue( Data( chunks[ chunkId ]), for: characteristic, type: .withoutResponse)
 
-                sdk?.updateParameters.update(.updatingFw, (blockId * 100) / firmware.blocks.count)
+                let progress = UInt8((blockId * 100) / firmware.blocks.count)
+                if ( progress > currentProgress ) {
+                    currentProgress = progress
+                    sdk?.updateParameters.update(.updatingFw, progress)
+                }
+                
                 chunkId += 1
                 sendBlock()
 
