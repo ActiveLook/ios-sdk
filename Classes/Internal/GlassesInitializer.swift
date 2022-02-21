@@ -57,7 +57,8 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
 
     // MARK: - Life cycle
 
-    override init() {
+    override init()
+    {
         super.init()
         
         guard let sdk = try? ActiveLookSDK.shared() else {
@@ -70,7 +71,8 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
 
     // MARK: - Private methods
 
-    private func isReady() -> Bool {
+    private func isReady() -> Bool
+    {
         if glasses.peripheral.state != .connected {
             return false
         }
@@ -99,7 +101,8 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
     }
 
 
-    private func isDone() {
+    private func isDone()
+    {
         self.initSuccessClosure?()
         self.initSuccessClosure = nil
 
@@ -109,10 +112,8 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
     }
 
 
-    private func failed(with error: GlassesInitializerError ) {
-
-        print(error)
-
+    private func failed(with error: GlassesInitializerError )
+    {
         self.initErrorClosure?(ActiveLookError.connectionTimeoutError)
         self.initErrorClosure = nil
 
@@ -134,7 +135,6 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
         // We're setting ourselves as the peripheral delegate in order to complete the init process.
         // When the process is done, we'll set the original delegate back in `isDone()`
         glasses.setPeripheralDelegate(to: self)
-//        glasses.peripheral.delegate = self
 
         initSuccessClosure = successClosure
         initErrorClosure = errorClosure
@@ -155,8 +155,8 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
 
         // We're failing after an arbitrary timeout duration
         initTimeoutTimer = Timer.scheduledTimer(withTimeInterval: initTimeoutDuration, repeats: false) { _ in
-//            self.failed(with: GlassesInitializerError.glassesInitializer(
-//                message: String(format: "connectionTimeoutError: ", #line)))
+            self.failed(with: GlassesInitializerError.glassesInitializer(
+                message: String(format: "connectionTimeoutError: ", #line)))
         }
     }
 

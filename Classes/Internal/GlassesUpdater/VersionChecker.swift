@@ -65,9 +65,8 @@ internal final class VersionChecker: NSObject {
     private var successClosure: (( VersionCheckResult ) -> (Void))?
     private var errorClosure: (( GlassesUpdateError ) -> (Void))?
 
-//    private let timeoutDuration: TimeInterval = 1000//5
-//    private var timeoutTimer: Timer?
-
+    private let timeoutDuration: TimeInterval = 5
+    private var timeoutTimer: Timer?
 
     private var glassesFWVersion: FirmwareVersion? {
         didSet {
@@ -135,7 +134,7 @@ internal final class VersionChecker: NSObject {
         self.glasses = nil
         self.successClosure = nil
         self.errorClosure = nil
-//        self.timeoutTimer?.invalidate()
+        self.timeoutTimer?.invalidate()
     }
 
 
@@ -150,6 +149,8 @@ internal final class VersionChecker: NSObject {
         self.urlGenerator = GlassesUpdaterURL.shared()
         self.successClosure = successClosure
         self.errorClosure = errorClosure
+
+        initTimeoutTimer()
 
         readDeviceFWVersion()
     }
@@ -167,6 +168,8 @@ internal final class VersionChecker: NSObject {
         self.successClosure = successClosure
         self.errorClosure = errorClosure
 
+        initTimeoutTimer()
+
         // call to retrieve glasses configuration concurrently with remote configuration
         glasses.cfgRead(name: "ALooK", callback: { (config: ConfigurationElementsInfo) in
             self.glassesConfigurationVersion = config.version
@@ -178,8 +181,19 @@ internal final class VersionChecker: NSObject {
 
     // MARK: - Private Methods
 
+    private func initTimeoutTimer() {
+        // We're failing after an arbitrary timeout duration
+        timeoutTimer = Timer.scheduledTimer(withTimeInterval: timeoutDuration, repeats: false) { _ in
+            self.failed(with: GlassesUpdateError.versionChecker(message: "VersionChecker timed out"))
+            self.timeoutTimer?.invalidate()
+        }
+    }
+
     private func failed(with error: GlassesUpdateError) {
-        print(error)
+        dlog(message: error.localizedDescription,
+             line: #line, function: #function, file: #fileID)
+
+        self.timeoutTimer?.invalidate()
 
         errorClosure?( error )
         cleanUp()
@@ -193,6 +207,7 @@ internal final class VersionChecker: NSObject {
             return
         }
 
+        self.timeoutTimer?.invalidate()
         successClosure?(result)
     }
 
@@ -257,8 +272,8 @@ internal final class VersionChecker: NSObject {
     }
 
 
-    private func compareConfigurationVersions() {
-
+    private func compareConfigurationVersions()
+    {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
         guard let rcfg = remoteConfigurationVersion, let gcfgVersion = glassesConfigurationVersion else {
@@ -306,6 +321,9 @@ internal final class VersionChecker: NSObject {
                 message: String(format: "Glasses FW Version unavailable @", #line)))
             return
         }
+
+        timeoutTimer?.invalidate()
+        initTimeoutTimer()
 
         // format URL string
         let url = urlGenerator.firmwareHistoryURL(for: gfw)
@@ -360,8 +378,8 @@ internal final class VersionChecker: NSObject {
     }
 
 
-    private func compareFWVersions() {
-
+    private func compareFWVersions()
+    {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
         guard let rfw = remoteFWVersion, let gfw = glassesFWVersion else {
@@ -395,8 +413,8 @@ internal final class VersionChecker: NSObject {
         }
     }
 
-    private func readDeviceFWVersion() {
-
+    private func readDeviceFWVersion()
+    {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
         guard let di = glasses?.peripheral.getService(withUUID: CBUUID.DeviceInformationService) else {
