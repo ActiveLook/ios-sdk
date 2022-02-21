@@ -63,4 +63,6 @@ public enum FlowControlState: Int {
     case missingConfiguration = 6
 }
 
+public typealias Point = (x: UInt16, y: UInt16)
+
 internal typealias CommandResponseData = [UInt8]
