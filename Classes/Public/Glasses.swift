@@ -333,7 +333,7 @@ public class Glasses {
             CommandID.battery, CommandID.vers, CommandID.settings, CommandID.imgList,
             CommandID.pixelCount, CommandID.getChargingCounter, CommandID.getChargingTime,
             CommandID.rConfigID, CommandID.cfgRead, CommandID.cfgList, CommandID.cfgGetNb,
-            CommandID.cfgFreeSpace, CommandID.fontList, CommandID.pageList
+            CommandID.cfgFreeSpace, CommandID.fontList, CommandID.pageGet, CommandID.pageList
         ].map({$0.rawValue})
         
         let commandId = bytes[1]
@@ -712,10 +712,22 @@ public class Glasses {
         
         sendCommand(id: .txt, withData: data)
     }
-    
-//    public func polyline() {
-//        // TODO
-//    }
+
+
+    /// Draw a multiple connected lines at the corresponding coordinates.
+    /// - Parameters:
+    ///  - points: array of uint16 tuples (x, y).
+    public func polyline(points: [Point]) {
+
+        var data: [UInt8] = []
+
+        for point in points {
+            data.append(contentsOf:point.x.asUInt8Array)
+            data.append(contentsOf:point.y.asUInt8Array)
+        }
+
+        sendCommand(id: .polyline, withData: data)
+    }
 
     
     // MARK: - Bitmap commands
@@ -1025,7 +1037,7 @@ public class Glasses {
 
     /// Display a page
     public func pageDisplay(id: UInt8, texts: [String]) {
-        var withData: [UInt8] = []
+        var withData: [UInt8] = [id]
         texts.forEach { text in
             withData += text.asNullTerminatedUInt8Array
         }
