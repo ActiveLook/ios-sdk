@@ -16,6 +16,9 @@
 import Foundation
 
 // TODO: add timestamp capability?
+
+fileprivate let format = DateFormatter()
+
 func dlog(message:String?, line: Int, function: String, file: String) {
 #if FALSE 
     var mess: String
@@ -24,7 +27,10 @@ func dlog(message:String?, line: Int, function: String, file: String) {
     } else {
         mess = ""
     }
-    print("\(mess)@\(line) - \(function) - \(file)")
+
+    format.dateFormat = "mm:ss: SSS"
+
+    print("\(format.string(from: Date())): \(mess)@\(line) - \(function) - \(file)")
 #else
     return
 #endif
