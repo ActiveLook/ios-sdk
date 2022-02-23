@@ -65,9 +65,6 @@ internal final class VersionChecker: NSObject {
     private var successClosure: (( VersionCheckResult ) -> (Void))?
     private var errorClosure: (( GlassesUpdateError ) -> (Void))?
 
-    private let timeoutDuration: TimeInterval = 5
-    private var timeoutTimer: Timer?
-
     private var glassesFWVersion: FirmwareVersion? {
         didSet {
             if glassesFWVersion != nil {
@@ -117,26 +114,6 @@ internal final class VersionChecker: NSObject {
         super.init()
     }
 
-    
-    // MARK: - Life-Cycle
-
-    deinit
-    {
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
-        self.cleanUp()
-    }
-
-    private func cleanUp()
-    {
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-        
-        self.glasses = nil
-        self.successClosure = nil
-        self.errorClosure = nil
-        self.timeoutTimer?.invalidate()
-    }
-
 
     // MARK: - Internal Methods
 
@@ -149,8 +126,6 @@ internal final class VersionChecker: NSObject {
         self.urlGenerator = GlassesUpdaterURL.shared()
         self.successClosure = successClosure
         self.errorClosure = errorClosure
-
-        initTimeoutTimer()
 
         readDeviceFWVersion()
     }
@@ -168,8 +143,6 @@ internal final class VersionChecker: NSObject {
         self.successClosure = successClosure
         self.errorClosure = errorClosure
 
-        initTimeoutTimer()
-
         // call to retrieve glasses configuration concurrently with remote configuration
         glasses.cfgRead(name: "ALooK", callback: { (config: ConfigurationElementsInfo) in
             self.glassesConfigurationVersion = config.version
@@ -181,33 +154,22 @@ internal final class VersionChecker: NSObject {
 
     // MARK: - Private Methods
 
-    private func initTimeoutTimer() {
-        // We're failing after an arbitrary timeout duration
-        timeoutTimer = Timer.scheduledTimer(withTimeInterval: timeoutDuration, repeats: false) { _ in
-            self.failed(with: GlassesUpdateError.versionChecker(message: "VersionChecker timed out"))
-            self.timeoutTimer?.invalidate()
-        }
-    }
-
-    private func failed(with error: GlassesUpdateError) {
+    private func failed(with error: GlassesUpdateError)
+    {
         dlog(message: error.localizedDescription,
              line: #line, function: #function, file: #fileID)
 
-        self.timeoutTimer?.invalidate()
-
         errorClosure?( error )
-        cleanUp()
     }
 
 
     private func versionChecked() {
         guard let result = result else {
-            failed(with: GlassesUpdateError.versionChecker(
-                message: String(format: "Result NOT set @", #line)))
+//            failed(with: GlassesUpdateError.versionChecker(
+//                message: String(format: "Result NOT set @", #line)))
             return
         }
 
-        self.timeoutTimer?.invalidate()
         successClosure?(result)
     }
 
@@ -219,8 +181,7 @@ internal final class VersionChecker: NSObject {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
         guard let gfw = glassesFWVersion else {
-            failed(with: GlassesUpdateError.versionChecker(
-                message: String(format: "Glasses FW Version unavailable @", #line)))
+                readDeviceFWVersion()
             return
         }
 
@@ -229,8 +190,8 @@ internal final class VersionChecker: NSObject {
 
         let task = URLSession.shared.dataTask( with: url ) { data, response, error in
             guard error == nil else {
-                self.failed(with: GlassesUpdateError.versionChecker(
-                    message: String(format: "Client error @", #line)))
+//                self.failed(with: GlassesUpdateError.versionChecker(
+//                    message: String(format: "Client error @", #line)))
                 return
             }
 
@@ -248,14 +209,14 @@ internal final class VersionChecker: NSObject {
             }
 
             guard let data = data else {
-                self.failed(with: GlassesUpdateError.versionChecker(
-                    message: String(format: "Retrieved data is nil @", #line)))
+//                self.failed(with: GlassesUpdateError.versionChecker(
+//                    message: String(format: "Retrieved data is nil @", #line)))
                 return
             }
 
             guard let decodedData = try? JSONDecoder().decode( ConfigurationJSON.self, from: data ) else {
-                self.failed(with: GlassesUpdateError.versionChecker(
-                    message: String(format: "JSON decoding error: \(String(describing: error)) @", #line)))
+//                self.failed(with: GlassesUpdateError.versionChecker(
+//                    message: String(format: "JSON decoding error: \(String(describing: error)) @", #line)))
                 return
             }
 
@@ -277,8 +238,8 @@ internal final class VersionChecker: NSObject {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
         guard let rcfg = remoteConfigurationVersion, let gcfgVersion = glassesConfigurationVersion else {
-            failed(with: GlassesUpdateError.versionChecker(
-                message: String(format: "compareConfigurationVersions: rcfg or gcfg NOT SET @", #line)))
+//            failed(with: GlassesUpdateError.versionChecker(
+//                message: String(format: "compareConfigurationVersions: rcfg or gcfg NOT SET @", #line)))
             return
         }
 
@@ -286,8 +247,8 @@ internal final class VersionChecker: NSObject {
         if rcfg.major > gcfgVersion {
             // needs update
             guard let apiPath = rcfg.path else {
-                failed(with: GlassesUpdateError.versionChecker(
-                    message: String(format: "remote Configuration path NOT SET @", #line)))
+//                failed(with: GlassesUpdateError.versionChecker(
+//                    message: String(format: "remote Configuration path NOT SET @", #line)))
                 return
             }
 
@@ -296,18 +257,20 @@ internal final class VersionChecker: NSObject {
 
         } else {
             // up-to-date
-            var message = ""
-            if rcfg.path == GlassesUpdateError.versionCheckerNoUpdateAvailable.localizedDescription {
-                message = "No update available"
-                result = VersionCheckResult( software: .configurations, status: .noUpdateAvailable )
 
-            } else {
-                message = "Configuration up-to-date"
+            if rcfg.path == GlassesUpdateError.versionCheckerNoUpdateAvailable.localizedDescription
+            {
+                dlog(message: "No update available",
+                     line: #line, function: #function, file: #fileID)
+
+                result = VersionCheckResult( software: .configurations, status: .noUpdateAvailable )
+            }
+            else {
+                dlog(message: "Configuration up-to-date", 
+                     line: #line, function: #function, file: #fileID)
+
                 result = VersionCheckResult( software: .configurations, status: .isUpToDate )
             }
-            dlog(message: message,
-                 line: #line, function: #function, file: #fileID)
-
         }
     }
 
@@ -317,21 +280,17 @@ internal final class VersionChecker: NSObject {
     private func fetchFirmwareHistory() {
 
         guard let gfw = glassesFWVersion else {
-            failed(with: GlassesUpdateError.versionChecker(
-                message: String(format: "Glasses FW Version unavailable @", #line)))
             return
         }
-
-        timeoutTimer?.invalidate()
-        initTimeoutTimer()
 
         // format URL string
         let url = urlGenerator.firmwareHistoryURL(for: gfw)
 
         let task = URLSession.shared.dataTask( with: url ) { data, response, error in
-            guard error == nil else {
-                self.failed(with: GlassesUpdateError.versionChecker(
-                    message: String(format: "Client error @", #line)))
+            guard error == nil
+            else {
+//                self.failed(with: GlassesUpdateError.versionChecker(
+//                    message: String(format: "Client error @", #line)))
                 return
             }
 
@@ -351,14 +310,15 @@ internal final class VersionChecker: NSObject {
             }
 
             guard let data = data else {
-                self.failed(with: GlassesUpdateError.versionChecker(
-                    message: String(format: "Retrieved data is nil @", #line)))
+//                self.failed(with: GlassesUpdateError.versionChecker(
+//                    message: String(format: "Retrieved data is nil @", #line)))
                 return
             }
 
-            guard let decodedData = try? JSONDecoder().decode( FirmwareJSON.self, from: data ) else {
-                self.failed(with: GlassesUpdateError.versionChecker(
-                    message: String(format: "JSON decoding error: \(String(describing: error)) @", #line)))
+            guard let decodedData = try? JSONDecoder().decode( FirmwareJSON.self, from: data )
+            else {
+//                self.failed(with: GlassesUpdateError.versionChecker(
+//                    message: String(format: "JSON decoding error: \(String(describing: error)) @", #line)))
                 return
             }
 
@@ -382,17 +342,18 @@ internal final class VersionChecker: NSObject {
     {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
-        guard let rfw = remoteFWVersion, let gfw = glassesFWVersion else {
-            failed(with: GlassesUpdateError.versionChecker(
-                message: String(format: "compareFWVersions: rfw or gfw NOT SET @", #line)))
+        guard let rfw = remoteFWVersion, let gfw = glassesFWVersion
+        else {
+//            failed(with: GlassesUpdateError.versionChecker(
+//                message: String(format: "compareFWVersions: rfw or gfw NOT SET @", #line)))
             return
         }
 
         if rfw > gfw {
             // need to update
             guard let apiPath = rfw.path else {
-                failed(with: GlassesUpdateError.versionChecker(
-                    message: String(format: "remote FW path NOT SET @", #line)))
+//                failed(with: GlassesUpdateError.versionChecker(
+//                    message: String(format: "remote FW path NOT SET @", #line)))
                 return
             }
             let apiURL = urlGenerator.firmwareDownloadURL(using: apiPath)
@@ -418,14 +379,14 @@ internal final class VersionChecker: NSObject {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
         guard let di = glasses?.peripheral.getService(withUUID: CBUUID.DeviceInformationService) else {
-            failed(with: GlassesUpdateError.versionChecker(
-                message: String(format: "DeviceInformationService Unavailable @", #line)))
+//            failed(with: GlassesUpdateError.versionChecker(
+//                message: String(format: "DeviceInformationService Unavailable @", #line)))
             return
         }
 
         guard let characteristic = di.getCharacteristic(forUUID: CBUUID.FirmwareVersionCharateristic) else {
-                failed(with: GlassesUpdateError.versionChecker(
-                    message: String(format: "firmwareVersionCharateristic NOT SET @", #line)))
+//                failed(with: GlassesUpdateError.versionChecker(
+//                    message: String(format: "firmwareVersionCharateristic NOT SET @", #line)))
             return
         }
 

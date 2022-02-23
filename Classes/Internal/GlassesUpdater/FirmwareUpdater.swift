@@ -120,6 +120,8 @@ public final class FirmwareUpdater: NSObject {
     {
         sdk?.updateParameters.state = .rebooting
 
+        self.glasses?.resetPeripheralDelegate()
+        
         // TODO: success? error? dedicated closure?
         successClosure()
     }
