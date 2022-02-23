@@ -42,8 +42,8 @@ internal class GlassesUpdater {
 
     private var glasses: Glasses?
 
+    private var rebootClosure: ( () -> () )?
     private var successClosure: ( () -> () )?
-
     private var errorClosure: ( () -> () )?
 
     private var firmwareUpdater: FirmwareUpdater?
@@ -57,9 +57,9 @@ internal class GlassesUpdater {
 
     init()
     {
-        guard let sdk = try? ActiveLookSDK.shared() else
-        {
-            fatalError(String(format: "SDK Singleton NOT AVAILABLE @  %i", #line))
+        guard let sdk = try? ActiveLookSDK.shared()
+        else {
+            fatalError("SDK Singleton NOT AVAILABLE")
         }
 
         self.sdk = sdk
@@ -69,16 +69,16 @@ internal class GlassesUpdater {
     // MARK: - Internal methods
 
     func update(_ glasses: Glasses,
+                onReboot rebootClosure: @escaping () -> (),
                 onSuccess successClosure: @escaping () -> (),
                 onError errorClosure: @escaping () -> () )
     {
         self.glasses = glasses
+        self.rebootClosure = rebootClosure
         self.successClosure = successClosure
         self.errorClosure = errorClosure
 
         versionChecker = VersionChecker()
-
-        initTimeoutTimer()
 
         // Start update process
         sdk?.updateParameters.update(.startingUpdate)
@@ -97,19 +97,17 @@ internal class GlassesUpdater {
         }
     }
 
-    private func resetTimeoutTimer(for duration: Double, _ message: String) {
+    private func resetTimeoutTimer(for duration: Double, _ message: String)
+    {
         self.timeoutTimer?.invalidate()
 
         timeoutTimer = Timer.scheduledTimer(withTimeInterval: duration, repeats: false) { _ in
             self.failed(with: GlassesUpdateError.glassesUpdater(message: message))
         }
-
     }
 
     private func failed(with error: GlassesUpdateError)
     {
-        timeoutTimer?.invalidate()
-        
         sdk?.updateParameters.update(.updateFailed)
         errorClosure?()
     }
@@ -148,8 +146,6 @@ internal class GlassesUpdater {
             dlog(message: "Firmware needs update",
                  line: #line, function: #function, file: #fileID)
 
-            timeoutTimer?.invalidate()
-
             resetTimeoutTimer(for: 120, "Firmware update timed out")
 
             let downloader = Downloader()
@@ -158,7 +154,7 @@ internal class GlassesUpdater {
                                          onError: {( error ) in self.failed(with: error )})
 
         case .isUpToDate, .noUpdateAvailable:
-            dlog(message: "Firmware is up-to-date", 
+            dlog(message: "Firmware is up-to-date",
                  line: #line, function: #function, file: #fileID)
 
             checkConfigurationRecency()
@@ -178,9 +174,9 @@ internal class GlassesUpdater {
 
     private func waitingForGlassesReboot()
     {
-        timeoutTimer?.invalidate()
+        dlog(message: "",line: #line, function: #function, file: #fileID)
 
-        successClosure?()
+        rebootClosure?()
     }
 
 
@@ -203,9 +199,6 @@ internal class GlassesUpdater {
             dlog(message: "Configuration needs update", 
                  line: #line, function: #function, file: #fileID)
 
-            timeoutTimer?.invalidate()
-            resetTimeoutTimer(for: 120, "Configuration update timed out")
-
             let downloader = Downloader()
             downloader.downloadConfiguration(at: apiUrl,
                                               onSuccess: { ( cfg ) in self.updateConfiguration(with: cfg ) },
@@ -215,7 +208,7 @@ internal class GlassesUpdater {
             dlog(message: "Configuration is up-to-date!",
                  line: #line, function: #function, file: #fileID)
 
-            configurationUpToDate()
+            configurationIsUpToDate()
         }
     }
 
@@ -224,13 +217,14 @@ internal class GlassesUpdater {
         sdk?.updateParameters.update(.updatingConfig)
 
         glasses?.loadConfigurationWithClosures(cfg: configuration,
-                                               onSuccess: { self.configurationUpToDate()},
-                                               onError: {})
+                                               onSuccess: { self.configurationIsUpToDate() },
+                                               onError: { print("Configuration could not be downloaded") } )
     }
 
-    private func configurationUpToDate()
+    private func configurationIsUpToDate()
     {
-        timeoutTimer?.invalidate()
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+
         successClosure?()
     }
 }

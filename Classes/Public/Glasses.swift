@@ -134,29 +134,29 @@ public class Glasses {
     private var activeLookService: CBService? {
         return peripheral.getService(withUUID: CBUUID.ActiveLookCommandsInterfaceService)
     }
-    
-    private var batteryLevelCharacteristic: CBCharacteristic? {
-        return batteryService?.getCharacteristic(forUUID: CBUUID.BatteryLevelCharacteristic)
-    }
-    
-    private var rxCharacteristic: CBCharacteristic? {
-        return activeLookService?.getCharacteristic(forUUID: CBUUID.ActiveLookRxCharacteristic)
-    }
-    
-    private var txCharacteristic: CBCharacteristic? {
-        return activeLookService?.getCharacteristic(forUUID: CBUUID.ActiveLookTxCharacteristic)
-    }
-    
-    private var flowControlCharacteristic: CBCharacteristic? {
-        return activeLookService?.getCharacteristic(forUUID: CBUUID.ActiveLookFlowControlCharacteristic)
-    }
-    
-    private var sensorInterfaceCharacteristic: CBCharacteristic? {
-        return activeLookService?.getCharacteristic(forUUID: CBUUID.ActiveLookSensorInterfaceCharacteristic)
-    }
 
     private var spotaService: CBService? {
         return peripheral.getService(withUUID: CBUUID.SpotaService)
+    }
+
+    private var batteryLevelCharacteristic: CBCharacteristic? {
+        return batteryService?.getCharacteristic(forUUID: CBUUID.BatteryLevelCharacteristic)
+    }
+
+    private var rxCharacteristic: CBCharacteristic? {
+        return activeLookService?.getCharacteristic(forUUID: CBUUID.ActiveLookRxCharacteristic)
+    }
+
+    private var txCharacteristic: CBCharacteristic? {
+        return activeLookService?.getCharacteristic(forUUID: CBUUID.ActiveLookTxCharacteristic)
+    }
+
+    private var flowControlCharacteristic: CBCharacteristic? {
+        return activeLookService?.getCharacteristic(forUUID: CBUUID.ActiveLookFlowControlCharacteristic)
+    }
+
+    private var sensorInterfaceCharacteristic: CBCharacteristic? {
+        return activeLookService?.getCharacteristic(forUUID: CBUUID.ActiveLookSensorInterfaceCharacteristic)
     }
 
 
@@ -194,7 +194,6 @@ public class Glasses {
         }
 
         self.sdk = sdk
-
     }
 
 
@@ -1255,7 +1254,7 @@ public class Glasses {
                 break
             }
 
-            print("peripheral did update notification state for characteristic: \(characteristic)")
+            print("peripheral did update notification state for characteristic: \(characteristic) in: \(#fileID)")
         }
 
 

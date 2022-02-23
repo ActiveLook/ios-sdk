@@ -281,4 +281,16 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
             return
         }
     }
+
+    public func peripheral(_ peripheral: CBPeripheral,
+                           didUpdateNotificationStateFor characteristic: CBCharacteristic,
+                           error: Error?)
+    {
+        guard error == nil else {
+            let desc = error!.localizedDescription
+            print("error while updating notification state : \(desc) for characteristic: \(characteristic.uuid)")
+            return
+        }
+//        print("peripheral did update notification state for characteristic: \(characteristic) in: \(#fileID)")
+    }
 }

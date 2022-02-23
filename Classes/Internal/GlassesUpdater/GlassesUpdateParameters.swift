@@ -60,7 +60,7 @@ internal class GlassesUpdateParameters {
     var hardware: String
 
     var state: UpdateState?
-
+    
     private var progress: UInt8 = 0
 
     private var updateStateToGlassesUpdate: [[UpdateState]]
@@ -73,7 +73,7 @@ internal class GlassesUpdateParameters {
     private let updatingFW: [UpdateState] = [.noFwUpdateAvailable, .updatingFw, .rebooting]
     private let downloadingCfg: [UpdateState] = [.checkingConfigVersion,
                                                  .downloadingConfig]
-    private let updatingCfg: [UpdateState] = [.updatingConfig]
+    private let updatingCfg: [UpdateState] = [.updatingConfig, .updateDone]
     private let updateFailed: [UpdateState] = [.updateFailed]
 
     
@@ -97,8 +97,11 @@ internal class GlassesUpdateParameters {
 
     // MARK: - Internal Functions
     
-    func update(_ stateUpdate: UpdateState, _ progress: UInt8 = 0) {
-        
+    func update(_ stateUpdate: UpdateState, _ progress: UInt8 = 0)
+    {
+        dlog(message: "progress update to \(stateUpdate) – \(progress)",
+             line: #line, function: #function, file: #fileID)
+
         guard let index = updateStateToGlassesUpdate.firstIndex(where: {
             updateStateArr in updateStateArr.contains(stateUpdate) })
         else {
