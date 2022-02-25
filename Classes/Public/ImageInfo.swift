@@ -33,11 +33,12 @@ public class ImageInfo {
         self.height = height
     }
 
-    internal static func fromCommandResponseData(_ data: CommandResponseData, withId id: Int) -> ImageInfo {
-        guard data.count >= 4 else { return ImageInfo(0, 0, 0) }
+    internal static func fromCommandResponseData(_ data: CommandResponseData) -> ImageInfo {
+        guard data.count >= 5 else { return ImageInfo(0, 0, 0) }
 
-        let width = Int.fromUInt16ByteArray(bytes: [data[0], data[1]])
-        let height = Int.fromUInt16ByteArray(bytes: [data[2], data[3]])
+        let id = Int(data[0])
+        let width = Int.fromUInt16ByteArray(bytes: [data[1], data[2]])
+        let height = Int.fromUInt16ByteArray(bytes: [data[3], data[4]])
 
         return ImageInfo(id, width, height)
     }

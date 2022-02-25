@@ -735,18 +735,16 @@ public class Glasses {
     /// - Parameter callback: A callback called asynchronously when the device answers
     public func imgList(_ callback: @escaping ([ImageInfo]) -> Void) {
         sendCommand(id: .imgList, withData: nil) { (commandResponseData) in
-            guard commandResponseData.count % 4 == 0 else {
+            guard commandResponseData.count % 5 == 0 else {
                 print("response format error for imgList command") // TODO Raise error
                 return
             }
             
             var images: [ImageInfo] = []
-            var index = 1
-            let chunkedData = commandResponseData.chunked(into: 4)
+            let chunkedData = commandResponseData.chunked(into: 5)
 
             for data in chunkedData {
-                images.append(ImageInfo.fromCommandResponseData(data, withId: index))
-                index += 1
+                images.append(ImageInfo.fromCommandResponseData(data))
             }
             
             callback(images)
