@@ -81,11 +81,7 @@ internal class GlassesUpdater {
         // Start update process
         sdk?.updateParameters.update(.startingUpdate)
 
-        if NetworkMonitor.shared.isConnected {
-            self.checkFirmwareRecency()
-        } else {
-            failed(with: GlassesUpdateError.networkUnavailable)
-        }
+        checkFirmwareRecency()
     }
 
 
@@ -124,6 +120,11 @@ internal class GlassesUpdater {
     {
         sdk?.updateParameters.update(.checkingFwVersion)
 
+        guard NetworkMonitor.shared.isConnected else {
+            failed(with: GlassesUpdateError.networkUnavailable)
+            return
+        }
+
         versionChecker?.isFirmwareUpToDate(for: glasses!,
                                              onSuccess: { ( result ) in self.process( result ) },
                                              onError: { ( error ) in self.failed(with: error ) })
@@ -137,6 +138,11 @@ internal class GlassesUpdater {
         case .needsUpdate(let apiUrl) :
             dlog(message: "Firmware needs update",
                  line: #line, function: #function, file: #fileID)
+
+            guard NetworkMonitor.shared.isConnected else {
+                failed(with: GlassesUpdateError.networkUnavailable)
+                return
+            }
 
             let downloader = Downloader()
             downloader.downloadFirmware(at: apiUrl,
@@ -176,6 +182,11 @@ internal class GlassesUpdater {
     {
         sdk?.updateParameters.update(.checkingConfigVersion)
 
+        guard NetworkMonitor.shared.isConnected else {
+            failed(with: GlassesUpdateError.networkUnavailable)
+            return
+        }
+
         versionChecker?.isConfigurationUpToDate( for: glasses!,
                                                     onSuccess: { ( result ) in self.process( result ) },
                                                     onError: { ( error ) in self.failed(with: error ) })
@@ -188,6 +199,11 @@ internal class GlassesUpdater {
         case .needsUpdate(let apiUrl):
             dlog(message: "Configuration needs update", 
                  line: #line, function: #function, file: #fileID)
+
+            guard NetworkMonitor.shared.isConnected else {
+                failed(with: GlassesUpdateError.networkUnavailable)
+                return
+            }
 
             let downloader = Downloader()
             downloader.downloadConfiguration(at: apiUrl,
