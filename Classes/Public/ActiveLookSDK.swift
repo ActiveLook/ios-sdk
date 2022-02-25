@@ -55,6 +55,26 @@ public class ActiveLookSDK {
 
     // MARK: - Internal properties
 
+    // TODO: make networkMonitor private
+    internal var networkMonitor: NetworkMonitor!
+
+    // ViewController.swift
+//    class ViewController: UIViewController {
+//
+//        override func viewDidLoad() {
+//            super.viewDidLoad()
+//            NotificationCenter.default.addObserver(self, selector: #selector(showOfflineDeviceUI(notification:)), name: NSNotification.Name.connectivityStatus, object: nil)
+//        }
+//
+//        @objc func showOfflineDeviceUI(notification: Notification) {
+//            if NetworkMonitor.shared.isConnected {
+//                print("Connected")
+//            } else {
+//                print("Not connected")
+//            }
+//        }
+//    }
+
     internal var centralManager: CBCentralManager!
     internal var centralManagerDelegate: CentralManagerDelegate // TODO: internal or private ?
 
@@ -72,10 +92,13 @@ public class ActiveLookSDK {
         ActiveLookSDK._shared = self
 
         self.centralManagerDelegate.parent = self
+        self.networkMonitor = NetworkMonitor.shared
+
         self.didAskForScan = nil
 
         // TODO: Use a specific queue
         centralManager = CBCentralManager(delegate: self.centralManagerDelegate, queue: nil)
+        networkMonitor.startMonitoring()
     }
 
 
@@ -271,13 +294,33 @@ public class ActiveLookSDK {
                     self.updateParameters.reset()
                 },
             onError:
-                {
-                    dlog(message: "UPDATER ERROR",
+                { error in
+                    dlog(message: "UPDATER ERROR: \(error.localizedDescription)",
                          line: #line, function: #function, file: #fileID)
 
-                    discoveredGlasses.connectionErrorCallback?(ActiveLookError.sdkUpdateFailed)
-                    discoveredGlasses.connectionCallback = nil
-                    discoveredGlasses.connectionErrorCallback = nil
+                    switch error {
+                    case .networkUnavailable:
+                        // network not available. No update possible, but glasses are still usable.
+                        discoveredGlasses.connectionCallback?(glasses)
+                        discoveredGlasses.connectionCallback = nil
+                        discoveredGlasses.connectionErrorCallback = nil
+
+                        let sdkGU = SdkGlassesUpdate(for: discoveredGlasses,
+                                                        state: State.UPDATING_CONFIGURATION,
+                                                        progress: 100,
+                                                        sourceFirmwareVersion: "sFwV",
+                                                        targetFirmwareVersion: "tFwV",
+                                                        sourceConfigurationVersion: "sCfgV",
+                                                        targetConfigurationVersion: "tCfgV")
+
+                        self.updateParameters.successClosure(sdkGU)
+                        self.updateParameters.reset()
+
+                    default:
+                        discoveredGlasses.connectionErrorCallback?(ActiveLookError.sdkUpdateFailed)
+                        discoveredGlasses.connectionCallback = nil
+                        discoveredGlasses.connectionErrorCallback = nil
+                    }
                 })
     }
 
