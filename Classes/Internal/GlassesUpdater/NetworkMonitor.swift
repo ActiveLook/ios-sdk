@@ -14,7 +14,12 @@
  */
 
 
+import Foundation
 import Network
+
+extension Notification.Name {
+    static let connectivityStatus = Notification.Name(rawValue: "connectivityStatusChanged")
+}
 
 extension NWInterface.InterfaceType: CaseIterable {
     public static var allCases: [NWInterface.InterfaceType] = [
@@ -29,7 +34,7 @@ extension NWInterface.InterfaceType: CaseIterable {
 final class NetworkMonitor {
     static let shared = NetworkMonitor()
 
-    private let queue = DispatchQueue(label: "LCCConnectivityMonitor")
+    private let queue = DispatchQueue(label: "NetworkConnectivityMonitor")
     private let monitor: NWPathMonitor
 
     private(set) var isConnected = false
@@ -40,16 +45,21 @@ final class NetworkMonitor {
         monitor = NWPathMonitor()
     }
 
-    func startMonitoring()
-    {
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-
+    func startMonitoring() {
         monitor.pathUpdateHandler = { [weak self] path in
             self?.isConnected = path.status != .unsatisfied
             self?.isExpensive = path.isExpensive
-            self?.currentConnectionType = NWInterface.InterfaceType.allCases.filter { path.usesInterfaceType($0) }.first
+            self?.currentConnectionType =
+                NWInterface.InterfaceType.allCases.filter{ path.usesInterfaceType($0) }.first
+
+            NotificationCenter.default.post(name: .connectivityStatus, object: nil)
+            dlog(message: "networkStatus changed.... #########", 
+                 line: #line, function: #function, file: #fileID)
+
         }
         monitor.start(queue: queue)
+        dlog(message: "isConnected: \(isConnected)", 
+             line: #line, function: #function, file: #fileID)
 
     }
 

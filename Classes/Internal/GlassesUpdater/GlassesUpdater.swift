@@ -28,6 +28,7 @@ internal enum GlassesUpdateError: Error
     case downloaderServerError                  // 5
     case downloaderJsonError                    // 6
     case firmwareUpdater(message: String = "")  // 7
+    case networkUnavailable                     // 8
 }
 
 
@@ -44,7 +45,7 @@ internal class GlassesUpdater {
 
     private var rebootClosure: ( () -> () )?
     private var successClosure: ( () -> () )?
-    private var errorClosure: ( () -> () )?
+    private var errorClosure: ( (GlassesUpdateError) -> () )?
 
     private var firmwareUpdater: FirmwareUpdater?
     private var versionChecker: VersionChecker?
@@ -68,7 +69,7 @@ internal class GlassesUpdater {
     func update(_ glasses: Glasses,
                 onReboot rebootClosure: @escaping () -> (),
                 onSuccess successClosure: @escaping () -> (),
-                onError errorClosure: @escaping () -> () )
+                onError errorClosure: @escaping (GlassesUpdateError) -> () )
     {
         self.glasses = glasses
         self.rebootClosure = rebootClosure
@@ -79,8 +80,12 @@ internal class GlassesUpdater {
 
         // Start update process
         sdk?.updateParameters.update(.startingUpdate)
-        
-        self.checkFirmwareRecency()
+
+        if NetworkMonitor.shared.isConnected {
+            self.checkFirmwareRecency()
+        } else {
+            failed(with: GlassesUpdateError.networkUnavailable)
+        }
     }
 
 
@@ -88,8 +93,15 @@ internal class GlassesUpdater {
 
     private func failed(with error: GlassesUpdateError)
     {
-        sdk?.updateParameters.update(.updateFailed)
-        errorClosure?()
+        switch error {
+        case .networkUnavailable:
+            break
+
+        default:
+            sdk?.updateParameters.update(.updateFailed)
+        }
+        
+        errorClosure?(error)
     }
 
 
