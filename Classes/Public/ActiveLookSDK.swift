@@ -16,53 +16,197 @@ limitations under the License.
 import Foundation
 import CoreBluetooth
 
-/// The main entry point to interacting with ActiveLook glasses.
-///
-/// The ActiveLookSDK class should be used as a singleton, and can be accessed via its `shared` property.
-///
-/// It uses the CBCentralManager to interact with ActiveLook glasses over Bluetooth and sets itself as its delegate.
-///
+
+// MARK: -  Type Alias
+
+public typealias startClosureSignature = (SdkGlassesUpdate) -> Void
+public typealias progressClosureSignature = (SdkGlassesUpdate) -> Void
+public typealias successClosureSignature = (SdkGlassesUpdate) -> Void
+public typealias failureClosureSignature = (SdkGlassesUpdate) -> Void
+
+
+/* The main entry point to interacting with ActiveLook glasses.
+
+ The ActiveLookSDK class should be used as a singleton, and can be accessed via the `shared()` function.
+
+ It uses the CBCentralManager to interact with ActiveLook glasses over Bluetooth and sets itself as its delegate.
+*/
+
+// MARK: -
 public class ActiveLookSDK {
 
-    
-    // MARK: - Public properties
 
-    /// The shared instance of the ActiveLook SDK.
-    public static let shared = ActiveLookSDK()
-    
-    
     // MARK: - Private properties
 
-    private var centralManager: CBCentralManager!
-    private var centralManagerDelegate: CentralManagerDelegate
+    private static var _shared: ActiveLookSDK!
+
     private var discoveredGlassesArray: [DiscoveredGlasses] = []
-    private var connectedGlassesArray: [Glasses] = []
-    
+
     private var glassesDiscoveredCallback: ((DiscoveredGlasses) -> Void)?
-    
+
+    private var connectedGlassesArray: [Glasses] = []
+
     private var didAskForScan: (glassesDiscoveredCallback: (DiscoveredGlasses) -> Void,
-                                   scanErrorCallback: (Error) -> Void)?
-    
-    // MARK: - Initialization
-    
-    private init() {
+                                scanErrorCallback: (Error) -> Void)?
+
+    private var rebootingGlasses: Glasses?
+
+
+    // MARK: - Internal properties
+
+    // TODO: make networkMonitor private
+    internal var networkMonitor: NetworkMonitor!
+
+    internal var centralManager: CBCentralManager!
+    internal var centralManagerDelegate: CentralManagerDelegate // TODO: internal or private ?
+
+    internal var updater: GlassesUpdater? // TODO: internal or private ?
+    internal var updateParameters: GlassesUpdateParameters!
+
+
+    // MARK: - LifeCycle
+
+    private init(with parameters: GlassesUpdateParameters) {
+
+        self.updateParameters = parameters
         self.centralManagerDelegate = CentralManagerDelegate()
+
+        ActiveLookSDK._shared = self
+
         self.centralManagerDelegate.parent = self
-        centralManager = CBCentralManager(delegate:self.centralManagerDelegate, queue: nil) // TODO Use a specific queue
+        self.networkMonitor = NetworkMonitor.shared
+
         self.didAskForScan = nil
+
+        // TODO: Use a specific queue
+        centralManager = CBCentralManager(delegate: self.centralManagerDelegate, queue: nil)
+        networkMonitor.startMonitoring()
     }
-    
-    
+
+
+    // MARK: - Public methods
+
+    // This is the method used to initialize the `ActiveLookSDK` singleton **and** access it later on.
+    // To initialize it, this function is called with all parameters set.
+    // To access it afterwards, just call it without any arguments: `ActiveLookSDK.shared()`
+    // - throws:
+    //     - `ActiveLookError.sdkInitMissingParameters`
+    //     if the function is called with incomplete parameters.
+    //     - `ActiveLookError.sdkCannotChangeParameters`
+    //     if the function is called more than once during the application's lifetime, with all the parameters correctly set.
+    // - parameters:
+    //     - token: The token used for authenticating with the firmware repository.
+    //     - onUpdateStart             Registered callback for update start event notification
+    //     - onUpdateProgress      Registered callback for update progress event notification.
+    //     - onUpdateSuccess       Registered callback for update success event notification.
+    //     - onUpdateError             Registered callback for update error event notification.
+    //  - returns: the `ActiveLookSDK`'s singleton
+    //
+    public static func shared(token: String? = nil,
+                              onUpdateStartCallback: startClosureSignature? = nil,
+                              onUpdateProgressCallback: progressClosureSignature? = nil,
+                              onUpdateSuccessCallback: successClosureSignature? = nil,
+                              onUpdateFailureCallback: failureClosureSignature? = nil) throws -> ActiveLookSDK
+    {
+
+        var updateParameters: GlassesUpdateParameters? = nil
+
+        if token != nil,
+           onUpdateStartCallback != nil,
+           onUpdateProgressCallback != nil,
+           onUpdateSuccessCallback != nil,
+           onUpdateFailureCallback != nil
+        {
+            updateParameters = GlassesUpdateParameters(token!,
+                                                       onUpdateStartCallback!,
+                                                       onUpdateProgressCallback!,
+                                                       onUpdateSuccessCallback!,
+                                                       onUpdateFailureCallback!)
+        }
+
+        switch (_shared, updateParameters) {
+        case let (i?, nil):
+            return i
+
+        case _ where (_shared != nil) && (updateParameters != nil):
+            throw ActiveLookError.sdkCannotChangeParameters
+
+        case _ where (_shared == nil) && (updateParameters != nil):
+            _shared = ActiveLookSDK(with: updateParameters!)
+            return _shared
+
+        default:
+            throw ActiveLookError.sdkInitMissingParameters
+        }
+    }
+
+
+    // Start scanning for ActiveLook glasses. Will keep scanning until `stopScanning()` is called.
+    // - Parameters:
+    //   - glassesDiscoveredCallback: A callback called asynchronously when glasses are discovered.
+    //   - scanErrorCallback: A callback called asynchronously when an scanning error occurs.
+    public func startScanning(onGlassesDiscovered glassesDiscoveredCallback: @escaping (DiscoveredGlasses) -> Void,
+                              onScanError scanErrorCallback: @escaping (Error) -> Void,
+                              _ caller: String? = nil)
+    {
+        guard centralManager.state == .poweredOn else {
+            if self.didAskForScan == nil && caller == nil {
+                self.didAskForScan = (glassesDiscoveredCallback, scanErrorCallback)
+            } else {
+                scanErrorCallback(ActiveLookError.startScanningAlreadyCalled)
+            }
+            return
+        }
+
+        guard !centralManager.isScanning else {
+            print("already scanning")
+            return
+        }
+
+        if updater == nil {
+            updater = GlassesUpdater()
+        }
+
+        self.didAskForScan = nil
+        self.discoveredGlassesArray.removeAll()
+
+        self.glassesDiscoveredCallback = glassesDiscoveredCallback
+        print("starting scan")
+
+        // Scanning with services list not working
+        centralManager.scanForPeripherals(withServices: nil,
+                                          options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
+    }
+
+
+    // Check whether the ActiveLookSDK is currently scanning.
+    // - Returns: true if currently scanning, false otherwise.
+    public func isScanning() -> Bool {
+        return centralManager.isScanning
+    }
+
+
+    // Stop scanning for ActiveLook glasses.
+    public func stopScanning() {
+        if centralManager.isScanning {
+            print("stopping scan")
+            centralManager.stopScan()
+        }
+    }
+
+
     // MARK: - Private methods
     
-    private func peripheralIsActiveLookGlasses(peripheral: CBPeripheral, advertisementData: [String : Any]) -> Bool {
+    private func peripheralIsActiveLookGlasses(peripheral: CBPeripheral, advertisementData: [String: Any]) -> Bool {
         if let manufacturerData = advertisementData["kCBAdvDataManufacturerData"] as? Data, manufacturerData.count >= 2 {
             return manufacturerData[0] == 0xFA && manufacturerData[1] == 0xDA
         }
         return false
     }
 
-    private func discoveredGlasses(fromPeripheral peripheral: CBPeripheral) -> DiscoveredGlasses? {
+
+    private func discoveredGlasses(fromPeripheral peripheral: CBPeripheral) -> DiscoveredGlasses?
+    {
         for glasses in discoveredGlassesArray {
             if glasses.peripheral == peripheral {
                 return glasses
@@ -70,9 +214,12 @@ public class ActiveLookSDK {
         }
         return nil
     }
-    
-    private func connectedGlasses(fromPeripheral peripheral: CBPeripheral) -> Glasses? {
-        for glasses in connectedGlassesArray {
+
+
+    private func connectedGlasses(fromPeripheral peripheral: CBPeripheral) -> Glasses?
+    {
+        for glasses in connectedGlassesArray
+        {
             if glasses.peripheral == peripheral {
                 return glasses
             }
@@ -80,71 +227,105 @@ public class ActiveLookSDK {
         return nil
     }
 
-    // MARK: - Public methods
-    
-    
-    /// Start scanning for ActiveLook glasses. Will keep scanning until `stopScanning()` is called.
-    /// - Parameters:
-    ///   - glassesDiscoveredCallback: A callback called asynchronously when glasses are discovered.
-    ///   - scanErrorCallback: A callback called asynchronously when an scanning error occurs.
-    public func startScanning(onGlassesDiscovered glassesDiscoveredCallback: @escaping (DiscoveredGlasses) -> Void,
-                              onScanError scanErrorCallback: @escaping (Error) -> Void,
-                              _ caller: String? = nil) {
 
-        guard centralManager.state == .poweredOn else {
-            if (self.didAskForScan == nil && caller == nil) {
-                self.didAskForScan = (glassesDiscoveredCallback, scanErrorCallback)
-            } else {
-                scanErrorCallback(ActiveLookError.startScanningAlreadyCalled)
-            }
-            return
+    private func updateGlasses() {
+
+        guard let glasses = connectedGlassesArray.first
+        else {
+            fatalError("no glasses connected...")
         }
-        
-        guard !centralManager.isScanning else {
-            print("already scanning")
-            return
+
+        guard let discoveredGlasses = discoveredGlasses(fromPeripheral: glasses.peripheral)
+        else {
+            fatalError("discoveredGlasses not found")
         }
-        
-        self.didAskForScan = nil
-        self.discoveredGlassesArray.removeAll()
-        
-        self.glassesDiscoveredCallback = glassesDiscoveredCallback
-        print("starting scan")
-        
-        // Scanning with services list not working
-        centralManager.scanForPeripherals(withServices: nil, options: [CBCentralManagerScanOptionAllowDuplicatesKey : false])
+
+        updater?.update(
+            glasses,
+            onReboot:
+                {
+                dlog(message: "Firmware update Succeeded. Glasses are rebooting.",
+                     line: #line, function: #function, file: #fileID)
+
+                self.rebootingGlasses = glasses
+
+                // stopping scan to ensure state
+                self.centralManager.stopScan()
+                self.centralManager.scanForPeripherals(withServices: nil,
+                                                       options:
+                                                        [CBCentralManagerScanOptionAllowDuplicatesKey: false])
+            },
+            onSuccess:
+                {
+                    dlog(message: "UPDATER DONE",
+                         line: #line, function: #function, file: #fileID)
+
+                    discoveredGlasses.connectionCallback?(glasses)
+                    discoveredGlasses.connectionCallback = nil
+                    discoveredGlasses.connectionErrorCallback = nil
+
+                    let sdkGU = SdkGlassesUpdate(for: discoveredGlasses,
+                                                    state: State.UPDATING_CONFIGURATION,
+                                                    progress: 100,
+                                                    sourceFirmwareVersion: "sFwV",
+                                                    targetFirmwareVersion: "tFwV",
+                                                    sourceConfigurationVersion: "sCfgV",
+                                                    targetConfigurationVersion: "tCfgV")
+
+                    self.updateParameters.successClosure(sdkGU)
+                    self.updateParameters.reset()
+                },
+            onError:
+                { error in
+                    dlog(message: "UPDATER ERROR: \(error.localizedDescription)",
+                         line: #line, function: #function, file: #fileID)
+
+                    switch error {
+                    case .networkUnavailable:
+                        // network not available. No update possible, but glasses are still usable.
+                        discoveredGlasses.connectionCallback?(glasses)
+                        discoveredGlasses.connectionCallback = nil
+                        discoveredGlasses.connectionErrorCallback = nil
+
+                        let sdkGU = SdkGlassesUpdate(for: discoveredGlasses,
+                                                        state: State.UPDATING_CONFIGURATION,
+                                                        progress: 100,
+                                                        sourceFirmwareVersion: "sFwV",
+                                                        targetFirmwareVersion: "tFwV",
+                                                        sourceConfigurationVersion: "sCfgV",
+                                                        targetConfigurationVersion: "tCfgV")
+
+                        self.updateParameters.successClosure(sdkGU)
+                        self.updateParameters.reset()
+
+                    default:
+                        discoveredGlasses.connectionErrorCallback?(ActiveLookError.sdkUpdateFailed)
+                        discoveredGlasses.connectionCallback = nil
+                        discoveredGlasses.connectionErrorCallback = nil
+                    }
+                })
     }
-    
-    /// Check whether the ActiveLookSDK is currently scanning.
-    /// - Returns: true if currently scanning, false otherwise.
-    public func isScanning() -> Bool {
-        return centralManager.isScanning
-    }
-    
-    /// Stop scanning for ActiveLook glasses.
-    public func stopScanning() {
-        if centralManager.isScanning {
-            print("stopping scan")
-            centralManager.stopScan()
-        }
-    }
-    
+
 
     // MARK: - CBCentralManagerDelegate
     
-    internal class CentralManagerDelegate: NSObject, CBCentralManagerDelegate {
-    
+    internal class CentralManagerDelegate: NSObject, CBCentralManagerDelegate
+    {
         weak var parent: ActiveLookSDK?
-        
-        public func centralManagerDidUpdateState(_ central: CBCentralManager) {
+
+        public func centralManagerDidUpdateState(_ central: CBCentralManager)
+        {
             print("central manager did update state: ", central.state.rawValue)
             
-            guard central.state == .poweredOn else {
-                parent?.didAskForScan?.scanErrorCallback(ActiveLookError.bluetoothErrorFromState(state: central.state))
+            guard central.state == .poweredOn
+            else {
+                parent?.didAskForScan?.scanErrorCallback(
+                    ActiveLookError.bluetoothErrorFromState( state: central.state) )
                 return
             }
             
-            guard let didAskForScan = parent?.didAskForScan else {
+            guard let didAskForScan = parent?.didAskForScan
+            else {
                 return
             }
             
@@ -153,73 +334,132 @@ public class ActiveLookSDK {
                                   "centralManagerDidUpdateState()")
         }
 
+
         public func centralManager(_ central: CBCentralManager,
                                    didDiscover peripheral: CBPeripheral,
-                                   advertisementData: [String : Any],
-                                   rssi RSSI: NSNumber) {
-            guard parent != nil, parent!.peripheralIsActiveLookGlasses(peripheral: peripheral, advertisementData: advertisementData) else {
-                print("ignoring non ActiveLook peripheral")
-                return
-            }
-            
-            guard parent?.discoveredGlasses(fromPeripheral: peripheral) == nil else {
-                print("glasses already discovered")
+                                   advertisementData: [String: Any],
+                                   rssi RSSI: NSNumber)
+        {
+            guard parent != nil,
+                    parent!.peripheralIsActiveLookGlasses(peripheral: peripheral,
+                                                          advertisementData: advertisementData)
+            else {
+                // print("ignoring non ActiveLook peripheral")
                 return
             }
 
-            let discoveredGlasses = DiscoveredGlasses(peripheral: peripheral, centralManager: central, advertisementData: advertisementData)
+            let discoveredGlasses = DiscoveredGlasses(peripheral: peripheral,
+                                                      centralManager: central,
+                                                      advertisementData: advertisementData)
+
+            guard parent?.discoveredGlasses(fromPeripheral: peripheral) == nil
+            else {
+                print("glasses already discovered")
+                if let rebootingGlasses = parent?.rebootingGlasses,
+                   rebootingGlasses.peripheral.identifier == peripheral.identifier
+                {
+                    dlog(message: "glasses are updating and have rebooted",
+                         line: #line, function: #function, file: #fileID)
+                    parent?.rebootingGlasses = nil
+                    parent?.stopScanning()
+
+                    central.connect(peripheral, options: nil)
+                }
+                return
+            }
+
             parent?.discoveredGlassesArray.append(discoveredGlasses)
             parent?.glassesDiscoveredCallback?(discoveredGlasses)
         }
+
         
-        public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
-            guard let discoveredGlasses = parent?.discoveredGlasses(fromPeripheral: peripheral) else {
+        public func centralManager(_ central: CBCentralManager,
+                                   didConnect peripheral: CBPeripheral)
+        {
+            guard let discoveredGlasses = parent?.discoveredGlasses(fromPeripheral: peripheral)
+            else {
                 print("connected to unknown glasses") // TODO Raise error ?
                 return
             }
-            
+
+            central.stopScan()
+
             print("central manager did connect to glasses \(discoveredGlasses.name)")
 
             let glasses = Glasses(discoveredGlasses: discoveredGlasses)
-            let glassesInitializer = GlassesInitializer(glasses: glasses)
 
-            glassesInitializer.initialize(
-            onSuccess: {
+            let glassesInitializer = GlassesInitializer()
+            glassesInitializer.initialize( glasses,
+                                           onSuccess:
+                                            {
                 self.parent?.connectedGlassesArray.append(glasses)
-                discoveredGlasses.connectionCallback?(glasses)
-                discoveredGlasses.connectionCallback = nil
-                discoveredGlasses.connectionErrorCallback = nil
+                self.parent?.updateGlasses()
             },
-            onError: { (error) in
+                                           onError:
+                                            { (error) in
+                dlog(message: "INITIALIZER ERROR",
+                     line: #line, function: #function, file: #fileID)
+
                 discoveredGlasses.connectionErrorCallback?(error)
                 discoveredGlasses.connectionCallback = nil
                 discoveredGlasses.connectionErrorCallback = nil
-            })
+            } )
         }
-        
-        public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+
+
+        public func centralManager(_ central: CBCentralManager,
+                                   didDisconnectPeripheral peripheral: CBPeripheral,
+                                   error: Error?)
+        {
             guard let glasses = parent?.connectedGlasses(fromPeripheral: peripheral) else {
                 print("disconnected from unknown glasses")
                 return
             }
 
-            print("central manager did disconnect from glasses \(glasses.name)")
+
+            if let index = parent?.connectedGlassesArray.firstIndex(
+                where: { $0.identifier == glasses.identifier } )
+            {
+                parent?.connectedGlassesArray.remove(at: index)
+            }
+
+            // glasses are rebooting. Will reconnect shorter...
+            guard let updateParameters = parent?.updateParameters, updateParameters.state != .rebooting
+            else {
+                if let index = parent?.connectedGlassesArray.firstIndex(
+                    where: { $0.identifier == glasses.identifier } )
+                {
+                    print("removed connected glasses...")
+                    parent?.connectedGlassesArray.remove(at: index)
+                }
+                return
+            }
 
             glasses.disconnectionCallback?()
             glasses.disconnectionCallback = nil
 
-            if let index = parent?.connectedGlassesArray.firstIndex(where: {$0.identifier == glasses.identifier}) {
+            if let index = parent?.connectedGlassesArray.firstIndex(
+                where: { $0.identifier == glasses.identifier } )
+            {
                 parent?.connectedGlassesArray.remove(at: index)
             }
+            print("central manager did disconnect from glasses \(glasses.name)")
+            print("with error \(String(describing: error))")
         }
 
-        public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
-            guard let glasses = parent?.discoveredGlasses(fromPeripheral: peripheral) else {
+
+        public func centralManager(_ central: CBCentralManager,
+                                   didFailToConnect peripheral: CBPeripheral,
+                                   error: Error?)
+        {
+            guard let glasses = parent?.discoveredGlasses(fromPeripheral: peripheral)
+            else {
                 print("failed to connect to unknown glasses")
                 return
             }
             
-            print("central manager did fail to connect to glasses \(glasses.name) with error: ", error?.localizedDescription ?? "")
+            print("central manager did fail to connect to glasses \(glasses.name) with error: ",
+                  error?.localizedDescription ?? "")
 
             glasses.connectionErrorCallback?(error ?? ActiveLookError.unknownError)
             glasses.connectionErrorCallback = nil

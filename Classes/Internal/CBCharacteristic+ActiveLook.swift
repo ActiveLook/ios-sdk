@@ -24,7 +24,7 @@ extension CBCharacteristic {
         }
         return ""
     }
-    
+
     var valueAsInt: Int {
         if let value = self.value {
             return Int([UInt8](value)[0])

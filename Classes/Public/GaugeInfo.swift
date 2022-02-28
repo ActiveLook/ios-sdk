@@ -17,10 +17,10 @@ import Foundation
 
 /// Information about free space.
 public class GaugeInfo {
-    
+
     /// The x coordinate of the gauge
     public let x: Int
-    
+
     /// The y coordinate of the gauge
     public let y: Int
 
@@ -38,7 +38,7 @@ public class GaugeInfo {
 
     /// The orientation of the gauge
     public let clockwise: Bool
-    
+
     init(_ x: Int, _ y: Int, _ r: UInt16, _ rin: UInt16, _ start: UInt8, _ end: UInt8, _ clockwise: Bool) {
         self.x = x
         self.y = y

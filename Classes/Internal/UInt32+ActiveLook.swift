@@ -17,6 +17,14 @@ import Foundation
 
 extension UInt32 {
 
+    /// is returning the same output as `asUInt8Array`.
+    /// Not tested performance wise...
+    var byteArray: [UInt8] {
+        withUnsafeBytes(of: self.littleEndian) {
+            Array($0)
+        }
+    }
+
     var asUInt8Array: [UInt8] {
         let firstByte = UInt8(truncatingIfNeeded: self >> 24)
         let secondByte = UInt8(truncatingIfNeeded: self >> 16)
@@ -24,7 +32,7 @@ extension UInt32 {
         let fourthByte = UInt8(truncatingIfNeeded: self)
         return [firstByte, secondByte, thirdByte, fourthByte]
     }
-    
+
     internal static func fromUInt32ByteArray(bytes: [UInt8]) -> UInt32 {
         guard bytes.count >= 2 else { return 0 }
         return UInt32(bytes[0]) << 24 + UInt32(bytes[1]) << 16 + UInt32(bytes[2]) << 8 + UInt32(bytes[3])

@@ -19,7 +19,8 @@ import CoreBluetooth
 extension CBService {
 
     func getCharacteristic(forUUID uuid: CBUUID) -> CBCharacteristic? {
-        if let characteristics = self.characteristics, let index = characteristics.firstIndex(where: { $0.uuid == uuid }) {
+        if let characteristics = self.characteristics,
+           let index = characteristics.firstIndex(where: { $0.uuid == uuid }) {
             return characteristics[index]
         }
         return nil

@@ -1,6 +1,6 @@
 /*
- 
- Copyright 2021 Microoled
+
+ Copyright 2022 Microoled
  Licensed under the Apache License, Version 2.0 (the “License”);
  you may not use this file except in compliance with the License.
  You may obtain a copy of the License at
@@ -10,14 +10,28 @@
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
  limitations under the License.
- 
+
  */
 
 import Foundation
 
-extension String {
+// TODO: add timestamp capability?
 
-    var asNullTerminatedUInt8Array: [UInt8] {
-        return self.utf8CString.map { UInt8($0) }
+fileprivate let format = DateFormatter()
+
+func dlog(message:String?, line: Int, function: String, file: String) {
+#if FALSE 
+    var mess: String
+    if let message = message {
+        mess = message.appending(" ")
+    } else {
+        mess = ""
     }
+
+    format.dateFormat = "mm:ss: SSS"
+
+    print("\(format.string(from: Date())): \(mess)@\(line) - \(function) - \(file)")
+#else
+    return
+#endif
 }
