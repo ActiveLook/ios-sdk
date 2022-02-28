@@ -30,33 +30,30 @@ import CoreBluetooth
 /// Once connected, the connection callback will return a `Glasses` object, which can then be used to send command to the ActiveLook® glasses.
 ///
 public class DiscoveredGlasses {
-    
-    
+
     // MARK: - Public properties
-    
+
     /// The name of the glasses, as advertised over Bluetooth.
     public var name: String
-    
+
     /// The identifier of the glasses, as advertised over Bluetooth. It is not guaranteed to be unique over a certain period and across sessions.
     public var identifier: UUID
-    
+
     /// The manufacturer id as set on the device as a hex string.
     public var manufacturerId: String
-    
 
     // MARK: - Internal properties
-    
+
     internal var centralManager: CBCentralManager
     internal var peripheral: CBPeripheral
-    
+
     internal var connectionCallback: ((Glasses) -> Void)?
     internal var disconnectionCallback: (() -> Void)?
     internal var connectionErrorCallback: ((Error) -> Void)?
-    
 
     // MARK: - Initializers
-    
-    internal init(peripheral: CBPeripheral, centralManager: CBCentralManager, advertisementData: [String : Any]) {
+
+    internal init(peripheral: CBPeripheral, centralManager: CBCentralManager, advertisementData: [String: Any]) {
         self.identifier = peripheral.identifier
         self.name = (advertisementData["kCBAdvDataLocalName"] as? String) ?? "Unnamed glasses"
         self.manufacturerId = (advertisementData["kCBAdvDataManufacturerData"] as? Data)?.hexEncodedString() ?? "Unknown"
@@ -65,9 +62,8 @@ public class DiscoveredGlasses {
         self.centralManager = centralManager
     }
 
-
     // MARK: - Public methods
-    
+
     /// Connect to the discovered glasses. Once the connection has been established over Buetooth, the glasses still need to be initialized before being considered as 'connected'.
     /// If this step takes too long, a timeout error will be issued via the `onConnectionError` callback.
     ///

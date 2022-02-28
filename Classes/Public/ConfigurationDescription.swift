@@ -48,7 +48,7 @@ public class ConfigurationDescription {
     internal static func fromCommandResponseData(_ data: CommandResponseData) -> [ConfigurationDescription] {
         var results: [ConfigurationDescription] = []
         var offset = 0
-        while (offset < data.count) {
+        while offset < data.count {
             let subData = Array(data.suffix(from: offset))
             let nameSize = (subData.firstIndex(of: 0) ?? 0) + 1
             

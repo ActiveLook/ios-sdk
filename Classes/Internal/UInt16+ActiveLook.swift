@@ -17,15 +17,23 @@ import Foundation
 
 extension UInt16 {
 
+    /// is returning the same output as `asUInt8Array`.
+    /// Not tested performance wise...
+    var byteArray: [UInt8] {
+        withUnsafeBytes(of: self.littleEndian) {
+            Array($0)
+        }
+    }
+
     var asUInt8Array: [UInt8] {
         let msb = UInt8(truncatingIfNeeded: self >> 8)
         let lsb = UInt8(truncatingIfNeeded: self)
         return [msb, lsb]
     }
-    
+
     internal static func fromUInt16ByteArray(bytes: [UInt8]) -> UInt16 {
         guard bytes.count >= 2 else { return 0 }
-        
+
         return UInt16(bytes[0]) << 8 + UInt16(bytes[1])
     }
 

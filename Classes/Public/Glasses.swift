@@ -47,26 +47,30 @@ public class Glasses {
     
 
     // MARK: - Internal properties
-    
+
     internal var centralManager: CBCentralManager
     internal var peripheral: CBPeripheral
-    internal var peripheralDelegate: PeripheralDelegate
 
     internal var disconnectionCallback: (() -> Void)?
     
-    
+
+    // MARK: - Fileprivate properties
+
+    fileprivate var peripheralDelegate: PeripheralDelegate
+
+
     // MARK: - Private properties
 
     private var batteryLevelUpdateCallback: ((Int) -> Void)?
     private var flowControlUpdateCallback: ((FlowControlState) -> Void)?
     private var sensorInterfaceTriggeredCallback: (() -> Void)?
     
-    // Query ids are handled internally by the SDK. The queryId variable is used to keep track of
-    // the last queryId sent to the glasses and increment the value for each new command
+    // Query ids are handled internally by the SDK. The `queryId` variable is used to keep track of
+    // the last queryId sent to the glasses and increment the value for each new command.
     private var queryId: UInt8
     
     // The maximum amount of data, in bytes, you can send to a characteristic in a single write type.
-    private var mtu: Int
+    private var availableMTU: Int = 20
     
     // A queue used for storing commands while glasses are unavailable
     private var commandQueue: ConcurrentDataQueue {
@@ -86,7 +90,7 @@ public class Glasses {
         }
     }
     
-    /// RXCharacteristicState
+    // RXCharacteristicState
     private enum RXCharacteristicState: Int {
         case available = 0
         case busy = 1
@@ -99,8 +103,18 @@ public class Glasses {
             }
         }
     }
+
+    private weak var sdk: ActiveLookSDK?
+
+    // used for loading configurations
+    private var isUpdating = false
+    private var configSize = 0
+    private var currentProgress: UInt8 = 0
+    private var successClosure: (() -> Void)?
+    private var errorClosure: (() -> Void)?
     
-    // An array used to track queries (commands expecting a response) and match them to a corresponding callback returning the response data as a byte array ([UInt8]).
+    // An array used to track queries (commands expecting a response) and match them to
+    // the corresponding callback returning the response data as a byte array ([UInt8]).
     private var pendingQueries: [UInt8: (CommandResponseData) -> Void]
     
     // A buffer used to squash response chunks into a single CommandResponseData
@@ -120,30 +134,40 @@ public class Glasses {
     private var activeLookService: CBService? {
         return peripheral.getService(withUUID: CBUUID.ActiveLookCommandsInterfaceService)
     }
-    
+
+    private var spotaService: CBService? {
+        return peripheral.getService(withUUID: CBUUID.SpotaService)
+    }
+
     private var batteryLevelCharacteristic: CBCharacteristic? {
         return batteryService?.getCharacteristic(forUUID: CBUUID.BatteryLevelCharacteristic)
     }
-    
+
     private var rxCharacteristic: CBCharacteristic? {
         return activeLookService?.getCharacteristic(forUUID: CBUUID.ActiveLookRxCharacteristic)
     }
-    
+
     private var txCharacteristic: CBCharacteristic? {
         return activeLookService?.getCharacteristic(forUUID: CBUUID.ActiveLookTxCharacteristic)
     }
-    
+
     private var flowControlCharacteristic: CBCharacteristic? {
         return activeLookService?.getCharacteristic(forUUID: CBUUID.ActiveLookFlowControlCharacteristic)
     }
-    
+
     private var sensorInterfaceCharacteristic: CBCharacteristic? {
         return activeLookService?.getCharacteristic(forUUID: CBUUID.ActiveLookSensorInterfaceCharacteristic)
     }
-    
+
+
     // MARK: - Initializers
     
-    internal init(name: String, identifier: UUID, manufacturerId: String, peripheral: CBPeripheral, centralManager: CBCentralManager) {
+    internal init(name: String,
+                  identifier: UUID,
+                  manufacturerId: String,
+                  peripheral: CBPeripheral,
+                  centralManager: CBCentralManager )
+    {
         self.name = name
         self.identifier = identifier
         self.manufacturerId = manufacturerId
@@ -154,15 +178,27 @@ public class Glasses {
         self.pendingQueries = [:]
         self.responseBuffer = nil
         self.expectedResponseBufferLength = 0
-        self.mtu = self.peripheral.maximumWriteValueLength(for: .withResponse)
-        self.commandQueue = ConcurrentDataQueue(for: self.mtu)
+        // MTU not retrieved dynamically as maximumWriteValueLength() is flawed for now...
+        // self.availableMTU = (self.peripheral.maximumWriteValueLength(for: .withResponse)) / 2 - 3
+        self.availableMTU = 256 - 3
+        self.commandQueue = ConcurrentDataQueue(using: self.availableMTU)
         self.flowControlState = .on
         self.rxCharacteristicState = .available
         self.peripheralDelegate = PeripheralDelegate()
         self.peripheralDelegate.parent = self
+        self.commandQueue.set(parent: self)
+        self.peripheral.delegate = self.peripheralDelegate
+
+        guard let sdk = try? ActiveLookSDK.shared() else {
+            fatalError("Cannot retrieve SDK Singleton")
+        }
+
+        self.sdk = sdk
     }
 
-    internal convenience init(discoveredGlasses: DiscoveredGlasses) {
+
+    internal convenience init(discoveredGlasses: DiscoveredGlasses)
+    {
         self.init(
             name: discoveredGlasses.name,
             identifier: discoveredGlasses.identifier,
@@ -172,16 +208,37 @@ public class Glasses {
         )
         self.disconnectionCallback = discoveredGlasses.disconnectionCallback
     }
+
+
+    // MARK: - Internal methods
+
+    internal func resetPeripheralDelegate()
+    {
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+
+        self.peripheral.delegate = self.peripheralDelegate
+    }
+
+    internal func setPeripheralDelegate(to delegate: CBPeripheralDelegate)
+    {
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+
+        self.peripheral.delegate = delegate
+    }
     
 
     // MARK: - Private methods
     
-    private func getNextQueryId() -> UInt8 {
+    private func getNextQueryId() -> UInt8
+    {
         queryId = (queryId + 1) % 255
         return queryId
     }
 
-    private func sendCommand(id commandId: CommandID, withData data: [UInt8]? = [], callback: ((CommandResponseData) -> Void)? = nil) {
+    private func sendCommand(id commandId: CommandID,
+                             withData data: [UInt8]? = [],
+                             callback: ((CommandResponseData) -> Void)? = nil )
+    {
         let header: UInt8 = 0xFF, footer: UInt8 = 0xAA
         let queryId = getNextQueryId()
         
@@ -215,31 +272,54 @@ public class Glasses {
         commandQueue.enqueue(bytes)
     }
     
-    private func sendCommand(id: CommandID, withValue value: Bool) {
+    private func sendCommand(id: CommandID, withValue value: Bool)
+    {
         sendCommand(id: id, withData: value ? [0x01] : [0x00])
     }
     
-    private func sendCommand(id: CommandID, withValue value: UInt8) {
+    private func sendCommand(id: CommandID, withValue value: UInt8)
+    {
         sendCommand(id: id, withData: [value])
     }
 
     /// sends the bytes queued in commandQueue
-    private func sendBytes() {
+    private func sendBytes()
+    {
         if flowControlState != FlowControlState.on { return }
-        
+
         if rxCharacteristicState == .busy { return }
         
-        guard let value = commandQueue.dequeue() else { return }
-        
+        guard let value = commandQueue.dequeue() else {
+            if isUpdating {
+                dlog(message: "Config ALooK updated",
+                     line: #line, function: #function, file: #fileID)
+
+                isUpdating = false
+                currentProgress = 0
+                successClosure?()
+            }
+            return
+        }
+
+        if isUpdating {
+            let elementsLeft = commandQueue.count
+            dlog(message: "\(elementsLeft) left",
+                 line: #line, function: #function, file: #fileID)
+            let done = UInt8(100 - (elementsLeft * 99) / configSize)
+            if done > currentProgress {
+                currentProgress = done
+                sdk?.updateParameters.update(.updatingConfig, done)
+            }
+        }
+
         peripheral.writeValue(value, for: rxCharacteristic!, type: .withResponse)
+
         rxCharacteristicState = .busy
-        
-        //print("sending bytes \(value) to peripheral")
     }
     
     private func handleTxNotification(withData data: Data) {
         let bytes = [UInt8](data)
-        print("received notification for tx characteristic with data: \(bytes)")
+        //print("received notification for tx characteristic with data: \(bytes)")
         
         if responseBuffer != nil { // If we're currently filling up the response buffer, handle differently
             handleChunkedResponse(withData: bytes)
@@ -249,10 +329,10 @@ public class Glasses {
         guard data.count >= 6 else { return } // Header + CommandID + CommandFormat + QueryID + Length + Footer // TODO Raise error
 
         let handledCommandIDs: [UInt8] = [
-            CommandID.battery, CommandID.vers, CommandID.settings,  CommandID.imgList,
+            CommandID.battery, CommandID.vers, CommandID.settings, CommandID.imgList,
             CommandID.pixelCount, CommandID.getChargingCounter, CommandID.getChargingTime,
             CommandID.rConfigID, CommandID.cfgRead, CommandID.cfgList, CommandID.cfgGetNb,
-            CommandID.cfgFreeSpace, CommandID.fontList, CommandID.pageList
+            CommandID.cfgFreeSpace, CommandID.fontList, CommandID.pageGet, CommandID.pageList
         ].map({$0.rawValue})
         
         let commandId = bytes[1]
@@ -339,21 +419,26 @@ public class Glasses {
     public func onDisconnect(_ disconnectionCallback: (() -> Void)?) {
         self.disconnectionCallback = disconnectionCallback
     }
-    
+
+
+    public func discoverSpotaChars() {
+        self.peripheral.discoverCharacteristics(nil, for: spotaService!)
+    }
+
     /// Get information relative to the device as published over Bluetooth.
     /// - Returns: The current information about the device, including its manufacturer name, model number, serial number, hardware version, software version and firmware version.
     public func getDeviceInformation() -> DeviceInformation {
-        guard deviceInformationService != nil else {
+        guard let di = deviceInformationService else {
             return DeviceInformation()
         }
         
         return DeviceInformation(
-            deviceInformationService?.getCharacteristic(forUUID: CBUUID.ManufacturerNameCharacteristic)?.valueAsUTF8,
-            deviceInformationService?.getCharacteristic(forUUID: CBUUID.ModelNumberCharacteristic)?.valueAsUTF8,
-            deviceInformationService?.getCharacteristic(forUUID: CBUUID.SerialNumberCharateristic)?.valueAsUTF8,
-            deviceInformationService?.getCharacteristic(forUUID: CBUUID.HardwareVersionCharateristic)?.valueAsUTF8,
-            deviceInformationService?.getCharacteristic(forUUID: CBUUID.FirmwareVersionCharateristic)?.valueAsUTF8,
-            deviceInformationService?.getCharacteristic(forUUID: CBUUID.SoftwareVersionCharateristic)?.valueAsUTF8
+            di.getCharacteristic(forUUID: CBUUID.ManufacturerNameCharacteristic)?.valueAsUTF8,
+            di.getCharacteristic(forUUID: CBUUID.ModelNumberCharacteristic)?.valueAsUTF8,
+            di.getCharacteristic(forUUID: CBUUID.SerialNumberCharateristic)?.valueAsUTF8,
+            di.getCharacteristic(forUUID: CBUUID.HardwareVersionCharateristic)?.valueAsUTF8,
+            di.getCharacteristic(forUUID: CBUUID.FirmwareVersionCharateristic)?.valueAsUTF8,
+            di.getCharacteristic(forUUID: CBUUID.SoftwareVersionCharateristic)?.valueAsUTF8
         )
     }
     
@@ -383,6 +468,18 @@ public class Glasses {
         for line in cfg {
             commandQueue.enqueue(line.hexaBytes)
         }
+    }
+
+    /// load a configuration file with closures for feedback
+    public func loadConfigurationWithClosures(cfg: String,
+                                              onSuccess successClosure: @escaping () -> (),
+                                              onError errorClosure: @escaping () -> () ) -> Void
+    {
+        isUpdating = true
+        self.successClosure = successClosure
+        self.errorClosure = errorClosure
+
+        commandQueue.enqueueFile(cfg)
     }
 
     // MARK: - General commands
@@ -614,10 +711,22 @@ public class Glasses {
         
         sendCommand(id: .txt, withData: data)
     }
-    
-//    public func polyline() {
-//        // TODO
-//    }
+
+
+    /// Draw a multiple connected lines at the corresponding coordinates.
+    /// - Parameters:
+    ///  - points: array of uint16 tuples (x, y).
+    public func polyline(points: [Point]) {
+
+        var data: [UInt8] = []
+
+        for point in points {
+            data.append(contentsOf:point.x.asUInt8Array)
+            data.append(contentsOf:point.y.asUInt8Array)
+        }
+
+        sendCommand(id: .polyline, withData: data)
+    }
 
     
     // MARK: - Bitmap commands
@@ -626,18 +735,16 @@ public class Glasses {
     /// - Parameter callback: A callback called asynchronously when the device answers
     public func imgList(_ callback: @escaping ([ImageInfo]) -> Void) {
         sendCommand(id: .imgList, withData: nil) { (commandResponseData) in
-            guard commandResponseData.count % 4 == 0 else {
+            guard commandResponseData.count % 5 == 0 else {
                 print("response format error for imgList command") // TODO Raise error
                 return
             }
             
             var images: [ImageInfo] = []
-            var index = 1
-            let chunkedData = commandResponseData.chunked(into: 4)
+            let chunkedData = commandResponseData.chunked(into: 5)
 
             for data in chunkedData {
-                images.append(ImageInfo.fromCommandResponseData(data, withId: index))
-                index += 1
+                images.append(ImageInfo.fromCommandResponseData(data))
             }
             
             callback(images)
@@ -927,7 +1034,7 @@ public class Glasses {
 
     /// Display a page
     public func pageDisplay(id: UInt8, texts: [String]) {
-        var withData: [UInt8] = []
+        var withData: [UInt8] = [id]
         texts.forEach { text in
             withData += text.asNullTerminatedUInt8Array
         }
@@ -1064,7 +1171,8 @@ public class Glasses {
             callback(Int(commandResponseData[0]))
         }
     }
-    
+
+
     // MARK: - Device Commands
     
     /// Shutdown the device
@@ -1072,7 +1180,8 @@ public class Glasses {
     public func shutdown() {
         sendCommand(id: .shutdown, withData: [0x6F, 0x7F, 0xC4, 0xEE])
     }
-    
+
+
     // MARK: - Notifications
     
     /// Subscribe to battery level notifications. The specified callback will return the battery value about once every thirty seconds.
@@ -1116,11 +1225,10 @@ public class Glasses {
     // MARK: - CBPeripheralDelegate
 
     /// Internal class to allow Glasses to not inherit from NSObject and to hide CBPeripheralDelegate methods
-    internal class PeripheralDelegate: NSObject, CBPeripheralDelegate {
-        
+    fileprivate class PeripheralDelegate: NSObject, CBPeripheralDelegate {
+
         weak var parent: Glasses?
 
-        // MARK: - CBPheripheralDelegate
 
         public func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
             guard error == nil else {
@@ -1139,13 +1247,15 @@ public class Glasses {
                         parent?.flowControlUpdateCallback?(flowControlState)
                     }
                 }
+
             default:
                 break
             }
 
-//        print("peripheral did update notification state for characteristic: ", characteristic)
+            print("peripheral did update notification state for characteristic: \(characteristic) in: \(#fileID)")
         }
-        
+
+
         public func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
             guard error == nil else {
                 // TODO Raise error
@@ -1167,12 +1277,21 @@ public class Glasses {
             case CBUUID.ActiveLookSensorInterfaceCharacteristic:
                 parent?.sensorInterfaceTriggeredCallback?()
 
+            case CBUUID.ActiveLookFlowControlCharacteristic:
+                if let flowControlState = FlowControlState(rawValue: characteristic.valueAsInt) {
+                    parent?.flowControlState = flowControlState
+                }
+
             default:
                 break
             }
         }
-        
-        public func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
+
+
+        public func peripheral(_ peripheral: CBPeripheral,
+                               didWriteValueFor characteristic: CBCharacteristic,
+                               error: Error?)
+        {
             guard error == nil else {
                 // TODO Raise error
                 print("error while writing value : \(error!.localizedDescription) for characteristic: \(characteristic.uuid)")
@@ -1183,7 +1302,7 @@ public class Glasses {
             
             case CBUUID.ActiveLookRxCharacteristic:
                 parent?.rxCharacteristicState = .available
-            
+
             default:
                 break
             }
@@ -1191,65 +1310,114 @@ public class Glasses {
             //print("peripheral did write value for characteristic: ", characteristic.uuid)
         }
     }
+
     
     // MARK: - DataStructure
-    
-    /* largely inspired from Pasquier, B (2020) Atomic properties and Thread-safe data structure in Swift [Source code].
-     * https://benoitpasquier.com/atomic-properties-thread-safe-data-structure-swift/
-     */
-    fileprivate struct ConcurrentDataQueue {
-        
-        private let dispatchQueue = DispatchQueue(label: "com.activelook.queueOperations", attributes: .concurrent)
+
+    fileprivate struct ConcurrentDataQueue
+    {
+        weak var parent: Glasses?
+
+        private let dispatchQueue = DispatchQueue(label: "com.activelook.queueOperations",
+                                                  attributes: .concurrent)
         private var mtu: Int
         private var elements: [Data]
         
-        public var isEmpty: Bool { return elements.isEmpty }
-        public var count: Int { return elements.count }
+        var isEmpty: Bool { return elements.isEmpty }
+        var count: Int { return elements.count }
+
         
-        public init(for mtu: Int = 23, withElements elements: [Data] = []) {
-            self.mtu = mtu - 3
+        init( using mtu: Int = 20,
+              with elements: [Data] = [] )
+        {
+            dlog(message: "mtu: \(mtu)", 
+                 line: #line, function: #function, file: #fileID)
+
+            self.mtu = mtu
             self.elements = elements
         }
-        
-        
-        public mutating func enqueue(_ values: [UInt8]) {
-            dispatchQueue.sync(flags: .barrier) {
 
-                #warning("TEMPORARY DISABLED")
-                /// TEMPORARY DISABLED WHILE ACTIVELOOK IS WORKING
-                /// ON CONTROLFLOW
-                /*
-                if elements.isEmpty {
-                    elements.append(Data(capacity: mtu))
-                }
-                for value in values {
-                    if (elements.last!.count >= mtu) {
-                        elements.append(Data(capacity: mtu))
-                    }
-                    elements[elements.count-1].append(Data (_: [value]))
-                }
-                 */
-                elements.append(Data(_: values))
+
+        mutating func set( parent: Glasses )
+        {
+            self.parent = parent
+        }
+
+
+        mutating func enqueue(_ values: [UInt8])
+        {
+            dispatchQueue.sync(flags: .barrier)
+            {
+                elements.append(Data(values))
             }
         }
-        
-        public mutating func dequeue() -> Data? {
-            return dispatchQueue.sync(flags: .barrier) {
-                guard !self.elements.isEmpty else {
+
+
+        // this function is called only when loading configuration, so isUpdating always true
+        mutating func enqueueFile(_ file: String)
+        {
+            dispatchQueue.sync(flags: .barrier)
+            {
+                guard let isUpdating = parent?.isUpdating else { return }
+
+                var tempQueue: [Data] = []
+
+                let comps = file.components(separatedBy: "\n")
+
+                for line in comps {
+                    tempQueue.append(line.hexaData)
+                }
+
+                if isUpdating
+                {
+                    // we are setting configSize to provide progression
+                    parent?.configSize = tempQueue.count
+                    dlog(message: "configSize: \(elements.count)",
+                         line: #line, function: #function, file: #fileID)
+                }
+
+                elements.append(contentsOf: tempQueue)
+            }
+        }
+
+        mutating func dequeue() -> Data?
+        {
+            return dispatchQueue.sync(flags: .barrier)
+            {
+                guard !self.elements.isEmpty else
+                {
                     return nil
                 }
-                return self.elements.removeFirst()
+
+                let first = self.elements.removeFirst()
+
+                if first.count <= mtu {
+                    return first
+                }
+
+                let firstHead = Data(first[0...mtu-1])
+                let firstTail = Data(first[mtu...first.count-1])
+
+                self.elements.insert(firstTail, at: 0)
+
+                return firstHead
             }
         }
-        
-        public var head: Data? {
-            return dispatchQueue.sync {
+
+
+        var head: Data?
+        {
+            return dispatchQueue.sync
+            {
                 return elements.first
             }
         }
-        
-        public var tail: Data? {
-            return dispatchQueue.sync {
+
+
+        var tail: Data?
+        {
+            return dispatchQueue.sync
+            {
                 return elements.last
             }
         }

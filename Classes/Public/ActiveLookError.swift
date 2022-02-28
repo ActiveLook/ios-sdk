@@ -24,6 +24,10 @@ public enum ActiveLookError: Error {
     case bluetoothUnauthorizedError
     case initializationError
     case startScanningAlreadyCalled
+    case sdkInitMissingParameters
+    case sdkCannotChangeParameters
+    case sdkUpdateFailed
+    case sdkDevelopment
 }
 
 extension ActiveLookError: LocalizedError {
@@ -43,9 +47,17 @@ extension ActiveLookError: LocalizedError {
             return "Error while initializing glasses"
         case .startScanningAlreadyCalled:
             return "startScanning() has already been called"
+        case .sdkInitMissingParameters:
+            return "You need to provide all parameters at initialization!"
+        case .sdkCannotChangeParameters:
+            return "You cannot change parameters after initialization!"
+        case .sdkUpdateFailed:
+            return "Glasses update failed"
+        case .sdkDevelopment:
+            return "SDK development ERROR"
         }
     }
-    
+
     internal static func bluetoothErrorFromState(state: CBManagerState) -> Error {
         switch state {
         case .poweredOff:

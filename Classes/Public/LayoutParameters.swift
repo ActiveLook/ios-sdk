@@ -17,49 +17,49 @@ import Foundation
 
 /// Parameters defining a layout
 public class LayoutParameters {
-    
+
     /// The layout ID
     public let id: UInt8
 
     /// The x coordinate of the start position (upper left) of the layout area
     public let x: UInt16
-    
+
     /// The y coordinate of the start position (upper left) of the layout area
     public let y: UInt8
-    
+
     /// The width of the layout area
     public let width: UInt16
-    
+
     /// The height of the layout area
     public let height: UInt8
-    
+
     /// The foreground color of the layout area from 0 to 15
     public let foregroundColor: UInt8
-    
+
     /// The background color of the layout area from 0 to 15
     public let backgroundColor: UInt8
 
     /// The font used to draw the text value of the layout
     public let font: UInt8
-    
+
     /// Define if the argument of the layout is displayed using text
     public let textValid: Bool
-    
+
     /// Define the x coordinate of the position of the text value in the layout area
     public let textX: UInt16
-    
+
     /// Define the y coordinate of the position of the text value in the layout area
     public let textY: UInt8
 
     /// Define the text  rotation
     public let textRotation: TextRotation
-    
+
     /// Define the argument opacity(on/off)
     public let textOpacity: Bool
-    
+
     // TODO Add additional commands
     public var subCommands: [UInt8]
-    
+
     public init(
         id: UInt8,
         x: UInt16,
@@ -90,7 +90,7 @@ public class LayoutParameters {
         self.textOpacity = textOpacity
         self.subCommands = []
     }
-    
+
     public func addSubCommandBitmap(id: UInt8, x: Int16, y: Int16) -> LayoutParameters {
         self.subCommands.append(0x00)
         self.subCommands.append(id)
@@ -176,10 +176,10 @@ public class LayoutParameters {
         return self
     }
 
-    
+
     internal func toCommandData() -> [UInt8] {
         var data: [UInt8] = []
-        
+
         data.append(self.id)
         data.append(UInt8(self.subCommands.count))
         data.append(contentsOf: self.x.asUInt8Array)
@@ -195,7 +195,7 @@ public class LayoutParameters {
         data.append(self.textRotation.rawValue)
         data.append(self.textOpacity ? 0x01 : 0x00)
         data.append(contentsOf: self.subCommands)
-        
+
         return data
     }
 

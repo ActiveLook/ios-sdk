@@ -28,13 +28,13 @@ internal enum CommandID: UInt8 {
     case led = 0x08
     case shift = 0x09
     case settings = 0x0A
-    
+
     case luma = 0x10
-    
+
     case sensor = 0x20
     case gesture = 0x21
     case als = 0x22
-    
+
     case color = 0x30
     case point = 0x31
     case line = 0x32
@@ -44,19 +44,19 @@ internal enum CommandID: UInt8 {
     case circf = 0x36
     case txt = 0x37
     case polyline = 0x38
-    
-    case imgList = 0x40
+
     case imgSave = 0x41
     case imgDisplay = 0x42
     case imgStream = 0x44
     case imgSave1bpp = 0x45
     case imgDelete = 0x46
-    
+    case imgList = 0x47
+
     case fontList = 0x50
     case fontSave = 0x51
     case fontSelect = 0x52
     case fontDelete = 0x53
-    
+
     case layoutSave = 0x60
     case layoutDelete = 0x61
     case layoutDisplay = 0x62
@@ -65,7 +65,7 @@ internal enum CommandID: UInt8 {
     case layoutPosition = 0x65
     case layoutDisplayExtended = 0x66
     case layoutGet = 0x67
-    
+
     case gaugeDisplay = 0x70
     case gaugeSave = 0x71
     case gaugeDelete = 0x72
@@ -78,16 +78,16 @@ internal enum CommandID: UInt8 {
     case pageDisplay = 0x83
     case pageClear = 0x84
     case pageList = 0x85
-    
+
     case pixelCount = 0xA5
     case getChargingCounter = 0xA7
     case getChargingTime = 0xA8
     case resetChargingParam = 0xAA
-    
+
     case wConfigID = 0xA1
     case rConfigID = 0xA2
     case setConfigID = 0xA3
-    
+
     case cfgWrite = 0xD0
     case cfgRead = 0xD1
     case cfgSet = 0xD2
@@ -97,6 +97,6 @@ internal enum CommandID: UInt8 {
     case cfgDeleteLessUsed = 0xD6
     case cfgFreeSpace = 0xD7
     case cfgGetNb = 0xD8
-    
+
     case shutdown = 0xE0
 }
