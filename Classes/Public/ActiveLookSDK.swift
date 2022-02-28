@@ -15,7 +15,6 @@ limitations under the License.
 
 import Foundation
 import CoreBluetooth
-import UIKit
 
 
 // MARK: -  Type Alias
@@ -57,23 +56,6 @@ public class ActiveLookSDK {
 
     // TODO: make networkMonitor private
     internal var networkMonitor: NetworkMonitor!
-
-    // ViewController.swift
-//    class ViewController: UIViewController {
-//
-//        override func viewDidLoad() {
-//            super.viewDidLoad()
-//            NotificationCenter.default.addObserver(self, selector: #selector(showOfflineDeviceUI(notification:)), name: NSNotification.Name.connectivityStatus, object: nil)
-//        }
-//
-//        @objc func showOfflineDeviceUI(notification: Notification) {
-//            if NetworkMonitor.shared.isConnected {
-//                print("Connected")
-//            } else {
-//                print("Not connected")
-//            }
-//        }
-//    }
 
     internal var centralManager: CBCentralManager!
     internal var centralManagerDelegate: CentralManagerDelegate // TODO: internal or private ?
