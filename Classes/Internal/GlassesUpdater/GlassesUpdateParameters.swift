@@ -65,14 +65,9 @@ internal class GlassesUpdateParameters {
 
     private var updateStateToGlassesUpdate: [[UpdateState]]
 
-    private let downloadingFW: [UpdateState] = [.startingUpdate,
-                                        .retrievingDeviceInformations,
-                                        .deviceInformationsRetrieved,
-                                        .checkingFwVersion,
-                                        .downloadingFw]
-    private let updatingFW: [UpdateState] = [.noFwUpdateAvailable, .updatingFw, .rebooting]
-    private let downloadingCfg: [UpdateState] = [.checkingConfigVersion,
-                                                 .downloadingConfig]
+    private let downloadingFW: [UpdateState] = [.downloadingFw]
+    private let updatingFW: [UpdateState] = [.updatingFw, .rebooting]
+    private let downloadingCfg: [UpdateState] = [.downloadingConfig]
     private let updatingCfg: [UpdateState] = [.updatingConfig, .updateDone]
     private let updateFailed: [UpdateState] = [.updateFailed]
 
