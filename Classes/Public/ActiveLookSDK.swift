@@ -19,10 +19,10 @@ import CoreBluetooth
 
 // MARK: -  Type Alias
 
-public typealias startClosureSignature = (SdkGlassesUpdate) -> Void
-public typealias progressClosureSignature = (SdkGlassesUpdate) -> Void
-public typealias successClosureSignature = (SdkGlassesUpdate) -> Void
-public typealias failureClosureSignature = (SdkGlassesUpdate) -> Void
+public typealias StartClosureSignature = (SdkGlassesUpdate) -> Void
+public typealias ProgressClosureSignature = (SdkGlassesUpdate) -> Void
+public typealias SuccessClosureSignature = (SdkGlassesUpdate) -> Void
+public typealias FailureClosureSignature = (SdkGlassesUpdate) -> Void
 
 
 /* The main entry point to interacting with ActiveLook glasses.
@@ -96,17 +96,17 @@ public class ActiveLookSDK {
     //     if the function is called more than once during the application's lifetime, with all the parameters correctly set.
     // - parameters:
     //     - token: The token used for authenticating with the firmware repository.
-    //     - onUpdateStart             Registered callback for update start event notification
-    //     - onUpdateProgress      Registered callback for update progress event notification.
-    //     - onUpdateSuccess       Registered callback for update success event notification.
-    //     - onUpdateError             Registered callback for update error event notification.
+    //     - onUpdateStart      Registered callback for update start event notification
+    //     - onUpdateProgress   Registered callback for update progress event notification.
+    //     - onUpdateSuccess    Registered callback for update success event notification.
+    //     - onUpdateError      Registered callback for update error event notification.
     //  - returns: the `ActiveLookSDK`'s singleton
     //
     public static func shared(token: String? = nil,
-                              onUpdateStartCallback: startClosureSignature? = nil,
-                              onUpdateProgressCallback: progressClosureSignature? = nil,
-                              onUpdateSuccessCallback: successClosureSignature? = nil,
-                              onUpdateFailureCallback: failureClosureSignature? = nil) throws -> ActiveLookSDK
+                              onUpdateStartCallback: StartClosureSignature? = nil,
+                              onUpdateProgressCallback: ProgressClosureSignature? = nil,
+                              onUpdateSuccessCallback: SuccessClosureSignature? = nil,
+                              onUpdateFailureCallback: FailureClosureSignature? = nil) throws -> ActiveLookSDK
     {
 
         var updateParameters: GlassesUpdateParameters? = nil
@@ -415,6 +415,7 @@ public class ActiveLookSDK {
                 print("disconnected from unknown glasses")
                 return
             }
+
 
 
             if let index = parent?.connectedGlassesArray.firstIndex(
