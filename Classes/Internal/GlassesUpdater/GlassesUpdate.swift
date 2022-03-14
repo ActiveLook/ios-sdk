@@ -31,6 +31,7 @@ public enum State: Int {
     case UPDATING_FIRMWARE
     case DOWNLOADING_CONFIGURATION
     case UPDATING_CONFIGURATION
+    case UP_TO_DATE
     case ERROR_UPDATE_FAIL
     case ERROR_UPDATE_FORBIDDEN     // file UNAVAILABLE -- UNUSED in iOS SDK at the moment
     case ERROR_DOWNGRADE_FORBIDDEN  // UNUSED in iOS SDK at the moment
