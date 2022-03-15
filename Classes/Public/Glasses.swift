@@ -109,7 +109,7 @@ public class Glasses {
     // used for loading configurations
     private var isUpdating = false
     private var configSize = 0
-    private var currentProgress: UInt8 = 0
+    private var currentProgress: Double = 0
     private var successClosure: (() -> Void)?
     private var errorClosure: (() -> Void)?
     
@@ -305,10 +305,10 @@ public class Glasses {
             let elementsLeft = commandQueue.count
             dlog(message: "\(elementsLeft) left",
                  line: #line, function: #function, file: #fileID)
-            let done = UInt8(100 - (elementsLeft * 99) / configSize)
-            if done > currentProgress {
-                currentProgress = done
-                sdk?.updateParameters.update(.updatingConfig, done)
+            let progress = Double(100 - (elementsLeft * 99) / configSize)
+            if progress > currentProgress {
+                currentProgress = progress
+                sdk?.updateParameters.update(.updatingConfig, progress)
             }
         }
 
@@ -325,8 +325,9 @@ public class Glasses {
             handleChunkedResponse(withData: bytes)
             return
         }
-        
-        guard data.count >= 6 else { return } // Header + CommandID + CommandFormat + QueryID + Length + Footer // TODO Raise error
+
+        // TODO: Raise error
+        guard data.count >= 6 else { return } // Header + CommandID + CommandFormat + QueryID + Length + Footer
 
         let handledCommandIDs: [UInt8] = [
             CommandID.battery, CommandID.vers, CommandID.settings, CommandID.imgList,
@@ -351,8 +352,10 @@ public class Glasses {
         }
     }
     
-    private func handleCompleteResponse(withData data: [UInt8]) {
-        guard data.count >= 6 else { return } // Header + CommandID + CommandFormat + QueryID + Length + Footer // TODO Raise error
+    private func handleCompleteResponse(withData data: [UInt8])
+    {
+        // TODO: Raise error
+        guard data.count >= 6 else { return } // Header + CommandID + CommandFormat + QueryID + Length + Footer
 
         let header = data[0]
         let footer = data[data.count - 1]
@@ -475,6 +478,7 @@ public class Glasses {
                                               onSuccess successClosure: @escaping () -> (),
                                               onError errorClosure: @escaping () -> () ) -> Void
     {
+        // FIXME: temp. fix. Might not be needed after correct implementation, using only GlassesUpdateParameters
         isUpdating = true
         self.successClosure = successClosure
         self.errorClosure = errorClosure
@@ -806,6 +810,7 @@ public class Glasses {
     // MARK: - Font commands
     
     /// WARNING: CALLBACK NOT WORKING as of 3.7.4b
+    // FIXME: is malfunction still occuring? (4.2 - 2022/03/17)
     public func fontlist(_ callback: @escaping ([FontInfo]) -> Void) {
         sendCommand(id: .fontList) { (commandResponseData: [UInt8]) in
             callback(FontInfo.fromCommandResponseData(commandResponseData))
