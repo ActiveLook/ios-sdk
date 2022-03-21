@@ -50,10 +50,10 @@ internal class GlassesUpdateParameters {
 
     // TODO: CREATE NEW class `UpdaterParameters{}`? to dissociate GlassesUpdate parameters from SDK ones?
     var token: String
-    var startClosure: startClosureSignature
-    var progressClosure: progressClosureSignature
-    var successClosure: successClosureSignature
-    var failureClosure: failureClosureSignature
+    var startClosure: StartClosureSignature
+    var progressClosure: ProgressClosureSignature
+    var successClosure: SuccessClosureSignature
+    var failureClosure: FailureClosureSignature
 
     var discoveredGlasses: DiscoveredGlasses?
     
@@ -80,10 +80,10 @@ internal class GlassesUpdateParameters {
     // MARK: - Life Cycle
     
     init(_ token: String,
-    _ onUpdateStartCallback: @escaping startClosureSignature,
-    _ onUpdateProgressCallback: @escaping progressClosureSignature,
-    _ onUpdateSuccessCallback: @escaping successClosureSignature,
-    _ onUpdateFailureCallback: @escaping failureClosureSignature ) {
+    _ onUpdateStartCallback: @escaping StartClosureSignature,
+    _ onUpdateProgressCallback: @escaping ProgressClosureSignature,
+    _ onUpdateSuccessCallback: @escaping SuccessClosureSignature,
+    _ onUpdateFailureCallback: @escaping FailureClosureSignature ) {
         self.token = token
         self.startClosure = onUpdateStartCallback
         self.progressClosure = onUpdateProgressCallback

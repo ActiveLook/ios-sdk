@@ -19,10 +19,10 @@ import CoreBluetooth
 
 // MARK: -  Type Alias
 
-public typealias startClosureSignature = (SdkGlassesUpdate) -> Void
-public typealias progressClosureSignature = (SdkGlassesUpdate) -> Void
-public typealias successClosureSignature = (SdkGlassesUpdate) -> Void
-public typealias failureClosureSignature = (SdkGlassesUpdate) -> Void
+public typealias StartClosureSignature = (SdkGlassesUpdate) -> Void
+public typealias ProgressClosureSignature = (SdkGlassesUpdate) -> Void
+public typealias SuccessClosureSignature = (SdkGlassesUpdate) -> Void
+public typealias FailureClosureSignature = (SdkGlassesUpdate) -> Void
 
 
 /* The main entry point to interacting with ActiveLook glasses.
@@ -102,42 +102,28 @@ public class ActiveLookSDK {
     //     - onUpdateError             Registered callback for update error event notification.
     //  - returns: the `ActiveLookSDK`'s singleton
     //
-    public static func shared(token: String? = nil,
-                              onUpdateStartCallback: startClosureSignature? = nil,
-                              onUpdateProgressCallback: progressClosureSignature? = nil,
-                              onUpdateSuccessCallback: successClosureSignature? = nil,
-                              onUpdateFailureCallback: failureClosureSignature? = nil) throws -> ActiveLookSDK
-    {
+    public static func shared(token: String,
+                              onUpdateStartCallback: @escaping StartClosureSignature,
+                              onUpdateProgressCallback: @escaping ProgressClosureSignature,
+                              onUpdateSuccessCallback: @escaping SuccessClosureSignature,
+                              onUpdateFailureCallback: @escaping FailureClosureSignature) throws -> ActiveLookSDK {
+        guard _shared == nil else { throw ActiveLookError.sdkCannotChangeParameters }
 
-        var updateParameters: GlassesUpdateParameters? = nil
-
-        if token != nil,
-           onUpdateStartCallback != nil,
-           onUpdateProgressCallback != nil,
-           onUpdateSuccessCallback != nil,
-           onUpdateFailureCallback != nil
-        {
-            updateParameters = GlassesUpdateParameters(token!,
-                                                       onUpdateStartCallback!,
-                                                       onUpdateProgressCallback!,
-                                                       onUpdateSuccessCallback!,
-                                                       onUpdateFailureCallback!)
-        }
-
-        switch (_shared, updateParameters) {
-        case let (i?, nil):
-            return i
-
-        case _ where (_shared != nil) && (updateParameters != nil):
-            throw ActiveLookError.sdkCannotChangeParameters
-
-        case _ where (_shared == nil) && (updateParameters != nil):
-            _shared = ActiveLookSDK(with: updateParameters!)
-            return _shared
-
-        default:
-            throw ActiveLookError.sdkInitMissingParameters
-        }
+        _shared = ActiveLookSDK(
+            with: GlassesUpdateParameters(
+                token,
+                onUpdateStartCallback,
+                onUpdateProgressCallback,
+                onUpdateSuccessCallback,
+                onUpdateFailureCallback
+            )
+        )
+        return _shared
+    }
+    
+    public static func shared() throws -> ActiveLookSDK {
+        guard let _shared = _shared else { throw ActiveLookError.sdkInitMissingParameters }
+        return _shared
     }
 
 
