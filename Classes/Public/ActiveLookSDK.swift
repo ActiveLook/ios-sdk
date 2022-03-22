@@ -61,6 +61,7 @@ public class ActiveLookSDK {
     internal var centralManagerDelegate: CentralManagerDelegate // TODO: internal or private ?
 
     internal var updater: GlassesUpdater? // TODO: internal or private ?
+    // TODO: SEPARATE GUP in SDKUpdateParameters and GUP (tied to a glasses object?) ? (220317)
     internal var updateParameters: GlassesUpdateParameters!
 
 
@@ -264,15 +265,7 @@ public class ActiveLookSDK {
                     discoveredGlasses.connectionCallback = nil
                     discoveredGlasses.connectionErrorCallback = nil
 
-                    let sdkGU = SdkGlassesUpdate(for: discoveredGlasses,
-                                                    state: State.UPDATING_CONFIGURATION,
-                                                    progress: 100,
-                                                    sourceFirmwareVersion: "sFwV",
-                                                    targetFirmwareVersion: "tFwV",
-                                                    sourceConfigurationVersion: "sCfgV",
-                                                    targetConfigurationVersion: "tCfgV")
-
-                    self.updateParameters.successClosure(sdkGU)
+                    self.updateParameters.update(.upToDate)
                     self.updateParameters.reset()
                 },
             onError:
@@ -287,15 +280,7 @@ public class ActiveLookSDK {
                         discoveredGlasses.connectionCallback = nil
                         discoveredGlasses.connectionErrorCallback = nil
 
-                        let sdkGU = SdkGlassesUpdate(for: discoveredGlasses,
-                                                        state: State.UPDATING_CONFIGURATION,
-                                                        progress: 100,
-                                                        sourceFirmwareVersion: "sFwV",
-                                                        targetFirmwareVersion: "tFwV",
-                                                        sourceConfigurationVersion: "sCfgV",
-                                                        targetConfigurationVersion: "tCfgV")
-
-                        self.updateParameters.successClosure(sdkGU)
+                        self.updateParameters.update(.updateFailed)
                         self.updateParameters.reset()
 
                     default:

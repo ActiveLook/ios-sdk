@@ -21,25 +21,27 @@ import CoreBluetooth
 
 internal enum UpdateState : String {
     case NOT_INITIALIZED
-    //    case DOWNLOADING_FIRMWARE
     case startingUpdate
     case retrievingDeviceInformations
     case deviceInformationsRetrieved
     case checkingFwVersion
-    case downloadingFw
     case noFwUpdateAvailable
-    //    case UPDATING_FIRMWARE
+    // case DOWNLOADING_FIRMWARE -> calling startClosure(GlassesUpdate)
+    case downloadingFw
+    // case UPDATING_FIRMWARE -> calling progressClosure(GlassesUpdate)
     case updatingFw
     case rebooting
-    //    case DOWNLOADING_CONFIGURATION
     case checkingConfigVersion
+    // case DOWNLOADING_CONFIGURATION -> calling startClosure(GlassesUpdate)
     case downloadingConfig
-    //    case UPDATING_CONFIGURATION
+    // case UPDATING_CONFIGURATION -> calling progressClosure(GlassesUpdate)
     case updatingConfig
-    //    case ERROR_UPDATE_FORBIDDEN // UNAVAILABLE
-    //    case ERROR_DOWNGRADE_FORBIDDEN
-    case updateDone
-    //    case ERROR_UPDATE_FAIL
+    // -> calling successClosure(GlassesUpdate)
+    case upToDate
+    // case ERROR_UPDATE_FORBIDDEN // UNAVAILABLE
+    // case ERROR_DOWNGRADE_FORBIDDEN
+    // case ERROR_UPDATE_FAIL
+    //  -> calling failurexClosure(GlassesUpdate)
     case updateFailed
 }
 
@@ -61,14 +63,20 @@ internal class GlassesUpdateParameters {
 
     var state: UpdateState?
     
-    private var progress: UInt8 = 0
+    private var softwareVersions: [SoftwareLocation : SoftwareVersions?]
+    private var sourceFirmwareVersion = "n/a"
+    private var targetFirmwareVersion = "n/a"
+    private var sourceConfigurationVersion = "n/a"
+    private var targetConfigurationVersion = "n/a"
+    
+    private var progress: Double = 0
 
     private var updateStateToGlassesUpdate: [[UpdateState]]
-
     private let downloadingFW: [UpdateState] = [.downloadingFw]
     private let updatingFW: [UpdateState] = [.updatingFw, .rebooting]
     private let downloadingCfg: [UpdateState] = [.downloadingConfig]
-    private let updatingCfg: [UpdateState] = [.updatingConfig, .updateDone]
+    private let updatingCfg: [UpdateState] = [.updatingConfig]
+    private let upToDate: [UpdateState] = [.upToDate]
     private let updateFailed: [UpdateState] = [.updateFailed]
 
     
@@ -86,73 +94,123 @@ internal class GlassesUpdateParameters {
         self.failureClosure = onUpdateFailureCallback
         self.hardware = ""
 
-        self.updateStateToGlassesUpdate = [downloadingFW, updatingFW, downloadingCfg, updatingCfg, updateFailed]
+        self.updateStateToGlassesUpdate = [downloadingFW, updatingFW,
+                                           downloadingCfg, updatingCfg,
+                                           upToDate, updateFailed]
+        
+        self.softwareVersions = [ .device: nil, .remote: nil ]
     }
 
 
     // MARK: - Internal Functions
     
-    func update(_ stateUpdate: UpdateState, _ progress: UInt8 = 0)
+    func update(_ stateUpdate: UpdateState, _ progress: Double = 0)
     {
         dlog(message: "progress update to \(stateUpdate) – \(progress)",
              line: #line, function: #function, file: #fileID)
 
-        guard let index = updateStateToGlassesUpdate.firstIndex(where: {
-            updateStateArr in updateStateArr.contains(stateUpdate) })
-        else {
-            return
-        }
+        state = stateUpdate
 
-        var stateProgress: UInt8 = 0
+        var closureToSummon: StartClosureSignature? // all closures have the same signature
 
-        switch index {
-        case State.DOWNLOADING_FIRMWARE.rawValue:
-            stateProgress = 1
+        switch stateUpdate
+        {
+        case .downloadingFw, .updatingConfig:
+            // start closure
+            closureToSummon = startClosure
+            self.progress = 0
 
-        case State.UPDATING_FIRMWARE.rawValue:
-            stateProgress = 1 + (UInt8(progress / 2) < 48 ? UInt8(progress / 2) : 48)
+        case .rebooting, .updatingFw, .downloadingConfig:
+            // progress closure
+            if ( progress <= self.progress ) { return }
+            
+            self.progress = progress
+            closureToSummon = progressClosure
 
-        case State.DOWNLOADING_CONFIGURATION.rawValue:
-            stateProgress = 50
+        case .upToDate:
+            // success closure
+            closureToSummon = successClosure
+            self.progress = 100
 
-        case State.UPDATING_CONFIGURATION.rawValue:
-            stateProgress = 51 + (UInt8(progress / 2) <= 48 ? UInt8(progress / 2) : 48)
+        case .updateFailed:
+            // failure closure
+            closureToSummon = failureClosure
 
-        case State.ERROR_UPDATE_FAIL.rawValue:
-            stateProgress = 200
         default:
+            // the remaining UpdateStates are not forwarded to the application.
             return
         }
-
-        if (stateProgress <= self.progress) { return }
-        self.progress = stateProgress
 
         // new glassUpdate
-        let state = State(rawValue: index)!
         let sdkGU = SdkGlassesUpdate(for: nil,
-                                        state: state,
-                                        progress: self.progress,
-                                        sourceFirmwareVersion: "sFwV",
-                                        targetFirmwareVersion: "tFwV",
-                                        sourceConfigurationVersion: "sCfgV",
-                                        targetConfigurationVersion: "tCfgV")
+                                     state: retrieveState(from: stateUpdate)!,
+                                     progress: self.progress,
+                                     sourceFirmwareVersion: getVersion(for: .device, softwareClass: .firmwares),
+                                     targetFirmwareVersion: getVersion(for: .remote, softwareClass: .firmwares),
+                                     sourceConfigurationVersion: getVersion(for: .device, softwareClass: .configurations),
+                                     targetConfigurationVersion: getVersion(for: .remote, softwareClass: .configurations))
 
-        switch state {
-        case .DOWNLOADING_FIRMWARE, .UPDATING_FIRMWARE, .DOWNLOADING_CONFIGURATION, .UPDATING_CONFIGURATION:
-            progressClosure(sdkGU)
-        case .ERROR_UPDATE_FORBIDDEN, .ERROR_DOWNGRADE_FORBIDDEN:
-            successClosure(sdkGU)
-        case .ERROR_UPDATE_FAIL:
-            failureClosure(sdkGU)
+        closureToSummon!(sdkGU)
+    }
+    
+    
+    func set(version: SoftwareClassProtocol, for location: SoftwareLocation)
+    {
+        switch version {
+        case is ConfigurationVersion:
+            let fwVers = softwareVersions[location]!!.firmware
+            softwareVersions[location] = SoftwareVersions(firmware: fwVers, configuration: version as! ConfigurationVersion)
+            break
+        case is FirmwareVersion:
+            let cfgVers = ConfigurationVersion(major: 0)
+            softwareVersions[location] = SoftwareVersions(firmware: version as! FirmwareVersion, configuration: cfgVers)
+            break
+        default:
+            // Unknown
+            break
         }
     }
-
+    
 
     func reset() {
         discoveredGlasses = nil
         hardware = ""
         state = nil
         progress = 0
+    }
+
+
+    // MARK: - Private functions
+
+    private func retrieveState(from stateUpdate: UpdateState) -> State?
+    {
+        guard let index = updateStateToGlassesUpdate.firstIndex( where: {
+            updateStateArr in updateStateArr.contains( stateUpdate ) })
+        else {
+            return nil
+        }
+        return State(rawValue: index)!
+    }
+    
+    
+    private func getVersion(for location: SoftwareLocation, softwareClass: SoftwareClass) -> String
+    {
+        let na = "n/a"
+        
+        guard let swVers: SoftwareVersions = softwareVersions[location]! else {
+            return na
+        }
+        
+        var version: String = ""
+        switch softwareClass {
+        case .firmwares:
+            version = swVers.firmware.version
+            break
+        case .configurations:
+            version = swVers.configuration.major != 0 ? swVers.configuration.description : na
+            break
+        }
+        return version
     }
 }
 

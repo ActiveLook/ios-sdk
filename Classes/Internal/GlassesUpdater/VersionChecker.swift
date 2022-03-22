@@ -57,6 +57,7 @@ internal final class VersionChecker: NSObject {
 
     // MARK: - Private Variables
 
+    private var sdk: ActiveLookSDK
     private var glasses: Glasses?
     private var peripheral: CBPeripheral?
 
@@ -111,6 +112,12 @@ internal final class VersionChecker: NSObject {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
         urlGenerator = GlassesUpdaterURL()
+        
+        guard let sdk = try? ActiveLookSDK.shared() else {
+            fatalError(String(format: "Cannot retrieve SDK Singleton @ ", #line))
+        }
+        self.sdk = sdk
+        
         super.init()
     }
 
@@ -145,6 +152,8 @@ internal final class VersionChecker: NSObject {
 
         // call to retrieve glasses configuration concurrently with remote configuration
         glasses.cfgRead(name: "ALooK", callback: { (config: ConfigurationElementsInfo) in
+            let cfgVers = ConfigurationVersion(major: Int(config.version))
+            self.sdk.updateParameters.set(version: cfgVers, for: .device)
             self.glassesConfigurationVersion = config.version
         })
 
@@ -165,8 +174,6 @@ internal final class VersionChecker: NSObject {
 
     private func versionChecked() {
         guard let result = result else {
-//            failed(with: GlassesUpdateError.versionChecker(
-//                message: String(format: "Result NOT set @", #line)))
             return
         }
 
@@ -227,6 +234,8 @@ internal final class VersionChecker: NSObject {
                 self.remoteConfigurationVersion = ConfigurationVersion(
                                                                         major: vers[3],
                                                                         path: apiPath)
+                
+                self.sdk.updateParameters.set(version: self.remoteConfigurationVersion!, for: .remote)
             }
         }
         task.resume()
@@ -331,6 +340,8 @@ internal final class VersionChecker: NSObject {
                                                        patch: vers[2],
                                                        extra: "",
                                                        path: apiPath)
+                
+                self.sdk.updateParameters.set(version: self.remoteFWVersion!, for: .remote)
             }
 
         }
@@ -379,14 +390,10 @@ internal final class VersionChecker: NSObject {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
         guard let di = glasses?.peripheral.getService(withUUID: CBUUID.DeviceInformationService) else {
-//            failed(with: GlassesUpdateError.versionChecker(
-//                message: String(format: "DeviceInformationService Unavailable @", #line)))
             return
         }
 
         guard let characteristic = di.getCharacteristic(forUUID: CBUUID.FirmwareVersionCharateristic) else {
-//                failed(with: GlassesUpdateError.versionChecker(
-//                    message: String(format: "firmwareVersionCharateristic NOT SET @", #line)))
             return
         }
 
@@ -408,5 +415,7 @@ internal final class VersionChecker: NSObject {
                                            minor: minor,
                                            patch: patch,
                                            extra: nil, path: nil, error: nil)
+        
+        sdk.updateParameters.set(version: glassesFWVersion!, for: .device)
     }
 }
