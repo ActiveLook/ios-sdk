@@ -53,6 +53,7 @@ public class Glasses {
 
     internal var disconnectionCallback: (() -> Void)?
     
+    internal var isIntentionalDisconnect: Bool = false
 
     // MARK: - Fileprivate properties
 
@@ -414,6 +415,7 @@ public class Glasses {
 
     /// Disconnect from the glasses.
     public func disconnect() {
+        isIntentionalDisconnect = true
         centralManager.cancelPeripheralConnection(peripheral)
     }
     
