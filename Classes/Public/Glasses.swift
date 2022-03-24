@@ -446,7 +446,31 @@ public class Glasses {
             di.getCharacteristic(forUUID: CBUUID.SoftwareVersionCharateristic)?.valueAsUTF8
         )
     }
-    
+
+    /// Returns a `SerializedGlasses` object of the glasses
+    ///
+    /// The `SerializedGlasses` type can be stored easily to allow for automatic reconnect later on.
+    ///
+    /// This object can then be used with `sdk.shared().connect(using: ...)` to reconnect to the glasses
+    ///  without having to go through the whole `scan() -> discover() -> connect()` process.
+    ///
+    /// - returns: `SerializedGlasses`
+    /// - throws: `ActiveLookError.serializeError` if the serialization failed
+    ///
+    /// Usage:
+    ///
+    ///     let sg: SerializedGlasses = glasses.getSerializedGlasses()
+    ///     UserDefaults.standard.set(sg, forKey: "SerializedGlasses")
+    ///
+    ///     // then to reconnect:
+    ///     let sg = UserDefaults.standard.object(forKey: "SerializedGlasses") as SerializedGlasses
+    ///     sdk.connect(using: sg)
+    ///
+    public func getSerializedGlasses() throws -> SerializedGlasses
+    {
+        return try UnserializedGlasses(id: identifier.description, name: name, manId: manufacturerId).serialize()
+    }
+
     // MARK: - Utility commands
     
     /// Check if firmware is at least

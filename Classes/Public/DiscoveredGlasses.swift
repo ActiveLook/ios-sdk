@@ -61,6 +61,15 @@ public class DiscoveredGlasses {
         self.peripheral = peripheral
         self.centralManager = centralManager
     }
+    
+    internal init(peripheral: CBPeripheral, centralManager: CBCentralManager, name: String, manufacturerId: String) {
+        self.identifier = peripheral.identifier
+        self.name = name
+        self.manufacturerId = manufacturerId
+
+        self.peripheral = peripheral
+        self.centralManager = centralManager
+    }
 
     // MARK: - Public methods
 

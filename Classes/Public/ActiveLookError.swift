@@ -28,6 +28,10 @@ public enum ActiveLookError: Error {
     case sdkCannotChangeParameters
     case sdkUpdateFailed
     case sdkDevelopment
+    case serializeError
+    case unserializeError
+    case alreadyConnected
+    case cannotRetrieveGlasses
 }
 
 extension ActiveLookError: LocalizedError {
@@ -48,13 +52,21 @@ extension ActiveLookError: LocalizedError {
         case .startScanningAlreadyCalled:
             return "startScanning() has already been called"
         case .sdkInitMissingParameters:
-            return "You need to provide all parameters at initialization!"
+            return "All parameters are needed at initialization"
         case .sdkCannotChangeParameters:
-            return "You cannot change parameters after initialization!"
+            return "Parameters cannot be changed after initialization"
         case .sdkUpdateFailed:
             return "Glasses update failed"
         case .sdkDevelopment:
             return "SDK development ERROR"
+        case .serializeError:
+            return "Cannot serialize glasses"
+        case .unserializeError:
+            return "Cannot unserialize data"
+        case .alreadyConnected:
+            return "Already connected to glasses"
+        case .cannotRetrieveGlasses:
+            return "cannot retrieve glasses from SerializedGlasses"
         }
     }
 
