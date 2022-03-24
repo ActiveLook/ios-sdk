@@ -314,6 +314,7 @@ internal final class VersionChecker: NSObject {
                                         extra: "",
                                         path:
                                           GlassesUpdateError.versionCheckerNoUpdateAvailable.localizedDescription)
+                    self.sdk.updateParameters.set(version: self.remoteFWVersion!, for: .remote)
                 }
                 return
             }
