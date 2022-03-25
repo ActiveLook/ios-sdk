@@ -71,6 +71,8 @@ internal class GlassesUpdater {
                 onSuccess successClosure: @escaping () -> (),
                 onError errorClosure: @escaping (GlassesUpdateError) -> () )
     {
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+
         self.glasses = glasses
         self.rebootClosure = rebootClosure
         self.successClosure = successClosure

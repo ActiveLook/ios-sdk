@@ -447,6 +447,27 @@ public class Glasses {
         )
     }
 
+
+    /// Changes the peripheral of the `Glasses` object
+    ///
+    /// When glasses are unexpectedly disconnected, `discoveredGlasses.onGlassesConnected()` is called with a new `glasses` **B** .
+    /// The *old* `glasses` object **A** used  in the application then needs to call this method using **B** as the parameter to update its peripheral.
+    ///
+    /// - parameter peripheral: The peripheral actually connected to the glasses
+    ///
+    /// Usage:
+    ///
+    ///     let newGlasses = retrieved from onGlassesConnected((Glasses) -> Void)
+    ///     glasses.replacePeripheral(with: newGlasses.peripheral)
+    ///
+    public func replacePeripheral(with peripheral: CBPeripheral)
+    {
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+        peripheral.delegate = self.peripheralDelegate
+        self.peripheral = peripheral
+    }
+
+
     /// Returns a `SerializedGlasses` object of the glasses
     ///
     /// The `SerializedGlasses` type can be stored easily to allow for automatic reconnect later on.
@@ -455,7 +476,7 @@ public class Glasses {
     ///  without having to go through the whole `scan() -> discover() -> connect()` process.
     ///
     /// - returns: `SerializedGlasses`
-    /// - throws: `ActiveLookError.serializeError` if the serialization failed
+    /// - throws: `ActiveLookError.serializeError` if the serialization fails
     ///
     /// Usage:
     ///

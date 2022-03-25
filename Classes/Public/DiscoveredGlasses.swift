@@ -98,4 +98,13 @@ public class DiscoveredGlasses {
         print("connecting to glasses ", name)
         centralManager.connect(peripheral, options: nil)
     }
+
+
+    // MARK: - Internal methods
+
+    internal func replacePeripheral(with peripheral: CBPeripheral)
+    {
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+        self.peripheral = peripheral
+    }
 }

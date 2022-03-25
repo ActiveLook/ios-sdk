@@ -334,15 +334,15 @@ internal final class VersionChecker: NSObject {
 
             let vers = decodedData.latest.version
             let apiPath = decodedData.latest.api_path
-            
+
             DispatchQueue.main.async {
-                self.remoteFWVersion = FirmwareVersion(major: vers[0],
-                                                       minor: vers[1],
-                                                       patch: vers[2],
-                                                       extra: "",
-                                                       path: apiPath)
-                
-                self.sdk.updateParameters.set(version: self.remoteFWVersion!, for: .remote)
+                let fwVers = FirmwareVersion(major: vers[0],
+                                             minor: vers[1],
+                                             patch: vers[2],
+                                             extra: "",
+                                             path: apiPath)
+                self.sdk.updateParameters.set(version: fwVers, for: .remote)
+                self.remoteFWVersion = fwVers
             }
 
         }
@@ -412,11 +412,13 @@ internal final class VersionChecker: NSObject {
         dlog(message: "firmware Vers: \(major).\(minor).\(patch)",
              line: #line, function: #function, file: #fileID)
 
-        glassesFWVersion = FirmwareVersion(major: major,
-                                           minor: minor,
-                                           patch: patch,
-                                           extra: nil, path: nil, error: nil)
-        
-        sdk.updateParameters.set(version: glassesFWVersion!, for: .device)
+        let fwVers = FirmwareVersion(major: major,
+                                     minor: minor,
+                                     patch: patch,
+                                     extra: nil, path: nil, error: nil)
+
+        sdk.updateParameters.set(version: fwVers, for: .device)
+
+        glassesFWVersion = fwVers
     }
 }
