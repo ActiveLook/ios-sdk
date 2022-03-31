@@ -167,6 +167,7 @@ internal class GlassesUpdateParameters {
         }
     }
 
+    
     func getVersion() -> String {
         var versions = ""
         versions.append(getVersion(for: .device, softwareClass: .firmwares))
@@ -176,11 +177,22 @@ internal class GlassesUpdateParameters {
         return versions
     }
 
+
     func reset() {
         discoveredGlasses = nil
         hardware = ""
         state = .NOT_INITIALIZED
         progress = 0
+    }
+
+
+    func isUpdating() -> Bool {
+        switch state {
+        case .upToDate, .NOT_INITIALIZED:
+            return false
+        default:
+            true
+        }
     }
 
 

@@ -416,7 +416,15 @@ public class Glasses {
     /// Disconnect from the glasses.
     public func disconnect() {
 
-        // TODO: check if not upgrading
+        guard let sdk = sdk else {
+            return
+        }
+
+        guard !sdk.updateParameters.isUpdating() else {
+            print("CAN NOT DISCONNECT WHILE UPDATING!")
+            return
+        }
+
         isIntentionalDisconnect = true
         centralManager.cancelPeripheralConnection(peripheral)
     }
