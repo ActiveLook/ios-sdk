@@ -179,7 +179,7 @@ internal class GlassesUpdateParameters {
     func reset() {
         discoveredGlasses = nil
         hardware = ""
-        state = nil
+        state = .NOT_INITIALIZED
         progress = 0
     }
 

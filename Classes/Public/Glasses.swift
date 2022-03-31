@@ -415,6 +415,8 @@ public class Glasses {
 
     /// Disconnect from the glasses.
     public func disconnect() {
+
+        // TODO: check if not upgrading
         isIntentionalDisconnect = true
         centralManager.cancelPeripheralConnection(peripheral)
     }
@@ -445,26 +447,6 @@ public class Glasses {
             di.getCharacteristic(forUUID: CBUUID.FirmwareVersionCharateristic)?.valueAsUTF8,
             di.getCharacteristic(forUUID: CBUUID.SoftwareVersionCharateristic)?.valueAsUTF8
         )
-    }
-
-
-    /// Changes the peripheral of the `Glasses` object
-    ///
-    /// When glasses are unexpectedly disconnected, `discoveredGlasses.onGlassesConnected()` is called with a new `glasses` **B** .
-    /// The *old* `glasses` object **A** used  in the application then needs to call this method using **B** as the parameter to update its peripheral.
-    ///
-    /// - parameter peripheral: The peripheral actually connected to the glasses
-    ///
-    /// Usage:
-    ///
-    ///     let newGlasses = retrieved from onGlassesConnected((Glasses) -> Void)
-    ///     glasses.replacePeripheral(with: newGlasses.peripheral)
-    ///
-    public func replacePeripheral(with peripheral: CBPeripheral)
-    {
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-        peripheral.delegate = self.peripheralDelegate
-        self.peripheral = peripheral
     }
 
 

@@ -61,7 +61,7 @@ public class DiscoveredGlasses {
         self.peripheral = peripheral
         self.centralManager = centralManager
     }
-    
+
     internal init(peripheral: CBPeripheral, centralManager: CBCentralManager, name: String, manufacturerId: String) {
         self.identifier = peripheral.identifier
         self.name = name
@@ -71,12 +71,43 @@ public class DiscoveredGlasses {
         self.centralManager = centralManager
     }
 
+    internal init?(with serializedGlasses: SerializedGlasses, centralManager: CBCentralManager) {
+
+        guard let usG = try? serializedGlasses.unserialize()
+        else {
+            // throw ActiveLookError.unserializeError
+            return nil
+        }
+
+        guard let gUuid = UUID(uuidString: usG.id)
+        else {
+            // throw ActiveLookError.unserializeError
+            return nil
+        }
+
+        guard let p = centralManager.retrievePeripherals(withIdentifiers: [ gUuid ]).first
+        else {
+            return nil
+        }
+
+        self.peripheral = p
+        self.identifier = p.identifier
+
+        self.name = usG.name
+        self.manufacturerId = usG.manId
+
+        self.centralManager = centralManager
+    }
+
+
     // MARK: - Public methods
 
-    /// Connect to the discovered glasses. Once the connection has been established over Buetooth, the glasses still need to be initialized before being considered as 'connected'.
+    /// Connect to the discovered glasses. Once the connection has been established over Buetooth,
+    /// the glasses still need to be initialized before being considered as 'connected'.
     /// If this step takes too long, a timeout error will be issued via the `onConnectionError` callback.
     ///
-    /// If successful, a `Glasses` object representing connected glasses is returned and can be used to send commands to ActiveLook glasses.
+    /// If successful, a `Glasses` object representing connected glasses is returned and can be used to
+    /// send commands to ActiveLook glasses.
     ///
     ///   - connectionCallback: A callback called asynchronously when the connection is successful.
     ///   - disconnectionCallback: A callback called asynchronously when the connection to the device is lost.
@@ -97,14 +128,5 @@ public class DiscoveredGlasses {
 
         print("connecting to glasses ", name)
         centralManager.connect(peripheral, options: nil)
-    }
-
-
-    // MARK: - Internal methods
-
-    internal func replacePeripheral(with peripheral: CBPeripheral)
-    {
-        dlog(message: "",line: #line, function: #function, file: #fileID)
-        self.peripheral = peripheral
     }
 }
