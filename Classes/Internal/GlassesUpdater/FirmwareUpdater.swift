@@ -118,12 +118,11 @@ public final class FirmwareUpdater: NSObject {
 
     private func rebooting()
     {
-//        sdk?.updateParameters.state = .rebooting
         sdk?.updateParameters.update(.rebooting)
-
+        sdk?.updateParameters.firmwareHasBeenUpdated()
+        self.glasses?.isIntentionalDisconnect = true
         self.glasses?.resetPeripheralDelegate()
         
-        // TODO: success? error? dedicated closure?
         successClosure()
     }
 

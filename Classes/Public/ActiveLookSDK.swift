@@ -41,26 +41,26 @@ public class ActiveLookSDK {
     private static var _shared: ActiveLookSDK!
 
     private var discoveredGlassesArray: [DiscoveredGlasses] = []
-
     private var glassesDiscoveredCallback: ((DiscoveredGlasses) -> Void)?
-
     private var connectedGlassesArray: [Glasses] = []
 
     private var didAskForScan: (glassesDiscoveredCallback: (DiscoveredGlasses) -> Void,
                                 scanErrorCallback: (Error) -> Void)?
 
-    private var rebootingGlasses: Glasses?
+    private var didAskForSerializedGlassesReconnect: (serializedGlasses: SerializedGlasses,
+                                                      connectionCallback: (Glasses) -> Void,
+                                                      disconnectionCallback: () -> Void,
+                                                      connectionErrorCallback: (Error) -> Void)?
 
+    private var updater: GlassesUpdater?
+    private var networkMonitor: NetworkMonitor!
 
     // MARK: - Internal properties
 
-    // TODO: make networkMonitor private
-    internal var networkMonitor: NetworkMonitor!
 
     internal var centralManager: CBCentralManager!
     internal var centralManagerDelegate: CentralManagerDelegate // TODO: internal or private ?
 
-    internal var updater: GlassesUpdater? // TODO: internal or private ?
     // TODO: SEPARATE GUP in SDKUpdateParameters and GUP (tied to a glasses object?) ? (220317)
     internal var updateParameters: GlassesUpdateParameters!
 
@@ -78,6 +78,7 @@ public class ActiveLookSDK {
         self.networkMonitor = NetworkMonitor.shared
 
         self.didAskForScan = nil
+        self.didAskForSerializedGlassesReconnect = nil
 
         // TODO: Use a specific queue
         centralManager = CBCentralManager(delegate: self.centralManagerDelegate, queue: nil)
@@ -87,22 +88,25 @@ public class ActiveLookSDK {
 
     // MARK: - Public methods
 
-    // This is the method used to initialize the `ActiveLookSDK` singleton **and** access it later on.
-    // To initialize it, this function is called with all parameters set.
-    // To access it afterwards, just call it without any arguments: `ActiveLookSDK.shared()`
-    // - throws:
-    //     - `ActiveLookError.sdkInitMissingParameters`
-    //     if the function is called with incomplete parameters.
-    //     - `ActiveLookError.sdkCannotChangeParameters`
-    //     if the function is called more than once during the application's lifetime, with all the parameters correctly set.
-    // - parameters:
-    //     - token: The token used for authenticating with the firmware repository.
-    //     - onUpdateStart      Registered callback for update start event notification
-    //     - onUpdateProgress   Registered callback for update progress event notification.
-    //     - onUpdateSuccess    Registered callback for update success event notification.
-    //     - onUpdateError      Registered callback for update error event notification.
-    //  - returns: the `ActiveLookSDK`'s singleton
-    //
+    /// This is the method used to initialize the `ActiveLookSDK` singleton **and** access it later on.
+    /// To initialize it, this function is called with all parameters set.
+    /// To access it afterwards, just call it without any arguments: `ActiveLookSDK.shared()`
+    ///
+    /// - throws:
+    ///     - `ActiveLookError.sdkInitMissingParameters`
+    ///     if the function is called with incomplete parameters.
+    ///     - `ActiveLookError.sdkCannotChangeParameters`
+    ///     if the function is called more than once during the application's lifetime, with all the parameters correctly set.
+    ///
+    /// - parameters:
+    ///     - token:  token used for authenticating with the update server.
+    ///     - onUpdateStart:  callback asynchronously called when an update starts.
+    ///     - onUpdateProgress:  callback asynchronously called when an update progress.
+    ///     - onUpdateSuccess:  callback asynchronously called when an update succeed.
+    ///     - onUpdateError:  callback asynchronously called when an update fails.
+    ///
+    ///  - returns: the `ActiveLookSDK`'s singleton
+    ///
     public static func shared(token: String? = nil,
                               onUpdateStartCallback: StartClosureSignature? = nil,
                               onUpdateProgressCallback: ProgressClosureSignature? = nil,
@@ -142,10 +146,12 @@ public class ActiveLookSDK {
     }
 
 
-    // Start scanning for ActiveLook glasses. Will keep scanning until `stopScanning()` is called.
-    // - Parameters:
-    //   - glassesDiscoveredCallback: A callback called asynchronously when glasses are discovered.
-    //   - scanErrorCallback: A callback called asynchronously when an scanning error occurs.
+    /// Start scanning for ActiveLook glasses. Will keep scanning until `stopScanning()` is called.
+    ///
+    /// - Parameters:
+    ///   - glassesDiscoveredCallback: A callback called asynchronously when glasses are discovered.
+    ///   - scanErrorCallback: A callback called asynchronously when an scanning error occurs.
+    ///
     public func startScanning(onGlassesDiscovered glassesDiscoveredCallback: @escaping (DiscoveredGlasses) -> Void,
                               onScanError scanErrorCallback: @escaping (Error) -> Void,
                               _ caller: String? = nil)
@@ -180,14 +186,14 @@ public class ActiveLookSDK {
     }
 
 
-    // Check whether the ActiveLookSDK is currently scanning.
-    // - Returns: true if currently scanning, false otherwise.
+    /// Check whether the ActiveLookSDK is currently scanning.
+    /// - Returns: true if currently scanning, false otherwise.
     public func isScanning() -> Bool {
         return centralManager.isScanning
     }
 
 
-    // Stop scanning for ActiveLook glasses.
+    /// Stop scanning for ActiveLook glasses.
     public func stopScanning() {
         if centralManager.isScanning {
             print("stopping scan")
@@ -195,6 +201,168 @@ public class ActiveLookSDK {
         }
     }
 
+
+    /// Connect to `SerializedGlasses`
+    ///
+    /// Using this method, the `SDK` will connect directly to the serialized glasses,
+    /// without having to `scan() → discover()` before connecting.
+    ///
+    /// - parameters:
+    ///     - serializedGlasses: the glasses to attempt to connect to
+    ///     - connectionCallback: callback called asynchronously when the glasses are connected. It returns the connected glasses
+    ///     - disconnectionCallback: callback called asynchronously when the connection to the device is lost.
+    ///     - connectionErrorCallback: callback called asynchronously when a connection error occurs. It returns either:
+    ///       - `ActiveLookError.unserializeError` : if the method cannot unserialize the parameter
+    ///       - `ActiveLookError.alreadyConnected` : if the glasses are already connected
+    ///       - `ActiveLookError.cannotRetrieveGlasses` : if the glasses cannot be retrieved. Need to `scan() -> ...`
+    ///
+    /// - important: If the `CBCentralManager.state` is not `.poweredOn` when the method is called, the call is cached and
+    ///     will be processed once the manager is available.
+    ///
+    /// Usage:
+    ///
+    ///     let sg: SerializedGlasses = try glasses.getSerializedGlasses()
+    ///
+    ///     sdk.shared().connect(using: sg,
+    ///             onGlassesConnected: connectCbck,
+    ///          onGlassesDisconnected: discoCbck,
+    ///              onConnectionError: errorCbck)
+    ///
+    public func connect(using serializedGlasses: SerializedGlasses,
+                        onGlassesConnected connectionCallback: @escaping (Glasses) -> Void,
+                        onGlassesDisconnected disconnectionCallback: @escaping () -> Void,
+                        onConnectionError connectionErrorCallback: @escaping (Error) -> Void,
+                        _ caller: String? = nil)
+    {
+        guard centralManager.state == .poweredOn else {
+            if self.didAskForSerializedGlassesReconnect == nil && caller == nil {
+                self.didAskForSerializedGlassesReconnect = (serializedGlasses,
+                                                            connectionCallback,
+                                                            disconnectionCallback,
+                                                            connectionErrorCallback)
+            } else {
+                connectionErrorCallback(ActiveLookError.connectUsingAlreadyCalled)
+            }
+            return
+        }
+
+        self.didAskForSerializedGlassesReconnect = nil
+
+        // FIXME: fix to prevent uninitialized updater, but not optimal. Find where to initialize it CORRECTLY!
+        if updater == nil {
+            updater = GlassesUpdater()
+        }
+
+        guard let usG = try? serializedGlasses.unserialize()
+        else {
+            connectionErrorCallback(ActiveLookError.unserializeError)
+            return
+        }
+
+        guard let gUuid = UUID(uuidString: usG.id) else {
+            connectionErrorCallback(ActiveLookError.unserializeError)
+            return
+        }
+
+        if let _ = connectedGlassesArray.first(where: { $0.identifier == gUuid }) {
+            connectionErrorCallback(ActiveLookError.alreadyConnected)
+            return
+        }
+
+        var dGlasses: DiscoveredGlasses
+
+        if let dg = discoveredGlassesArray.first(where: { $0.identifier == gUuid }) {
+            // the peripheral is still stored in the discoveredGlasses array
+            dGlasses = dg
+        }
+        else if let dg = DiscoveredGlasses(with: serializedGlasses, centralManager: centralManager) {
+            // the peripheral is still cached in CoreBluetooth's cache
+            dGlasses = dg
+            discoveredGlassesArray.append(dGlasses)
+        } else {
+            // we cannot reconstruct a discoveredGlasses from the SerializedGlasses
+            // -> reconnect as if new peripheral
+            connectionErrorCallback(ActiveLookError.cannotRetrieveGlasses)
+            return
+        }
+
+        dGlasses.connect(onGlassesConnected: connectionCallback,
+                         onGlassesDisconnected: disconnectionCallback,
+                         onConnectionError: connectionErrorCallback)
+    }
+
+
+    /// Cancel a pending connection to `discoveredGlasses`.
+    ///
+    /// - parameter discoveredGlasses: the glasses to cancel pending connection to.
+    ///
+    /// - throws
+    ///     - `ActiveLookError.alreadyConnected`: if glasses are already connected
+    ///
+    /// - important: if a `glasses` object has already been returned, you need to
+    /// use `glasses.disconnect() instead`
+    ///
+    /// Usage:
+    ///
+    ///     sdk.cancelConnection(discoveredGlasses)
+    ///
+    public func cancelConnection(_ discoveredGlasses: DiscoveredGlasses) throws
+    {
+        if let g = connectedGlassesArray.first, g.identifier == discoveredGlasses.identifier {
+            switch updateParameters.state {
+            case .NOT_INITIALIZED, .upToDate:
+                throw ActiveLookError.alreadyConnected
+            default:
+                throw ActiveLookError.cannotCancelConnectionWhileUpgraging
+            }
+        }
+
+        centralManager.cancelPeripheralConnection(discoveredGlasses.peripheral)
+    }
+
+
+    /// Cancel a pending connection to `serializedGlasses`.
+    ///
+    /// - parameter serializedGlasses: the glasses to cancel pending connection to.
+    ///
+    /// - throws
+    ///     - `ActiveLookError.unserializeError`: if the method cannot unserialize the parameter
+    ///     - `ActiveLookError.alreadyConnected`: if glasses are already connected.
+    ///     - `ActiveLookError.cannotCancelConnectionWhileUpgraging`: wait for the
+    ///     upgrade to complete. Then disconnect from the returned `glasses`.
+    ///
+    /// - important: if `glasses` are connected, use `glasses.disconnect()`.
+    ///
+    /// Usage:
+    ///
+    ///     sdk.cancelConnection(serializedGlasses)
+    ///
+    public func cancelConnection(_ serializedGlasses: SerializedGlasses) throws
+    {
+        guard let usG = try? serializedGlasses.unserialize()
+        else {
+            throw ActiveLookError.unserializeError
+        }
+
+        guard let gUuid = UUID(uuidString: usG.id) else {
+            throw ActiveLookError.unserializeError
+        }
+
+        if let g = connectedGlassesArray.first, g.identifier == gUuid {
+            if updateParameters.isUpdating() {
+                throw ActiveLookError.cannotCancelConnectionWhileUpgraging
+            } else {
+                throw ActiveLookError.alreadyConnected
+            }
+        }
+
+        guard let rp = centralManager.retrievePeripherals(withIdentifiers: [gUuid]).first
+        else {
+            throw ActiveLookError.cannotRetrieveGlasses
+        }
+
+        centralManager.cancelPeripheralConnection(rp)
+    }
 
     // MARK: - Private methods
     
@@ -229,12 +397,11 @@ public class ActiveLookSDK {
     }
 
 
-    private func updateGlasses() {
+    private func update(_ glasses: Glasses)
+    {
+        dlog(message: "",line: #line, function: #function, file: #fileID)
 
-        guard let glasses = connectedGlassesArray.first
-        else {
-            fatalError("no glasses connected...")
-        }
+        connectedGlassesArray.append(glasses)
 
         guard let discoveredGlasses = discoveredGlasses(fromPeripheral: glasses.peripheral)
         else {
@@ -245,28 +412,22 @@ public class ActiveLookSDK {
             glasses,
             onReboot:
                 {
-                dlog(message: "Firmware update Succeeded. Glasses are rebooting.",
-                     line: #line, function: #function, file: #fileID)
+                    dlog(message: "Firmware update Succeeded. Glasses are rebooting.",
+                         line: #line, function: #function, file: #fileID)
 
-                self.rebootingGlasses = glasses
+                    // stopping scan to ensure state
+                    self.centralManager.stopScan()
 
-                // stopping scan to ensure state
-                self.centralManager.stopScan()
-                self.centralManager.scanForPeripherals(withServices: nil,
-                                                       options:
-                                                        [CBCentralManagerScanOptionAllowDuplicatesKey: false])
-            },
+                    self.centralManager.connect(glasses.peripheral, options: nil)
+                },
             onSuccess:
                 {
                     dlog(message: "UPDATER DONE",
                          line: #line, function: #function, file: #fileID)
 
                     discoveredGlasses.connectionCallback?(glasses)
-                    discoveredGlasses.connectionCallback = nil
-                    discoveredGlasses.connectionErrorCallback = nil
-
                     self.updateParameters.update(.upToDate)
-                    self.updateParameters.reset()
+                    self.updateParameters.reset()   // FIXME: can trigger warning '[connection] nw_resolver_start_query_timer_block_invoke [C1] Query fired: did not receive all answers in time for... in Downloader.swift'
                 },
             onError:
                 { error in
@@ -275,19 +436,16 @@ public class ActiveLookSDK {
 
                     switch error {
                     case .networkUnavailable:
-                        // network not available. No update possible, but glasses are still usable.
-                        discoveredGlasses.connectionCallback?(glasses)
-                        discoveredGlasses.connectionCallback = nil
-                        discoveredGlasses.connectionErrorCallback = nil
+                        // network not available. Update not possible, but glasses are still usable.
 
+                        discoveredGlasses.connectionCallback?(glasses)
                         self.updateParameters.update(.updateFailed)
-                        self.updateParameters.reset()
 
                     default:
                         discoveredGlasses.connectionErrorCallback?(ActiveLookError.sdkUpdateFailed)
-                        discoveredGlasses.connectionCallback = nil
-                        discoveredGlasses.connectionErrorCallback = nil
+                        self.updateParameters.update(.updateFailed)
                     }
+                    self.updateParameters.reset()   // FIXME: can trigger warning '[connection] nw_resolver_start_query_timer_block_invoke [C1] Query fired: did not receive all answers in time for... in Downloader.swift'
                 })
     }
 
@@ -308,15 +466,22 @@ public class ActiveLookSDK {
                     ActiveLookError.bluetoothErrorFromState( state: central.state) )
                 return
             }
-            
-            guard let didAskForScan = parent?.didAskForScan
-            else {
+
+            if let didAskForSGReconnect = parent?.didAskForSerializedGlassesReconnect {
+                parent?.connect(using: didAskForSGReconnect.serializedGlasses,
+                                onGlassesConnected: didAskForSGReconnect.connectionCallback,
+                                onGlassesDisconnected: didAskForSGReconnect.disconnectionCallback,
+                                onConnectionError: didAskForSGReconnect.connectionErrorCallback,
+                                "centralManagerDidUpdateState()")
                 return
             }
-            
-            parent?.startScanning(onGlassesDiscovered: didAskForScan.glassesDiscoveredCallback,
-                                  onScanError: didAskForScan.scanErrorCallback,
-                                  "centralManagerDidUpdateState()")
+
+            if let didAskForScan = parent?.didAskForScan {
+                parent?.startScanning(onGlassesDiscovered: didAskForScan.glassesDiscoveredCallback,
+                                      onScanError: didAskForScan.scanErrorCallback,
+                                      "centralManagerDidUpdateState()")
+                return
+            }
         }
 
 
@@ -340,16 +505,6 @@ public class ActiveLookSDK {
             guard parent?.discoveredGlasses(fromPeripheral: peripheral) == nil
             else {
                 print("glasses already discovered")
-                if let rebootingGlasses = parent?.rebootingGlasses,
-                   rebootingGlasses.peripheral.identifier == peripheral.identifier
-                {
-                    dlog(message: "glasses are updating and have rebooted",
-                         line: #line, function: #function, file: #fileID)
-                    parent?.rebootingGlasses = nil
-                    parent?.stopScanning()
-
-                    central.connect(peripheral, options: nil)
-                }
                 return
             }
 
@@ -361,15 +516,46 @@ public class ActiveLookSDK {
         public func centralManager(_ central: CBCentralManager,
                                    didConnect peripheral: CBPeripheral)
         {
-            guard let discoveredGlasses = parent?.discoveredGlasses(fromPeripheral: peripheral)
+            guard let parent = parent else {
+                fatalError("cannot retrieve parent instance")
+            }
+
+            guard var discoveredGlasses: DiscoveredGlasses = parent.discoveredGlasses(fromPeripheral: peripheral)
             else {
-                print("connected to unknown glasses") // TODO Raise error ?
+                print("connected to unknown glasses") // TODO: Raise error ?
                 return
+            }
+
+            // is reconnecting from accidental disconnect?
+            let isFromAccidentalDisconnect: Bool = parent.connectedGlassesArray.contains(
+                where: { gl in
+                    guard gl.peripheral == peripheral else { return false }
+                    guard !gl.isIntentionalDisconnect else { return false }
+                    return true
+                })
+
+            if isFromAccidentalDisconnect {
+                // autoreconnect => rebuild discoveredGlasses
+                let dg = discoveredGlasses
+                discoveredGlasses = DiscoveredGlasses(peripheral: peripheral,
+                                                      centralManager: central,
+                                                      name: discoveredGlasses.name,
+                                                      manufacturerId: discoveredGlasses.manufacturerId)
+
+                discoveredGlasses.connectionCallback = dg.connectionCallback
+                discoveredGlasses.disconnectionCallback = dg.disconnectionCallback
+                discoveredGlasses.connectionErrorCallback = dg.connectionErrorCallback
+
+                parent.discoveredGlassesArray.removeAll(where: { $0.peripheral == dg.peripheral})
+                parent.discoveredGlassesArray.append(discoveredGlasses)
             }
 
             central.stopScan()
 
-            print("central manager did connect to glasses \(discoveredGlasses.name)")
+            // FIXME: / TODO DOES USING `retrievePeripheral(with: [])` DISPENSE US FROM RE-INITIALIZING THE PERIPHERAL ?
+            // retrievedPeripheral has all the services cached, exact?
+            // -> create another `glassesInitializer.initialize()` to reconstruct the object from cache
+            // and get rid of the discover/didDiscover dance?
 
             let glasses = Glasses(discoveredGlasses: discoveredGlasses)
 
@@ -377,8 +563,8 @@ public class ActiveLookSDK {
             glassesInitializer.initialize( glasses,
                                            onSuccess:
                                             {
-                self.parent?.connectedGlassesArray.append(glasses)
-                self.parent?.updateGlasses()
+                print("central manager did connect to glasses \(discoveredGlasses.name)")
+                parent.update(glasses)
             },
                                            onError:
                                             { (error) in
@@ -386,7 +572,9 @@ public class ActiveLookSDK {
                      line: #line, function: #function, file: #fileID)
 
                 discoveredGlasses.connectionErrorCallback?(error)
+
                 discoveredGlasses.connectionCallback = nil
+                discoveredGlasses.disconnectionCallback = nil
                 discoveredGlasses.connectionErrorCallback = nil
             } )
         }
@@ -401,36 +589,25 @@ public class ActiveLookSDK {
                 return
             }
 
+            glasses.disconnectionCallback?()
 
+            if glasses.isIntentionalDisconnect {
+                // reset to false in the event of reconnecting while glasses are still in memory
+                glasses.isIntentionalDisconnect = false
 
-            if let index = parent?.connectedGlassesArray.firstIndex(
-                where: { $0.identifier == glasses.identifier } )
-            {
-                parent?.connectedGlassesArray.remove(at: index)
-            }
-
-            // glasses are rebooting. Will reconnect shorter...
-            guard let updateParameters = parent?.updateParameters, updateParameters.state != .rebooting
-            else {
                 if let index = parent?.connectedGlassesArray.firstIndex(
                     where: { $0.identifier == glasses.identifier } )
                 {
-                    print("removed connected glasses...")
                     parent?.connectedGlassesArray.remove(at: index)
                 }
+
+                glasses.disconnectionCallback = nil
+
+                print("central manager did disconnect from glasses \(glasses.name)")
                 return
             }
 
-            glasses.disconnectionCallback?()
-            glasses.disconnectionCallback = nil
-
-            if let index = parent?.connectedGlassesArray.firstIndex(
-                where: { $0.identifier == glasses.identifier } )
-            {
-                parent?.connectedGlassesArray.remove(at: index)
-            }
-            print("central manager did disconnect from glasses \(glasses.name)")
-            print("with error \(String(describing: error))")
+            central.connect(peripheral)
         }
 
 
