@@ -18,7 +18,6 @@ import CoreBluetooth
 
 // MARK: - Internal Enum
 
-
 internal enum UpdateState : String {
     case NOT_INITIALIZED
     case startingUpdate
@@ -64,10 +63,6 @@ internal class GlassesUpdateParameters {
     var state: UpdateState?
     
     private var softwareVersions: [SoftwareLocation : SoftwareVersions?]
-    private var sourceFirmwareVersion = "n/a"
-    private var targetFirmwareVersion = "n/a"
-    private var sourceConfigurationVersion = "n/a"
-    private var targetConfigurationVersion = "n/a"
     
     private var progress: Double = 0
 
@@ -115,12 +110,12 @@ internal class GlassesUpdateParameters {
 
         switch stateUpdate
         {
-        case .downloadingFw, .updatingConfig:
+        case .downloadingFw, .downloadingConfig:
             // start closure
             closureToSummon = startClosure
             self.progress = 0
 
-        case .rebooting, .updatingFw, .downloadingConfig:
+        case .updatingFw, .rebooting, .updatingConfig:
             // progress closure
             if ( progress <= self.progress ) { return }
             
@@ -156,6 +151,7 @@ internal class GlassesUpdateParameters {
     
     func set(version: SoftwareClassProtocol, for location: SoftwareLocation)
     {
+        dlog(message: "",line: #line, function: #function, file: #fileID)
         switch version {
         case is ConfigurationVersion:
             let fwVers = softwareVersions[location]!!.firmware
@@ -170,13 +166,47 @@ internal class GlassesUpdateParameters {
             break
         }
     }
+
     
+    func getVersion() -> String {
+        var versions = ""
+        versions.append(getVersion(for: .device, softwareClass: .firmwares))
+        versions.append(getVersion(for: .remote, softwareClass: .firmwares))
+        versions.append(getVersion(for: .device, softwareClass: .configurations))
+        versions.append(getVersion(for: .remote, softwareClass: .configurations))
+        return versions
+    }
+
 
     func reset() {
         discoveredGlasses = nil
         hardware = ""
-        state = nil
+        state = .NOT_INITIALIZED
         progress = 0
+    }
+
+
+    func isUpdating() -> Bool {
+        switch state {
+        case .upToDate, .NOT_INITIALIZED, .updateFailed:
+            return false
+        default:
+            return true
+        }
+    }
+
+
+    func firmwareHasBeenUpdated () {
+        softwareVersions[.device]!!.firmware = softwareVersions[.remote]!!.firmware
+    }
+
+
+    // TODO: remove after micooled says so
+    func needDelayAfterReboot() -> Bool
+    {
+        let fwVers = softwareVersions[.device]!!.firmware
+
+        return (fwVers.major < 4) || (fwVers.major == 4 && fwVers.minor < 3) || (fwVers.major == 4 && fwVers.minor == 3 && fwVers.patch < 2)
     }
 
 
