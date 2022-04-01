@@ -21,6 +21,11 @@ public enum SoftwareClass: String {
     case configurations
 }
 
+internal enum SoftwareLocation: String {
+    case device
+    case remote
+}
+
 public struct HardwareProperties {
     let manufacturing: Manufacturing
     let serialNumber: Int
