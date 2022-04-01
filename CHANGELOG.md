@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## Version 4.2.2
+
+### New features
+- Allow cancelling connection
+- Add a serialized glasses object allowing reconnecting without scanning
+
+### Changes
+- On connection lost, directly trigger the disconnected glasses callback
+
+### Fixes
+- All connection loss will trigger an auto reconnect attempt if `glasses.disconnect()` has not been called.
+
+---
+
 ## Version 4.2.1
 
 ### New features
@@ -10,6 +24,8 @@
 
 ### Fixes
 - Calls to progress update callbacks
+
+---
 
 ## Version 4.2.0
 
