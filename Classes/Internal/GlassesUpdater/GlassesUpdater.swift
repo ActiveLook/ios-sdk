@@ -144,6 +144,8 @@ internal class GlassesUpdater {
                 return
             }
 
+            sdk?.updateParameters.update(.downloadingFw)
+
             let downloader = Downloader()
             downloader.downloadFirmware(at: apiUrl,
                                          onSuccess: {( data ) in self.updateFirmware(using: Firmware( with: data))},
@@ -204,6 +206,8 @@ internal class GlassesUpdater {
                 failed(with: GlassesUpdateError.networkUnavailable)
                 return
             }
+            
+            sdk?.updateParameters.update(.downloadingConfig)
 
             let downloader = Downloader()
             downloader.downloadConfiguration(at: apiUrl,

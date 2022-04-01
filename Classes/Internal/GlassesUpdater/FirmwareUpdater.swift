@@ -66,7 +66,7 @@ public final class FirmwareUpdater: NSObject {
 
     private var spotaServiceStatusCharacteristic: CBCharacteristic?
 
-    private var currentProgress: UInt8 = 0
+    private var currentProgress: Double = 0
     private var successClosure: () -> (Void)
     private var errorClosure: ( GlassesUpdateError ) -> (Void)
 
@@ -118,7 +118,8 @@ public final class FirmwareUpdater: NSObject {
 
     private func rebooting()
     {
-        sdk?.updateParameters.state = .rebooting
+//        sdk?.updateParameters.state = .rebooting
+        sdk?.updateParameters.update(.rebooting)
 
         self.glasses?.resetPeripheralDelegate()
         
@@ -383,7 +384,7 @@ public final class FirmwareUpdater: NSObject {
 
                 peripheral?.writeValue( Data( chunks[ chunkId ]), for: characteristic, type: .withoutResponse)
 
-                let progress = UInt8((blockId * 100) / firmware.blocks.count)
+                let progress = Double((blockId * 100) / firmware.blocks.count)
                 if ( progress > currentProgress ) {
                     currentProgress = progress
                     sdk?.updateParameters.update(.updatingFw, progress)

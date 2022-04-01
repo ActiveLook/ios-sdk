@@ -19,7 +19,7 @@ final internal class UpdateProgress: GlassesUpdate {
 
     private let discoveredGlasses: DiscoveredGlasses
     private let state: State
-    private let progress: UInt8
+    private let progress: Double
     private let sourceFirmwareVersion: String
     private let targetFirmwareVersion: String
     private let sourceConfigurationVersion: String
@@ -27,7 +27,7 @@ final internal class UpdateProgress: GlassesUpdate {
 
     init( _ discoveredGlasses: DiscoveredGlasses,
           _ state: State,
-          _ progress: UInt8,
+          _ progress: Double,
           _ sourceFirmwareVersion: String,
           _ targetFirmwareVersion: String,
           _ sourceConfigurationVersion: String,
@@ -49,7 +49,7 @@ final internal class UpdateProgress: GlassesUpdate {
             sourceConfigurationVersion, targetConfigurationVersion)
     }
 
-    func withProgress( progress : UInt8 ) -> UpdateProgress {
+    func withProgress( progress : Double ) -> UpdateProgress {
         return UpdateProgress(
             discoveredGlasses, state, progress,
             sourceFirmwareVersion, targetFirmwareVersion,
@@ -94,7 +94,7 @@ final internal class UpdateProgress: GlassesUpdate {
     }
 
 
-    func getProgress() -> UInt8 {
+    func getProgress() -> Double {
         return self.progress;
     }
 
