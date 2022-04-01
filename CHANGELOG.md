@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## Version 4.2.1
+
+### New features
+- Add an up to date state
+
+### Changes
+- Make progress a double instead of an integer
+
+### Fixes
+- Calls to progress update callbacks
+
 ## Version 4.2.0
 
 ### New features
