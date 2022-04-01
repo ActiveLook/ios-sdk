@@ -161,6 +161,7 @@ internal class GlassesUpdater {
         }
     }
 
+
     private func updateFirmware(using firmware: Firmware)
     {
         sdk?.updateParameters.update(.updatingFw)
@@ -196,6 +197,7 @@ internal class GlassesUpdater {
                                                     onError: { ( error ) in self.failed(with: error ) })
     }
 
+
     private func processConfigurationResponse(_ result: VersionCheckResult )
     {
         switch result.status
@@ -224,6 +226,7 @@ internal class GlassesUpdater {
         }
     }
 
+
     private func updateConfiguration(with configuration: String)
     {
         sdk?.updateParameters.update(.updatingConfig)
@@ -232,6 +235,7 @@ internal class GlassesUpdater {
                                                onSuccess: { self.configurationIsUpToDate() },
                                                onError: { print("Configuration could not be downloaded") } )
     }
+
 
     private func configurationIsUpToDate()
     {

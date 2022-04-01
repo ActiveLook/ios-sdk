@@ -298,7 +298,6 @@ public class ActiveLookSDK {
     ///
     /// - throws
     ///     - `ActiveLookError.alreadyConnected`: if glasses are already connected
-    ///         => use `glasses.disconnect()` instead.
     ///
     /// - important: if a `glasses` object has already been returned, you need to
     /// use `glasses.disconnect() instead`
@@ -328,13 +327,11 @@ public class ActiveLookSDK {
     ///
     /// - throws
     ///     - `ActiveLookError.unserializeError`: if the method cannot unserialize the parameter
-    ///     - `ActiveLookError.alreadyConnected`: if glasses are already connected
-    ///         => use `glasses.disconnect()` instead.
+    ///     - `ActiveLookError.alreadyConnected`: if glasses are already connected.
     ///     - `ActiveLookError.cannotCancelConnectionWhileUpgraging`: wait for the
     ///     upgrade to complete. Then disconnect from the returned `glasses`.
     ///
-    /// - important: if a `glasses` object has already been returned, you need to
-    ///     use `glasses.disconnect()` instead.
+    /// - important: if `glasses` are connected, use `glasses.disconnect()`.
     ///
     /// Usage:
     ///
@@ -352,11 +349,10 @@ public class ActiveLookSDK {
         }
 
         if let g = connectedGlassesArray.first, g.identifier == gUuid {
-            switch updateParameters.state {
-            case .NOT_INITIALIZED, .upToDate:
-                throw ActiveLookError.alreadyConnected
-            default:
+            if updateParameters.isUpdating() {
                 throw ActiveLookError.cannotCancelConnectionWhileUpgraging
+            } else {
+                throw ActiveLookError.alreadyConnected
             }
         }
 
@@ -401,14 +397,11 @@ public class ActiveLookSDK {
     }
 
 
-    private func updateGlasses()
+    private func update(_ glasses: Glasses)
     {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
-        guard let glasses = connectedGlassesArray.first
-        else {
-            fatalError("no glasses connected...")
-        }
+        connectedGlassesArray.append(glasses)
 
         guard let discoveredGlasses = discoveredGlasses(fromPeripheral: glasses.peripheral)
         else {
@@ -433,7 +426,6 @@ public class ActiveLookSDK {
                          line: #line, function: #function, file: #fileID)
 
                     discoveredGlasses.connectionCallback?(glasses)
-
                     self.updateParameters.update(.upToDate)
                     self.updateParameters.reset()   // FIXME: can trigger warning '[connection] nw_resolver_start_query_timer_block_invoke [C1] Query fired: did not receive all answers in time for... in Downloader.swift'
                 },
@@ -444,16 +436,15 @@ public class ActiveLookSDK {
 
                     switch error {
                     case .networkUnavailable:
-                        // network not available. No update possible, but glasses are still usable.
-                        discoveredGlasses.connectionCallback?(glasses)
+                        // network not available. Update not possible, but glasses are still usable.
 
+                        discoveredGlasses.connectionCallback?(glasses)
                         self.updateParameters.update(.updateFailed)
 
                     default:
                         discoveredGlasses.connectionErrorCallback?(ActiveLookError.sdkUpdateFailed)
+                        self.updateParameters.update(.updateFailed)
                     }
-                    discoveredGlasses.connectionCallback = nil
-                    discoveredGlasses.connectionErrorCallback = nil
                     self.updateParameters.reset()   // FIXME: can trigger warning '[connection] nw_resolver_start_query_timer_block_invoke [C1] Query fired: did not receive all answers in time for... in Downloader.swift'
                 })
     }
@@ -525,14 +516,18 @@ public class ActiveLookSDK {
         public func centralManager(_ central: CBCentralManager,
                                    didConnect peripheral: CBPeripheral)
         {
-            guard var discoveredGlasses: DiscoveredGlasses = parent?.discoveredGlasses(fromPeripheral: peripheral)
+            guard let parent = parent else {
+                fatalError("cannot retrieve parent instance")
+            }
+
+            guard var discoveredGlasses: DiscoveredGlasses = parent.discoveredGlasses(fromPeripheral: peripheral)
             else {
                 print("connected to unknown glasses") // TODO: Raise error ?
                 return
             }
 
             // is reconnecting from accidental disconnect?
-            let isFromAccidentalDisconnect: Bool = self.parent!.connectedGlassesArray.contains(
+            let isFromAccidentalDisconnect: Bool = parent.connectedGlassesArray.contains(
                 where: { gl in
                     guard gl.peripheral == peripheral else { return false }
                     guard !gl.isIntentionalDisconnect else { return false }
@@ -541,10 +536,18 @@ public class ActiveLookSDK {
 
             if isFromAccidentalDisconnect {
                 // autoreconnect => rebuild discoveredGlasses
+                let dg = discoveredGlasses
                 discoveredGlasses = DiscoveredGlasses(peripheral: peripheral,
                                                       centralManager: central,
                                                       name: discoveredGlasses.name,
                                                       manufacturerId: discoveredGlasses.manufacturerId)
+
+                discoveredGlasses.connectionCallback = dg.connectionCallback
+                discoveredGlasses.disconnectionCallback = dg.disconnectionCallback
+                discoveredGlasses.connectionErrorCallback = dg.connectionErrorCallback
+
+                parent.discoveredGlassesArray.removeAll(where: { $0.peripheral == dg.peripheral})
+                parent.discoveredGlassesArray.append(discoveredGlasses)
             }
 
             central.stopScan()
@@ -561,12 +564,7 @@ public class ActiveLookSDK {
                                            onSuccess:
                                             {
                 print("central manager did connect to glasses \(discoveredGlasses.name)")
-                self.parent?.connectedGlassesArray.append(glasses)
-
-                // if disconnect was accidental, do not update
-                if !isFromAccidentalDisconnect {
-                    self.parent?.updateGlasses()
-                }
+                parent.update(glasses)
             },
                                            onError:
                                             { (error) in
@@ -574,7 +572,9 @@ public class ActiveLookSDK {
                      line: #line, function: #function, file: #fileID)
 
                 discoveredGlasses.connectionErrorCallback?(error)
+
                 discoveredGlasses.connectionCallback = nil
+                discoveredGlasses.disconnectionCallback = nil
                 discoveredGlasses.connectionErrorCallback = nil
             } )
         }
@@ -592,7 +592,7 @@ public class ActiveLookSDK {
             glasses.disconnectionCallback?()
 
             if glasses.isIntentionalDisconnect {
-                // need to set to false in the event of reconnecting while glasses are still in memory
+                // reset to false in the event of reconnecting while glasses are still in memory
                 glasses.isIntentionalDisconnect = false
 
                 if let index = parent?.connectedGlassesArray.firstIndex(

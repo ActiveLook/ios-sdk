@@ -188,10 +188,10 @@ internal class GlassesUpdateParameters {
 
     func isUpdating() -> Bool {
         switch state {
-        case .upToDate, .NOT_INITIALIZED:
+        case .upToDate, .NOT_INITIALIZED, .updateFailed:
             return false
         default:
-            true
+            return true
         }
     }
 
