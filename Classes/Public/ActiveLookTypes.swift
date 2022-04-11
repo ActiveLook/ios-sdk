@@ -23,7 +23,7 @@ public enum DemoPattern: UInt8 {
 }
 
 /// Available states for the glasses' green LED
-public enum LedState: UInt8 {
+@objc public enum LedState: UInt8 {
     case off = 0x00
     case on = 0x01
     case toggle = 0x02
