@@ -177,7 +177,7 @@ public class LayoutParameters {
     }
 
 
-    internal func toCommandData() -> [UInt8] {
+    public func toCommandData() -> [UInt8] {
         var data: [UInt8] = []
 
         data.append(self.id)
