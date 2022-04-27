@@ -36,6 +36,9 @@ To access Core Bluetooth APIs on apps linked on or after iOS 13, include the
 To test the SDK, clone the [demo-app](https://github.com/ActiveLook/demo-app):
 `git clone https://github.com/ActiveLook/demo-app.git`
 
+## Documentation
+
+The code is commented so that the documentation can be built on your machine using Xcode's `Build configuration` command, enabling symbolic documentation.
 
 ## Initialization
 
@@ -104,7 +107,6 @@ glasses.onDisconnect { [weak self] in
     self.present(alert, animated: true)
 }
 ```
-
 
 ## Device information
 
