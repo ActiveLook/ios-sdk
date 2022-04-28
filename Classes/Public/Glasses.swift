@@ -651,7 +651,8 @@ public class Glasses {
 
         sendCommand(id: .point, withData: data)
     }
-    
+
+    // TODO: CHANGE SIGNATURE TO MATCH [API DOC](https://gitlab.com/microoled/activelook-api-documentation/-/blob/master/ActiveLook_API.md#Graphicscommands)
     /// Draw a line at the corresponding coordinates
     /// - Parameters:
     ///   - x0: The x coordinate of the start of the line
@@ -668,7 +669,8 @@ public class Glasses {
 
         sendCommand(id: .line, withData: data)
     }
-    
+
+    // TODO: CHANGE SIGNATURE TO MATCH [API DOC](https://gitlab.com/microoled/activelook-api-documentation/-/blob/master/ActiveLook_API.md#Graphicscommands)
     /// Draw an empty rectangle at the corresponding coordinates
     /// - Parameters:
     ///   - x0: The x coordinate of the bottom left part of the rectangle
@@ -686,6 +688,7 @@ public class Glasses {
         sendCommand(id: .rect, withData: data)
     }
 
+    // TODO: CHANGE SIGNATURE TO MATCH [API DOC](https://gitlab.com/microoled/activelook-api-documentation/-/blob/master/ActiveLook_API.md#Graphicscommands)
     /// Draw a full rectangle at the corresponding coordinates
     /// - Parameters:
     ///   - x0: The x coordinate of the bottom left part of the rectangle

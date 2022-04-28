@@ -26,7 +26,7 @@ public protocol GlassesUpdate {
 }
 
 
-public enum State: Int {
+@objc public enum State: Int {
     case DOWNLOADING_FIRMWARE
     case UPDATING_FIRMWARE
     case DOWNLOADING_CONFIGURATION
