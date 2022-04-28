@@ -4,6 +4,7 @@
 
 In order to use the ActiveLook SDK for iOS, you should have XCode installed together
 with [cocoapods](https://cocoapods.org).
+The SDK is also available using SPM.
 
 ## License
 
@@ -27,15 +28,23 @@ Then run the command:
 An example Podfile is included in the `demo-app` repo available on github at
 [demo-app](https://github.com/ActiveLook/demo-app)
 
+### Swift Package Manager
+To integrate ActiveLookSDK into your Xcode project using SPM, add a new package with the url https://github.com/ActiveLook/ios-sdk.git using the `main` branch.
+
 ### Info.plist
-To access Core Bluetooth APIs on apps linked on or after iOS 13, include the
+To access Core Bluetooth APIs on apps linked on or after iOS 13, fill in the
 `NSBluetoothAlwaysUsageDescription` key in your app's `Info.plist`.
+
+Also, add the `App Transport Security Settings` dictionary with the `Allow Arbitrary Loads` key set to `YES`.
 
 ## Example
 
 To test the SDK, clone the [demo-app](https://github.com/ActiveLook/demo-app):
 `git clone https://github.com/ActiveLook/demo-app.git`
 
+## Documentation
+
+The code is commented so that the documentation can be built on your machine using Xcode's `Build configuration` command, enabling symbolic documentation.
 
 ## Initialization
 
@@ -104,7 +113,6 @@ glasses.onDisconnect { [weak self] in
     self.present(alert, animated: true)
 }
 ```
-
 
 ## Device information
 
