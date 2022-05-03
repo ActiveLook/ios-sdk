@@ -20,6 +20,7 @@ import CoreBluetooth
 // MARK: -  Type Alias
 
 public typealias StartClosureSignature = (SdkGlassesUpdate) -> Void
+public typealias UpdateAvailableClosureSignature = (SdkGlassesUpdate) -> Bool
 public typealias ProgressClosureSignature = (SdkGlassesUpdate) -> Void
 public typealias SuccessClosureSignature = (SdkGlassesUpdate) -> Void
 public typealias FailureClosureSignature = (SdkGlassesUpdate) -> Void
@@ -101,6 +102,7 @@ public class ActiveLookSDK {
     /// - parameters:
     ///     - token:  token used for authenticating with the update server.
     ///     - onUpdateStart:  callback asynchronously called when an update starts.
+    ///     - onUpdateAvailableCallback: callback asynchronously called if an update is available.
     ///     - onUpdateProgress:  callback asynchronously called when an update progress.
     ///     - onUpdateSuccess:  callback asynchronously called when an update succeed.
     ///     - onUpdateError:  callback asynchronously called when an update fails.
@@ -109,6 +111,7 @@ public class ActiveLookSDK {
     ///
     public static func shared(token: String? = nil,
                               onUpdateStartCallback: StartClosureSignature? = nil,
+                              onUpdateAvailableCallback: UpdateAvailableClosureSignature? = nil,
                               onUpdateProgressCallback: ProgressClosureSignature? = nil,
                               onUpdateSuccessCallback: SuccessClosureSignature? = nil,
                               onUpdateFailureCallback: FailureClosureSignature? = nil) throws -> ActiveLookSDK
@@ -118,12 +121,14 @@ public class ActiveLookSDK {
 
         if token != nil,
            onUpdateStartCallback != nil,
+           onUpdateAvailableCallback != nil,
            onUpdateProgressCallback != nil,
            onUpdateSuccessCallback != nil,
            onUpdateFailureCallback != nil
         {
             updateParameters = GlassesUpdateParameters(token!,
                                                        onUpdateStartCallback!,
+                                                       onUpdateAvailableCallback!,
                                                        onUpdateProgressCallback!,
                                                        onUpdateSuccessCallback!,
                                                        onUpdateFailureCallback!)
