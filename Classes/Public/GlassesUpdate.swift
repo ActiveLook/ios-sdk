@@ -19,6 +19,7 @@ public protocol GlassesUpdate {
     func getDiscoveredGlasses() -> DiscoveredGlasses
     func getState() -> State
     func getProgress() -> Double
+    func getBatteryLevel() -> Int?
     func getSourceFirmwareVersion() -> String
     func getTargetFirmwareVersion() -> String
     func getSourceConfigurationVersion() -> String
@@ -43,22 +44,25 @@ public class SdkGlassesUpdate: GlassesUpdate {
     private var discoveredGlasses: DiscoveredGlasses?
     private var state: State
     private var progress: Double
+    private var batteryLevel: Int?
     private var sourceFirmwareVersion: String
     private var targetFirmwareVersion: String
     private var sourceConfigurationVersion: String
     private var targetConfigurationVersion: String
 
     internal init(for discoveredGlasses: DiscoveredGlasses?,
-         state : State = .DOWNLOADING_FIRMWARE,
-         progress: Double = 0,
-         sourceFirmwareVersion: String = "",
-         targetFirmwareVersion: String = "",
-         sourceConfigurationVersion: String = "",
-         targetConfigurationVersion: String = ""
+                  state : State = .DOWNLOADING_FIRMWARE,
+                  progress: Double = 0,
+                  batteryLevel: Int? = nil,
+                  sourceFirmwareVersion: String = "",
+                  targetFirmwareVersion: String = "",
+                  sourceConfigurationVersion: String = "",
+                  targetConfigurationVersion: String = ""
     ) {
         self.discoveredGlasses = discoveredGlasses
         self.state = state
         self.progress = progress
+        self.batteryLevel = batteryLevel
         self.sourceFirmwareVersion = sourceFirmwareVersion
         self.targetFirmwareVersion = targetFirmwareVersion
         self.sourceConfigurationVersion = sourceConfigurationVersion
@@ -75,6 +79,10 @@ public class SdkGlassesUpdate: GlassesUpdate {
 
     public func getProgress() -> Double {
         return progress
+    }
+
+    public func getBatteryLevel() -> Int? {
+        return batteryLevel
     }
 
     public func getSourceFirmwareVersion() -> String {
@@ -94,6 +102,6 @@ public class SdkGlassesUpdate: GlassesUpdate {
     }
 
     public func description() -> String {
-        return "state: \(state) - progress: \(progress)"
+        return "state: \(state) - progress: \(progress) - battery level: \(batteryLevel != nil ? String(batteryLevel!) : "not available")"
     }
 }
