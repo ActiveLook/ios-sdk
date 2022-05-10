@@ -376,7 +376,7 @@ internal final class VersionChecker: NSObject {
                                              minor: vers[1],
                                              patch: vers[2],
                                              extra: "",
-                                             path: apiPath)
+                                             path: "\(vers[0]).\(vers[1]).\(vers[2])")
                 self.sdk.updateParameters.set(version: fwVers, for: .remote)
                 self.remoteFWVersion = fwVers
             }
