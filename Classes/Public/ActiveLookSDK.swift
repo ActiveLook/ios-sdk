@@ -299,8 +299,8 @@ public class ActiveLookSDK {
     /// - throws
     ///     - `ActiveLookError.alreadyConnected`: if glasses are already connected
     ///
-    /// - important: if a `glasses` object has already been returned, you need to
-    /// use `glasses.disconnect() instead`
+    /// - important: if `glasses` are connected, use `glasses.disconnect()`.
+    /// - important: it is impossible to cancel a connection while an update is ongoing.
     ///
     /// Usage:
     ///
@@ -308,13 +308,12 @@ public class ActiveLookSDK {
     ///
     public func cancelConnection(_ discoveredGlasses: DiscoveredGlasses) throws
     {
-        if let g = connectedGlassesArray.first, g.identifier == discoveredGlasses.identifier {
-            switch updateParameters.state {
-            case .NOT_INITIALIZED, .upToDate:
-                throw ActiveLookError.alreadyConnected
-            default:
-                throw ActiveLookError.cannotCancelConnectionWhileUpgraging
-            }
+        let dgUUID = discoveredGlasses.identifier
+
+        let connectedDevices = retrieveBLEConnectedGlasses()
+
+        if nil != connectedDevices.first(where: { $0.identifier == dgUUID }) {
+            throw ActiveLookError.alreadyConnected
         }
 
         centralManager.cancelPeripheralConnection(discoveredGlasses.peripheral)
@@ -328,10 +327,9 @@ public class ActiveLookSDK {
     /// - throws
     ///     - `ActiveLookError.unserializeError`: if the method cannot unserialize the parameter
     ///     - `ActiveLookError.alreadyConnected`: if glasses are already connected.
-    ///     - `ActiveLookError.cannotCancelConnectionWhileUpgraging`: wait for the
-    ///     upgrade to complete. Then disconnect from the returned `glasses`.
     ///
     /// - important: if `glasses` are connected, use `glasses.disconnect()`.
+    /// - important: it is impossible to cancel a connection while an update is ongoing.
     ///
     /// Usage:
     ///
@@ -344,19 +342,18 @@ public class ActiveLookSDK {
             throw ActiveLookError.unserializeError
         }
 
-        guard let gUuid = UUID(uuidString: usG.id) else {
+        guard let gUUID = UUID(uuidString: usG.id) else {
             throw ActiveLookError.unserializeError
         }
 
-        if let g = connectedGlassesArray.first, g.identifier == gUuid {
-            if updateParameters.isUpdating() {
-                throw ActiveLookError.cannotCancelConnectionWhileUpgraging
-            } else {
-                throw ActiveLookError.alreadyConnected
-            }
+        let connectedDevices = retrieveBLEConnectedGlasses()
+
+        if nil != connectedDevices.first(where: { $0.identifier == gUUID }) {
+            // the glasses are already connected -> use glasses.disconnect() instead
+            throw ActiveLookError.alreadyConnected
         }
 
-        guard let rp = centralManager.retrievePeripherals(withIdentifiers: [gUuid]).first
+        guard let rp = centralManager.retrievePeripherals(withIdentifiers: [gUUID]).first
         else {
             throw ActiveLookError.cannotRetrieveGlasses
         }
@@ -371,6 +368,16 @@ public class ActiveLookSDK {
             return manufacturerData[0] == 0xFA && manufacturerData[1] == 0xDA
         }
         return false
+    }
+
+    private func retrieveBLEConnectedGlasses() -> [CBPeripheral] {
+        let gas = CBUUID.GenericAccessService
+        let dis = CBUUID.DeviceInformationService
+        let bs = CBUUID.BatteryService
+
+        let connectedDevices = centralManager.retrieveConnectedPeripherals(withServices: [gas, dis, bs])
+
+        return connectedDevices
     }
 
 
@@ -600,7 +607,11 @@ public class ActiveLookSDK {
                                    didDisconnectPeripheral peripheral: CBPeripheral,
                                    error: Error?)
         {
-            guard let glasses = parent?.connectedGlasses(fromPeripheral: peripheral) else {
+            guard let parent = parent else {
+                fatalError("cannot retrieve parent instance")
+            }
+
+            guard let glasses = parent.connectedGlasses(fromPeripheral: peripheral) else {
                 print("disconnected from unknown glasses")
                 return
             }
@@ -611,10 +622,10 @@ public class ActiveLookSDK {
                 // reset to false in the event of reconnecting while glasses are still in memory
                 glasses.isIntentionalDisconnect = false
 
-                if let index = parent?.connectedGlassesArray.firstIndex(
+                if let index = parent.connectedGlassesArray.firstIndex(
                     where: { $0.identifier == glasses.identifier } )
                 {
-                    parent?.connectedGlassesArray.remove(at: index)
+                    parent.connectedGlassesArray.remove(at: index)
                 }
 
                 glasses.disconnectionCallback = nil
