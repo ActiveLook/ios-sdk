@@ -549,30 +549,6 @@ public class ActiveLookSDK {
                 return
             }
 
-            // is reconnecting from accidental disconnect?
-            let isFromAccidentalDisconnect: Bool = parent.connectedGlassesArray.contains(
-                where: { gl in
-                    guard gl.peripheral == peripheral else { return false }
-                    guard !gl.isIntentionalDisconnect else { return false }
-                    return true
-                })
-
-            if isFromAccidentalDisconnect {
-                // autoreconnect => rebuild discoveredGlasses
-                let dg = discoveredGlasses
-                discoveredGlasses = DiscoveredGlasses(peripheral: peripheral,
-                                                      centralManager: central,
-                                                      name: discoveredGlasses.name,
-                                                      manufacturerId: discoveredGlasses.manufacturerId)
-
-                discoveredGlasses.connectionCallback = dg.connectionCallback
-                discoveredGlasses.disconnectionCallback = dg.disconnectionCallback
-                discoveredGlasses.connectionErrorCallback = dg.connectionErrorCallback
-
-                parent.discoveredGlassesArray.removeAll(where: { $0.peripheral == dg.peripheral})
-                parent.discoveredGlassesArray.append(discoveredGlasses)
-            }
-
             central.stopScan()
 
             // FIXME: / TODO DOES USING `retrievePeripheral(with: [])` DISPENSE US FROM RE-INITIALIZING THE PERIPHERAL ?
@@ -616,25 +592,20 @@ public class ActiveLookSDK {
                 return
             }
 
-            glasses.disconnectionCallback?()
-
-            if glasses.isIntentionalDisconnect {
-                // reset to false in the event of reconnecting while glasses are still in memory
-                glasses.isIntentionalDisconnect = false
-
-                if let index = parent.connectedGlassesArray.firstIndex(
-                    where: { $0.identifier == glasses.identifier } )
-                {
-                    parent.connectedGlassesArray.remove(at: index)
-                }
-
-                glasses.disconnectionCallback = nil
-
-                print("central manager did disconnect from glasses \(glasses.name)")
-                return
+            if let index = parent.connectedGlassesArray.firstIndex(
+                where: { $0.identifier == glasses.identifier } )
+            {
+                parent.connectedGlassesArray.remove(at: index)
             }
 
-            central.connect(peripheral)
+            print("central manager did disconnect from glasses \(glasses.name)")
+
+            glasses.disconnectionCallback?()
+
+            if !glasses.isIntentionalDisconnect {
+                print("unwanted disconnect: reconnecting as soon as possible")
+                central.connect(peripheral)
+            }
         }
 
 
