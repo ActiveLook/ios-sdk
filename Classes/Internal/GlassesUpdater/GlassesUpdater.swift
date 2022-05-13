@@ -43,7 +43,7 @@ internal class GlassesUpdater {
 
     private var glasses: Glasses?
 
-    private var rebootClosure: ( () -> () )?
+    private var rebootClosure: ( (Int) -> Void )?
     private var successClosure: ( () -> () )?
     private var errorClosure: ( (GlassesUpdateError) -> () )?
 
@@ -67,7 +67,7 @@ internal class GlassesUpdater {
     // MARK: - Internal methods
 
     func update(_ glasses: Glasses,
-                onReboot rebootClosure: @escaping () -> (),
+                onReboot rebootClosure: @escaping (Int) -> Void,
                 onSuccess successClosure: @escaping () -> (),
                 onError errorClosure: @escaping (GlassesUpdateError) -> () )
     {
@@ -177,7 +177,14 @@ internal class GlassesUpdater {
     {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
-        rebootClosure?()
+        guard let sdk = sdk else {
+            print("cannot retrieve sdk")
+            return
+        }
+
+        let delay: Int = sdk.updateParameters.needDelayAfterReboot() ? 3 : 0
+
+        rebootClosure?(delay)
     }
 
 

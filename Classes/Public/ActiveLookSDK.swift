@@ -418,30 +418,16 @@ public class ActiveLookSDK {
         updater?.update(
             glasses,
             onReboot:
-                {
+                { delay in
                     dlog(message: "Firmware update Succeeded. Glasses are rebooting.",
                          line: #line, function: #function, file: #fileID)
 
                     // stopping scan to ensure state
                     self.centralManager.stopScan()
 
-                    if self.updateParameters.needDelayAfterReboot() {
-
-                        dlog(message: "asking for reconnect upon reboot - with delay",
-                             line: #line, function: #function, file: #fileID)
-
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                            self.centralManager.connect(glasses.peripheral, options: nil)
-                        }
-                    } else {
-
-                        dlog(message: "asking for reconnect upon reboot - now",
-                             line: #line, function: #function, file: #fileID)
-
+                    DispatchQueue.main.asyncAfter(deadline: .now() + DispatchTimeInterval.seconds(delay)) {
                         self.centralManager.connect(glasses.peripheral, options: nil)
                     }
-
-                    self.updateParameters.firmwareHasBeenUpdated()
                 },
             onSuccess:
                 {
