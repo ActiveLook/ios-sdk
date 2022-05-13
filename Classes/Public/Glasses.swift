@@ -414,18 +414,7 @@ public class Glasses {
     // MARK: - Public methods
 
     /// Disconnect from the glasses.
-    ///
-    /// - throws: `ActiveLookError.cannotCancelConnectionWhileUpgraging` if glasses are updating.
-    ///
-    /// - important: Wait for `onUpdateSuccess()` or `onUpdateError()` to be called before trying again.
-    ///
-    public func disconnect() throws {
-
-        guard let sdk = sdk, !sdk.updateParameters.isUpdating() else {
-            print("CAN NOT DISCONNECT WHILE UPDATING!")
-            throw ActiveLookError.cannotCancelConnectionWhileUpgraging
-        }
-
+    public func disconnect() {
         isIntentionalDisconnect = true
         centralManager.cancelPeripheralConnection(peripheral)
     }
