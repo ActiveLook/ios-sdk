@@ -404,7 +404,7 @@ public class ActiveLookSDK {
     }
 
 
-    private func update(_ glasses: Glasses)
+    private func processConnected(_ glasses: Glasses)
     {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
@@ -468,16 +468,20 @@ public class ActiveLookSDK {
         public func centralManagerDidUpdateState(_ central: CBCentralManager)
         {
             print("central manager did update state: ", central.state.rawValue)
-            
+
+            guard let parent = parent else {
+                fatalError("cannot retrieve parent instance")
+            }
+
             guard central.state == .poweredOn
             else {
-                parent?.didAskForScan?.scanErrorCallback(
+                parent.didAskForScan?.scanErrorCallback(
                     ActiveLookError.bluetoothErrorFromState( state: central.state) )
                 return
             }
 
-            if let didAskForSGReconnect = parent?.didAskForSerializedGlassesReconnect {
-                parent?.connect(using: didAskForSGReconnect.serializedGlasses,
+            if let didAskForSGReconnect = parent.didAskForSerializedGlassesReconnect {
+                parent.connect(using: didAskForSGReconnect.serializedGlasses,
                                 onGlassesConnected: didAskForSGReconnect.connectionCallback,
                                 onGlassesDisconnected: didAskForSGReconnect.disconnectionCallback,
                                 onConnectionError: didAskForSGReconnect.connectionErrorCallback,
@@ -485,8 +489,8 @@ public class ActiveLookSDK {
                 return
             }
 
-            if let didAskForScan = parent?.didAskForScan {
-                parent?.startScanning(onGlassesDiscovered: didAskForScan.glassesDiscoveredCallback,
+            if let didAskForScan = parent.didAskForScan {
+                parent.startScanning(onGlassesDiscovered: didAskForScan.glassesDiscoveredCallback,
                                       onScanError: didAskForScan.scanErrorCallback,
                                       "centralManagerDidUpdateState()")
                 return
@@ -499,9 +503,11 @@ public class ActiveLookSDK {
                                    advertisementData: [String: Any],
                                    rssi RSSI: NSNumber)
         {
-            guard parent != nil,
-                    parent!.peripheralIsActiveLookGlasses(peripheral: peripheral,
-                                                          advertisementData: advertisementData)
+            guard let parent = parent else {
+                fatalError("cannot retrieve parent instance")
+            }
+            guard parent.peripheralIsActiveLookGlasses(peripheral: peripheral,
+                                                       advertisementData: advertisementData)
             else {
                 // print("ignoring non ActiveLook peripheral")
                 return
@@ -511,14 +517,14 @@ public class ActiveLookSDK {
                                                       centralManager: central,
                                                       advertisementData: advertisementData)
 
-            guard parent?.discoveredGlasses(fromPeripheral: peripheral) == nil
+            guard parent.discoveredGlasses(fromPeripheral: peripheral) == nil
             else {
                 print("glasses already discovered")
                 return
             }
 
-            parent?.discoveredGlassesArray.append(discoveredGlasses)
-            parent?.glassesDiscoveredCallback?(discoveredGlasses)
+            parent.discoveredGlassesArray.append(discoveredGlasses)
+            parent.glassesDiscoveredCallback?(discoveredGlasses)
         }
 
         
@@ -529,7 +535,7 @@ public class ActiveLookSDK {
                 fatalError("cannot retrieve parent instance")
             }
 
-            guard var discoveredGlasses: DiscoveredGlasses = parent.discoveredGlasses(fromPeripheral: peripheral)
+            guard let discoveredGlasses: DiscoveredGlasses = parent.discoveredGlasses(fromPeripheral: peripheral)
             else {
                 print("connected to unknown glasses") // TODO: Raise error ?
                 return
@@ -549,7 +555,7 @@ public class ActiveLookSDK {
                                            onSuccess:
                                             {
                 print("central manager did connect to glasses \(discoveredGlasses.name)")
-                parent.update(glasses)
+                parent.processConnected(glasses)
             },
                                            onError:
                                             { (error) in
