@@ -86,6 +86,11 @@ internal class GlassesUpdater {
         checkFirmwareRecency()
     }
 
+    func abort() -> Void {
+        // TODO: CLEAN UPDATE MODULES CORRECTLY!
+        print("TO IMPLEMENT! — GlassesUpdater.abort()")
+    }
+
 
     // MARK: - Private methods
 

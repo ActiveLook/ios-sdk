@@ -581,6 +581,11 @@ public class ActiveLookSDK {
 
             guard let glasses = parent.connectedGlasses(fromPeripheral: peripheral) else {
                 print("disconnected from unknown glasses")
+                if parent.updateParameters.isUpdating() {
+                    parent.updater?.abort()
+                    parent.updateParameters.update(.updateFailed)
+                    parent.updateParameters.reset()
+                }
                 return
             }
 
