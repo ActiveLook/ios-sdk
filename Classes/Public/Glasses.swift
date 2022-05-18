@@ -85,7 +85,7 @@ public class Glasses {
     // The status of the flowControl server
     private var flowControlState: FlowControlState {
         didSet {
-            if (flowControlState == .on) {
+            if (flowControlState != .off) {
                 self.sendBytes()
             }
         }
@@ -286,7 +286,7 @@ public class Glasses {
     /// sends the bytes queued in commandQueue
     private func sendBytes()
     {
-        if flowControlState != FlowControlState.on { return }
+        if flowControlState == FlowControlState.off { return }
 
         if rxCharacteristicState == .busy { return }
         
