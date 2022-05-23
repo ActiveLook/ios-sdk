@@ -85,7 +85,7 @@ public class Glasses {
     // The status of the flowControl server
     private var flowControlState: FlowControlState {
         didSet {
-            if (flowControlState != .off) {
+            if (flowControlState == .on) {
                 self.sendBytes()
             }
         }
@@ -286,7 +286,7 @@ public class Glasses {
     /// sends the bytes queued in commandQueue
     private func sendBytes()
     {
-        if flowControlState == FlowControlState.off { return }
+        if flowControlState != FlowControlState.on { return }
 
         if rxCharacteristicState == .busy { return }
         
@@ -1281,22 +1281,6 @@ public class Glasses {
                 print("error while updating notification state : \(error!.localizedDescription) for characteristic: \(characteristic.uuid)")
                 return
             }
-            
-            switch characteristic.uuid {
-            case CBUUID.ActiveLookFlowControlCharacteristic:
-                if let flowControlState = FlowControlState(rawValue: characteristic.valueAsInt) {
-                    parent?.flowControlState = flowControlState
-                    
-                    // ON and OFF notifications are not available to callback (i.e SDK's consumer)
-                    if (flowControlState != FlowControlState.on &&
-                        flowControlState != FlowControlState.off) {
-                        parent?.flowControlUpdateCallback?(flowControlState)
-                    }
-                }
-
-            default:
-                break
-            }
 
             print("peripheral did update notification state for characteristic: \(characteristic) in: \(#fileID)")
         }
@@ -1324,9 +1308,17 @@ public class Glasses {
                 parent?.sensorInterfaceTriggeredCallback?()
 
             case CBUUID.ActiveLookFlowControlCharacteristic:
-                if let flowControlState = FlowControlState(rawValue: characteristic.valueAsInt) {
-                    parent?.flowControlState = flowControlState
-                }
+              if let flowControlState = FlowControlState(rawValue: characteristic.valueAsInt)
+              {
+                  if (flowControlState == FlowControlState.on ||
+                      flowControlState == FlowControlState.off) {
+                      // ON and OFF notifications are only used for internally
+                      parent?.flowControlState = flowControlState
+                  } else {
+                      // Other notifications are sent to the callback, if provided
+                      parent?.flowControlUpdateCallback?(flowControlState)
+                  }
+              }
 
             default:
                 break
