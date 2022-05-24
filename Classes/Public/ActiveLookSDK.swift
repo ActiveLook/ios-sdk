@@ -62,6 +62,13 @@ public class ActiveLookSDK {
     internal var centralManager: CBCentralManager!
     internal var centralManagerDelegate: CentralManagerDelegate // TODO: internal or private ?
 
+// FIXME: ADDED HERE FOR DEBUGGING -> TO REMOVE!!!
+#warning("FIXME: ADDED HERE FOR DEBUGGING -> TO REMOVE!!!")
+    private var bleConnectedPeripheral: CBPeripheral?
+//      //FIXME: ADDED HERE FOR DEBUGGING -> TO REMOVE!!!
+#warning("FIXME: ADDED HERE FOR DEBUGGING -> TO REMOVE!!!")
+    internal var numberOfTriesBeforeConnecting: Int = 0
+
     // TODO: SEPARATE GUP in SDKUpdateParameters and GUP (tied to a glasses object?) ? (220317)
     internal var updateParameters: GlassesUpdateParameters!
 
@@ -84,6 +91,11 @@ public class ActiveLookSDK {
         // TODO: Use a specific queue
         centralManager = CBCentralManager(delegate: self.centralManagerDelegate, queue: nil)
         networkMonitor.startMonitoring()
+
+//      //FIXME: ADDED HERE FOR DEBUGGING -> TO REMOVE!!!
+#warning("FIXME: ADDED HERE FOR DEBUGGING -> TO REMOVE!!!")
+        numberOfTriesBeforeConnecting = Int.random(in: 0..<10)
+        print("\nnumberOfTriesBeforeConnecting: \(numberOfTriesBeforeConnecting)\n")
     }
 
 
@@ -465,6 +477,8 @@ public class ActiveLookSDK {
 
                     case .connectionLost:
                         // connection lost while updating -> reconnect asap
+                        dlog(message: "relaunch connection — to implement?",
+                             line: #line, function: #function, file: #fileID)
                         self.centralManager.connect(glasses.peripheral)
 
                     default:
@@ -473,6 +487,22 @@ public class ActiveLookSDK {
                     }
                     self.updateParameters.reset()   // FIXME: can trigger warning '[connection] nw_resolver_start_query_timer_block_invoke [C1] Query fired: did not receive all answers in time for... in Downloader.swift'
                 })
+    }
+
+// MARK: - DEBUG METHOD
+// FIXME: ADDED HERE FOR DEBUGGING -> TO REMOVE!!!
+#warning("FIXME: ADDED HERE FOR DEBUGGING -> TO REMOVE!!!")
+    func cancelPeriphConnection() {
+        guard let peripheral = bleConnectedPeripheral else {
+            fatalError("FUCK OFF!")
+        }
+
+        dlog(message: "",
+             line: #line, function: #function, file: #fileID)
+
+        print("ASKING FOR DISCONNECT!")
+
+        centralManager.cancelPeripheralConnection(peripheral)
     }
 
 
@@ -573,6 +603,11 @@ public class ActiveLookSDK {
                 central.cancelPeripheralConnection(peripheral)
                 return
             }
+
+// FIXME: ADDED HERE FOR DEBUGGING -> TO REMOVE!!!
+#warning("FIXME: ADDED HERE FOR DEBUGGING -> TO REMOVE!!!")
+            // TODO: DISCONNECT HERE?
+            parent.bleConnectedPeripheral = peripheral
 
             central.stopScan()
 
