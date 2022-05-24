@@ -226,7 +226,13 @@ public class Glasses {
 
         self.peripheral.delegate = delegate
     }
-    
+
+    internal func areConnected() -> Bool {
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+
+        return self.peripheral.state == .connected
+    }
+
 
     // MARK: - Private methods
     

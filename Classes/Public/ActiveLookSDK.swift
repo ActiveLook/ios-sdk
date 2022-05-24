@@ -55,8 +55,8 @@ public class ActiveLookSDK {
     private var updater: GlassesUpdater?
     private var networkMonitor: NetworkMonitor!
 
-    // MARK: - Internal properties
 
+    // MARK: - Internal properties
 
     internal var centralManager: CBCentralManager!
     internal var centralManagerDelegate: CentralManagerDelegate // TODO: internal or private ?
@@ -404,7 +404,7 @@ public class ActiveLookSDK {
     }
 
 
-    private func processConnected(_ glasses: Glasses)
+    private func updateInitializedGlasses(_ glasses: Glasses)
     {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
@@ -449,6 +449,10 @@ public class ActiveLookSDK {
 
                         discoveredGlasses.connectionCallback?(glasses)
                         self.updateParameters.update(.updateFailed)
+
+                    case .connectionLost:
+                        // connection lost while updating -> reconnect asap
+                        self.centralManager.connect(glasses.peripheral)
 
                     default:
                         discoveredGlasses.connectionErrorCallback?(ActiveLookError.sdkUpdateFailed)
@@ -555,7 +559,7 @@ public class ActiveLookSDK {
                                            onSuccess:
                                             {
                 print("central manager did connect to glasses \(discoveredGlasses.name)")
-                parent.processConnected(glasses)
+                parent.updateInitializedGlasses(glasses)
             },
                                            onError:
                                             { (error) in
@@ -598,6 +602,13 @@ public class ActiveLookSDK {
             print("central manager did disconnect from glasses \(glasses.name)")
 
             glasses.disconnectionCallback?()
+
+            if parent.updateParameters.isUpdating()
+            {
+                parent.updater?.abort()
+                parent.updateParameters.update(.updateFailed)
+                parent.updateParameters.reset()
+            }
 
             if !glasses.isIntentionalDisconnect {
                 print("unwanted disconnect: reconnecting as soon as possible")
