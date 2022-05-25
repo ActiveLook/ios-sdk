@@ -408,6 +408,13 @@ public class ActiveLookSDK {
     {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
+        // TODO: check if glasses already in connected array...
+        if let index = connectedGlassesArray.firstIndex(where: { cGlasses in
+            glasses.peripheral.identifier == cGlasses.peripheral.identifier
+        }) {
+            connectedGlassesArray.remove(at: index)
+        }
+
         connectedGlassesArray.append(glasses)
 
         guard let discoveredGlasses = discoveredGlasses(fromPeripheral: glasses.peripheral)
@@ -481,6 +488,12 @@ public class ActiveLookSDK {
             else {
                 parent.didAskForScan?.scanErrorCallback(
                     ActiveLookError.bluetoothErrorFromState( state: central.state) )
+                return
+            }
+
+            if let connectedGlasses = parent.connectedGlassesArray.first {
+                // a pair of glasses was connected when bluetooth was turned of. Reconnect...
+                central.connect(connectedGlasses.peripheral)
                 return
             }
 
