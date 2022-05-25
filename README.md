@@ -166,24 +166,30 @@ glasses.battery { (batteryLevel : Int) in
 
 ## Notifications
 
-It is possible to subscribe to three types of notifications that the glasses will send over Bluetooth:
-* Battery level updates (periodically, every 30 seconds)
-* Gesture detection sensor triggered
-* Flow control events (when the state of the flow control changes)
+It is possible to subscribe to three types of notifications from the glasses. Once notified, the corresponding closure is called, if provided.
 
+* Battery level updates:
 ```swift
 glasses.subscribeToBatteryLevelNotifications(onBatteryLevelUpdate: { (batteryLevel: Int) -> (Void) in
     print("battery level update: \(batteryLevel)")
 })
+```
+-> An update is sent periodically, every 30 second.
 
+* Gesture detection sensor triggered
+```swift
 glasses.subscribeToFlowControlNotifications(onFlowControlUpdate: { (flowControlState: FlowControlState) -> (Void) in
     print("flow control state update: \(flowControlState)")
 })
+```
 
+* Flow control events (when the state of the flow control changes)
+```swift
 glasses.subscribeToSensorInterfaceNotifications(onSensorInterfaceTriggered: { () -> (Void) in
     print("sensor interface triggered")
 })
 ```
+-> Only non-internal states are passed thru. See `Public > ActiveLookType.swift : public enum FlowControlState{}` for more information.
 
 ## Disconnect
 

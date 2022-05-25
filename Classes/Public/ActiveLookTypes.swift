@@ -51,12 +51,12 @@ public enum TextRotation: UInt8 {
 
 /// The Flow Control state.
 ///
-/// The Flow Control server provides a method to prevent the application on the Client Device from overloading the BLE memory buffer of the ActiveLook® device.
-/// The ActiveLook® device will notify the Client device when the Rx Buffer is getting full, the Client device is required to stop sending data at this time.
-/// When the Rx Buffer has been reduced to a safe level, the ActiveLook® device will notify the Client Device to re-start the flow of data.
+/// The Flow Control server provides a method to prevent the Client's application from overloading the BLE memory buffer of the ActiveLook® device.
+/// The SDK manages the sending and / or stacking of commands.
+/// Only non-internal States are forwarded thru to the Client application.
 @objc public enum FlowControlState: Int {
-    case on = 1
-    case off = 2
+    case on = 1   // internal
+    case off = 2  // internal
     case error = 3
     case overflow = 4
     case unexpectedDataType =  5
