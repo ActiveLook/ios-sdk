@@ -6,6 +6,12 @@
 - Loosing connection with the glasses during a version check will not block auto-reconnect anymore (tested only on checks, no updates)
 - If the device's BLE is turned off while glasses are connected, they will auto-reconnect when the BLE is back on (non persistent)
 - Mirrors Android's management of FlowControl status updates
+- Flow control internal management
+- Fix cancel connection on disconnected glasses
+
+### Changes
+- Add reboot delay as parameters
+- Retry update on every connection
 
 ---
 
