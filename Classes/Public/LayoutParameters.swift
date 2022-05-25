@@ -177,7 +177,7 @@ public class LayoutParameters {
     }
 
 
-    internal func toCommandData() -> [UInt8] {
+    public func toCommandData() -> [UInt8] {
         var data: [UInt8] = []
 
         data.append(self.id)
@@ -219,4 +219,24 @@ public class LayoutParameters {
         return LayoutParameters(id: UInt8(id), x: x, y: y, width: width, height: height, foregroundColor: foregroundColor, backgroundColor: backgroundColor, font: font, textValid: textValid, textX: textX, textY: textY, textRotation: textRotation, textOpacity: textOpacity)
     }
 
+    // MARK: - Defined for non-native integration
+    @objc public func toString() -> NSString {
+         var str: String = ""
+         str.append("\(self.id)")
+         str.append("\(self.subCommands.count)")
+         str.append("\(self.x.asUInt8Array)")
+         str.append("\(self.y)")
+         str.append("\(self.width.asUInt8Array)")
+         str.append("\(self.height)")
+         str.append("\(self.foregroundColor)")
+         str.append("\(self.backgroundColor)")
+         str.append("\(self.font)")
+         str.append("\(self.textValid ? 0x01 : 0x00)")
+         str.append("\(self.textX.asUInt8Array)")
+         str.append("\(self.textY)")
+         str.append("\(self.textRotation.rawValue)")
+         str.append("\(self.textOpacity ? 0x01 : 0x00)")
+         str.append("\(self.subCommands)")
+         return NSString.init(string: str)
+     }
 }

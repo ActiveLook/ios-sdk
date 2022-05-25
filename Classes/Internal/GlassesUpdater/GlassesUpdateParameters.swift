@@ -50,12 +50,16 @@ internal enum UpdateState : String {
 internal class GlassesUpdateParameters {
 
     // TODO: CREATE NEW class `UpdaterParameters{}`? to dissociate GlassesUpdate parameters from SDK ones?
+
+    // FIXME: vvv RELATED TO Updater vvv
     var token: String
     var startClosure: StartClosureSignature
     var progressClosure: ProgressClosureSignature
     var successClosure: SuccessClosureSignature
     var failureClosure: FailureClosureSignature
+    // FIXME: ^^^ RELATED TO Updater ^^^
 
+    // FIXME: vvv RELATED TO GlassesUpdate vvvv
     var discoveredGlasses: DiscoveredGlasses?
     
     var hardware: String
@@ -73,20 +77,25 @@ internal class GlassesUpdateParameters {
     private let updatingCfg: [UpdateState] = [.updatingConfig]
     private let upToDate: [UpdateState] = [.upToDate]
     private let updateFailed: [UpdateState] = [.updateFailed]
-
+    // FIXME: ^^^ RELATED TO GlassesUpdate ^^^
     
     // MARK: - Life Cycle
     
     init(_ token: String,
-    _ onUpdateStartCallback: @escaping StartClosureSignature,
-    _ onUpdateProgressCallback: @escaping ProgressClosureSignature,
-    _ onUpdateSuccessCallback: @escaping SuccessClosureSignature,
-    _ onUpdateFailureCallback: @escaping FailureClosureSignature ) {
+         _ onUpdateStartCallback: @escaping StartClosureSignature,
+         _ onUpdateProgressCallback: @escaping ProgressClosureSignature,
+         _ onUpdateSuccessCallback: @escaping SuccessClosureSignature,
+         _ onUpdateFailureCallback: @escaping FailureClosureSignature)
+    {
+        // FIXME: vvv RELATED TO Updater vvv
         self.token = token
         self.startClosure = onUpdateStartCallback
         self.progressClosure = onUpdateProgressCallback
         self.successClosure = onUpdateSuccessCallback
         self.failureClosure = onUpdateFailureCallback
+        // FIXME: ^^^ RELATED TO Updater ^^^
+
+        // FIXME: vvv RELATED TO GlassesUpdate vvv
         self.hardware = ""
 
         self.updateStateToGlassesUpdate = [downloadingFW, updatingFW,
@@ -94,11 +103,14 @@ internal class GlassesUpdateParameters {
                                            upToDate, updateFailed]
         
         self.softwareVersions = [ .device: nil, .remote: nil ]
+        // FIXME: ^^^ RELATED TO GlassesUpdate ^^^
     }
 
 
+
     // MARK: - Internal Functions
-    
+
+    // FIXME: vvv RELATED TO GlassesUpdate vvv
     func update(_ stateUpdate: UpdateState, _ progress: Double = 0)
     {
         dlog(message: "progress update to \(stateUpdate) – \(progress)",
@@ -188,7 +200,7 @@ internal class GlassesUpdateParameters {
 
     func isUpdating() -> Bool {
         switch state {
-        case .upToDate, .NOT_INITIALIZED, .updateFailed:
+        case .NOT_INITIALIZED, .rebooting, .upToDate, .updateFailed:
             return false
         default:
             return true
@@ -242,5 +254,6 @@ internal class GlassesUpdateParameters {
         }
         return version
     }
+    // FIXME: ^^^ RELATED TO GlassesUpdate ^^^
 }
 
