@@ -1,29 +1,38 @@
 # CHANGELOG
 
+## Version 4.2.3
+
+### Fixes
+- Loosing connection with the glasses during a version check will not block auto-reconnect anymore (tested only on checks, no updates)
+- Mirrors Android's management of FlowControl status updates
+
+---
+
 ## Version 4.2.2
 
 ### New features
-- Allow cancelling connection
-- Add a serialized glasses object allowing reconnecting without scanning
+- Allows cancelling connection using `glasses` object
+- New `serializedGlasses` object allowing reconnecting without scanning
+- Allows cancelling connection using `serializedGlasses` object
 
 ### Changes
-- On connection lost, directly trigger the disconnected glasses callback
+- Upon connection loss, always trigger the `onGlassesDisconnected()` callback
 
 ### Fixes
-- All connection loss will trigger an auto reconnect attempt if `glasses.disconnect()` has not been called.
+- All connection loss will trigger an auto-reconnect attempt, unless being initiated using `glasses.disconnect()`
 
 ---
 
 ## Version 4.2.1
 
 ### New features
-- Add an up to date state
+- Adds an `UP_TO_DATE` state
 
 ### Changes
-- Make progress a double instead of an integer
+- Changes `progress` type to `Double` instead of `Int`
 
 ### Fixes
-- Calls to progress update callbacks
+- Calls to `onProgressUpdate()` closures
 
 ---
 
@@ -41,12 +50,12 @@
     - Usually with big configurations
 
 ### Fixes
-fix: change imgList command ID, and ImageInfo implementation to return correct img ID
-fix: implement polyline()
-fix: set hardware in glasses initializer, and dispatch result on main if update not available
-changes the way the MTU for BLE is calculated
-fix: update CommandID's imgDelete to 0x46
-fix: add lists commands to handled commands
+- Changes `imgList` `commandID`, and `ImageInfo` implementation to return correct `img ID`
+- Implements `polyline()`
+- Sets hardware in glasses initializer, and dispatch result on main if update not available
+- Changes the way the MTU for BLE is calculated
+- Updates `CommandID`'s `imgDelete` to `0x46`
+- Adds entry in list of commands to handle
 
 ### Changes
-- Minimum iOS version upgrade to 13
+- Bumps minimum iOS version to 13

@@ -16,6 +16,7 @@
 import Foundation
 import Network
 
+// TODO: Post notification on connectivity status change, and subscribe in VersionChecker, Downloader, ...
 extension Notification.Name {
     static let connectivityStatus = Notification.Name(rawValue: "connectivityStatusChanged")
 }

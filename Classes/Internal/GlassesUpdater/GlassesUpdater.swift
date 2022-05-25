@@ -22,13 +22,15 @@ internal enum GlassesUpdateError: Error
 {
     case glassesUpdater(message: String = "")   // 0
     case versionChecker(message: String = "")   // 1
-    case versionCheckerNoUpdateAvailable       // 2
+    case versionCheckerNoUpdateAvailable        // 2
     case downloader(message: String = "")       // 3
     case downloaderClientError                  // 4
     case downloaderServerError                  // 5
     case downloaderJsonError                    // 6
     case firmwareUpdater(message: String = "")  // 7
     case networkUnavailable                     // 8
+    case connectionLost                         // 10
+    case abortingUpdate                         // 11
 }
 
 
@@ -43,12 +45,13 @@ internal class GlassesUpdater {
 
     private var glasses: Glasses?
 
-    private var rebootClosure: ( () -> () )?
+    private var rebootClosure: ( (Int) -> Void )?
     private var successClosure: ( () -> () )?
     private var errorClosure: ( (GlassesUpdateError) -> () )?
 
     private var firmwareUpdater: FirmwareUpdater?
     private var versionChecker: VersionChecker?
+    private var downloader: Downloader?
 
 
     // MARK: - Life cycle
@@ -67,7 +70,7 @@ internal class GlassesUpdater {
     // MARK: - Internal methods
 
     func update(_ glasses: Glasses,
-                onReboot rebootClosure: @escaping () -> (),
+                onReboot rebootClosure: @escaping (Int) -> Void,
                 onSuccess successClosure: @escaping () -> (),
                 onError errorClosure: @escaping (GlassesUpdateError) -> () )
     {
@@ -80,10 +83,21 @@ internal class GlassesUpdater {
 
         versionChecker = VersionChecker()
 
-        // Start update process
         sdk?.updateParameters.update(.startingUpdate)
 
+        // Start update process
         checkFirmwareRecency()
+    }
+
+    func abort() -> Void {
+        versionChecker?.abort()
+        versionChecker = nil
+
+        downloader?.abort()
+        downloader = nil
+
+//        firmwareUpdater.abort() // TODO: ...
+        firmwareUpdater = nil
     }
 
 
@@ -97,6 +111,7 @@ internal class GlassesUpdater {
 
         default:
             sdk?.updateParameters.update(.updateFailed)
+            break
         }
         
         errorClosure?(error)
@@ -127,6 +142,11 @@ internal class GlassesUpdater {
             return
         }
 
+        guard glasses!.areConnected() else {
+            failed(with: GlassesUpdateError.glassesUpdater(message: "Glasses NOT connected"))
+            return
+        }
+
         versionChecker?.isFirmwareUpToDate(for: glasses!,
                                              onSuccess: { ( result ) in self.process( result ) },
                                              onError: { ( error ) in self.failed(with: error ) })
@@ -148,8 +168,8 @@ internal class GlassesUpdater {
 
             sdk?.updateParameters.update(.downloadingFw)
 
-            let downloader = Downloader()
-            downloader.downloadFirmware(at: apiUrl,
+            downloader = Downloader()
+            downloader?.downloadFirmware(at: apiUrl,
                                          onSuccess: {( data ) in self.updateFirmware(using: Firmware( with: data))},
                                          onError: {( error ) in self.failed(with: error )})
 
@@ -166,9 +186,22 @@ internal class GlassesUpdater {
     {
         sdk?.updateParameters.update(.updatingFw)
 
-        firmwareUpdater = FirmwareUpdater(onSuccess: { self.waitingForGlassesReboot() },
-                                        onError: { error in self.failed(with: error) })
+        downloader = nil
 
+        sdk?.updateParameters.update(.updatingFw)
+
+        guard glasses!.areConnected() else {
+            failed(with: GlassesUpdateError.glassesUpdater(message: "Glasses NOT connected"))
+            return
+        }
+
+        firmwareUpdater = FirmwareUpdater(onSuccess: { self.waitingForGlassesReboot() },
+                                          onError: { error in self.failed(with: error) })
+
+        guard glasses!.areConnected() else {
+            failed(with: GlassesUpdateError.glassesUpdater(message: "Glasses NOT connected"))
+            return
+        }
         firmwareUpdater?.update(glasses!, with: firmware)
     }
 
@@ -177,7 +210,14 @@ internal class GlassesUpdater {
     {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
-        rebootClosure?()
+        guard let sdk = sdk else {
+            print("cannot retrieve sdk")
+            return
+        }
+
+        let delay: Int = sdk.updateParameters.needDelayAfterReboot() ? 3 : 0
+
+        rebootClosure?(delay)
     }
 
 
@@ -192,14 +232,24 @@ internal class GlassesUpdater {
             return
         }
 
+        guard glasses!.areConnected() else {
+            failed(with: GlassesUpdateError.glassesUpdater(message: "Glasses NOT connected"))
+            return
+        }
+
         versionChecker?.isConfigurationUpToDate( for: glasses!,
-                                                    onSuccess: { ( result ) in self.process( result ) },
-                                                    onError: { ( error ) in self.failed(with: error ) })
+                                                 onSuccess: { ( result ) in self.process( result ) },
+                                                 onError: { ( error ) in self.failed(with: error ) })
     }
 
 
     private func processConfigurationResponse(_ result: VersionCheckResult )
     {
+        guard glasses!.areConnected() else {
+            failed(with: GlassesUpdateError.glassesUpdater(message: "Glasses NOT connected"))
+            return
+        }
+
         switch result.status
         {
         case .needsUpdate(let apiUrl):
@@ -213,8 +263,8 @@ internal class GlassesUpdater {
             
             sdk?.updateParameters.update(.downloadingConfig)
 
-            let downloader = Downloader()
-            downloader.downloadConfiguration(at: apiUrl,
+            downloader = Downloader()
+            downloader?.downloadConfiguration(at: apiUrl,
                                               onSuccess: { ( cfg ) in self.updateConfiguration(with: cfg ) },
                                               onError: { ( error ) in self.failed(with: error ) })
 
@@ -231,6 +281,15 @@ internal class GlassesUpdater {
     {
         sdk?.updateParameters.update(.updatingConfig)
 
+        downloader = nil
+
+        sdk?.updateParameters.update(.updatingConfig)
+
+        guard glasses!.areConnected() else {
+            failed(with: GlassesUpdateError.glassesUpdater(message: "Glasses NOT connected"))
+            return
+        }
+
         glasses?.loadConfigurationWithClosures(cfg: configuration,
                                                onSuccess: { self.configurationIsUpToDate() },
                                                onError: { print("Configuration could not be downloaded") } )
@@ -240,6 +299,11 @@ internal class GlassesUpdater {
     private func configurationIsUpToDate()
     {
         dlog(message: "",line: #line, function: #function, file: #fileID)
+
+        guard glasses!.areConnected() else {
+            failed(with: GlassesUpdateError.glassesUpdater(message: "Glasses NOT connected"))
+            return
+        }
 
         successClosure?()
     }
