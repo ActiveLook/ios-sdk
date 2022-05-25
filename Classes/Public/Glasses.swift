@@ -226,7 +226,13 @@ public class Glasses {
 
         self.peripheral.delegate = delegate
     }
-    
+
+    internal func areConnected() -> Bool {
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+
+        return self.peripheral.state == .connected
+    }
+
 
     // MARK: - Private methods
     
@@ -414,18 +420,7 @@ public class Glasses {
     // MARK: - Public methods
 
     /// Disconnect from the glasses.
-    ///
-    /// - throws: `ActiveLookError.cannotCancelConnectionWhileUpgraging` if glasses are updating.
-    ///
-    /// - important: Wait for `onUpdateSuccess()` or `onUpdateError()` to be called before trying again.
-    ///
-    public func disconnect() throws {
-
-        guard let sdk = sdk, !sdk.updateParameters.isUpdating() else {
-            print("CAN NOT DISCONNECT WHILE UPDATING!")
-            throw ActiveLookError.cannotCancelConnectionWhileUpgraging
-        }
-
+    public func disconnect() {
         isIntentionalDisconnect = true
         centralManager.cancelPeripheralConnection(peripheral)
     }
@@ -651,7 +646,8 @@ public class Glasses {
 
         sendCommand(id: .point, withData: data)
     }
-    
+
+    // TODO: CHANGE SIGNATURE TO MATCH [API DOC](https://gitlab.com/microoled/activelook-api-documentation/-/blob/master/ActiveLook_API.md#Graphicscommands)
     /// Draw a line at the corresponding coordinates
     /// - Parameters:
     ///   - x0: The x coordinate of the start of the line
@@ -668,7 +664,8 @@ public class Glasses {
 
         sendCommand(id: .line, withData: data)
     }
-    
+
+    // TODO: CHANGE SIGNATURE TO MATCH [API DOC](https://gitlab.com/microoled/activelook-api-documentation/-/blob/master/ActiveLook_API.md#Graphicscommands)
     /// Draw an empty rectangle at the corresponding coordinates
     /// - Parameters:
     ///   - x0: The x coordinate of the bottom left part of the rectangle
@@ -686,6 +683,7 @@ public class Glasses {
         sendCommand(id: .rect, withData: data)
     }
 
+    // TODO: CHANGE SIGNATURE TO MATCH [API DOC](https://gitlab.com/microoled/activelook-api-documentation/-/blob/master/ActiveLook_API.md#Graphicscommands)
     /// Draw a full rectangle at the corresponding coordinates
     /// - Parameters:
     ///   - x0: The x coordinate of the bottom left part of the rectangle
@@ -1278,22 +1276,6 @@ public class Glasses {
                 print("error while updating notification state : \(error!.localizedDescription) for characteristic: \(characteristic.uuid)")
                 return
             }
-            
-            switch characteristic.uuid {
-            case CBUUID.ActiveLookFlowControlCharacteristic:
-                if let flowControlState = FlowControlState(rawValue: characteristic.valueAsInt) {
-                    parent?.flowControlState = flowControlState
-                    
-                    // ON and OFF notifications are not available to callback (i.e SDK's consumer)
-                    if (flowControlState != FlowControlState.on &&
-                        flowControlState != FlowControlState.off) {
-                        parent?.flowControlUpdateCallback?(flowControlState)
-                    }
-                }
-
-            default:
-                break
-            }
 
             print("peripheral did update notification state for characteristic: \(characteristic) in: \(#fileID)")
         }
@@ -1321,9 +1303,17 @@ public class Glasses {
                 parent?.sensorInterfaceTriggeredCallback?()
 
             case CBUUID.ActiveLookFlowControlCharacteristic:
-                if let flowControlState = FlowControlState(rawValue: characteristic.valueAsInt) {
-                    parent?.flowControlState = flowControlState
-                }
+              if let flowControlState = FlowControlState(rawValue: characteristic.valueAsInt)
+              {
+                  if (flowControlState == FlowControlState.on ||
+                      flowControlState == FlowControlState.off) {
+                      // ON and OFF notifications are only used for internally
+                      parent?.flowControlState = flowControlState
+                  } else {
+                      // Other notifications are sent to the callback, if provided
+                      parent?.flowControlUpdateCallback?(flowControlState)
+                  }
+              }
 
             default:
                 break

@@ -24,7 +24,7 @@ public class ImageData {
     /// The encoded data representing the image
     public let data: [UInt8]
     
-    internal let size: UInt32
+    public let size: UInt32
     
     public init(width: UInt16, data: [UInt8]) {
         self.width = width

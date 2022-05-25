@@ -27,13 +27,32 @@ internal enum DownloaderError: Error {
 
 internal class Downloader: NSObject {
 
+    // MARK: - Private Variables
+    private var task: URLSessionDataTask?
+
+    private var cancelOperations: Bool = false {
+        didSet {
+            if cancelOperations == true {
+                task?.cancel()
+            }
+        }
+    }
+
 
     // MARK: - Life Cycle
     
     override init() { }
 
-    
+    deinit {
+        task = nil
+    }
+
+
     // MARK: - Internal Methods
+
+    internal func abort() {
+        cancelOperations = true
+    }
 
     internal func downloadFirmware(at url: URL,
                                onSuccess successClosure: @escaping ( Data ) -> (Void),
@@ -41,7 +60,7 @@ internal class Downloader: NSObject {
     {
         dlog(message: "",line: #line, function: #function, file: #fileID)
         
-        let task = URLSession.shared.dataTask( with: url ) { data, response, error in
+        task = URLSession.shared.dataTask( with: url ) { data, response, error in
             guard error == nil else {
                 errorClosure( GlassesUpdateError.downloader(
                     message: String(format: "Client error @", #line) ) )
@@ -67,7 +86,7 @@ internal class Downloader: NSObject {
             }
 
         }
-        task.resume()
+        task?.resume()
     }
 
     internal func downloadConfiguration(at url: URL,
@@ -76,7 +95,7 @@ internal class Downloader: NSObject {
     {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
-        let task = URLSession.shared.dataTask( with: url ) { data, response, error in
+        task = URLSession.shared.dataTask( with: url ) { data, response, error in
             guard error == nil else {
                 errorClosure( GlassesUpdateError.downloader(
                     message: String(format: "Client error @", #line) ) )
@@ -102,6 +121,6 @@ internal class Downloader: NSObject {
             }
 
         }
-        task.resume()
+        task?.resume()
     }
 }

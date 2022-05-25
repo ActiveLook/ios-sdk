@@ -66,6 +66,17 @@ internal final class VersionChecker: NSObject {
     private var successClosure: (( VersionCheckResult ) -> (Void))?
     private var errorClosure: (( GlassesUpdateError ) -> (Void))?
 
+    private var task: URLSessionDataTask?
+
+    private var cancelOperations: Bool = false {
+        didSet {
+            if cancelOperations == true {
+                task?.cancel()
+                errorClosure?(GlassesUpdateError.abortingUpdate)
+            }
+        }
+    }
+
     private var glassesFWVersion: FirmwareVersion? {
         didSet {
             if glassesFWVersion != nil {
@@ -150,6 +161,14 @@ internal final class VersionChecker: NSObject {
         self.successClosure = successClosure
         self.errorClosure = errorClosure
 
+        guard glasses.areConnected() else {
+          dlog(message: "GLASSES NOT CONNECTED",
+               line: #line, function: #function, file: #fileID)
+
+          errorClosure(GlassesUpdateError.versionChecker(message: "GLASSES NOT CONNECTED!"))
+          return
+        }
+
         // call to retrieve glasses configuration concurrently with remote configuration
         glasses.cfgRead(name: "ALooK", callback: { (config: ConfigurationElementsInfo) in
             let cfgVers = ConfigurationVersion(major: Int(config.version))
@@ -158,6 +177,11 @@ internal final class VersionChecker: NSObject {
         })
 
         fetchConfigurationHistory()
+    }
+
+    internal func abort() {
+        dlog(message: "",line: #line, function: #function, file: #fileID)
+        self.cancelOperations = true
     }
 
 
@@ -180,7 +204,6 @@ internal final class VersionChecker: NSObject {
         successClosure?(result)
     }
 
-
     // MARK: Configuration
 
     private func fetchConfigurationHistory()
@@ -195,10 +218,12 @@ internal final class VersionChecker: NSObject {
         // format URL string
         let url = urlGenerator.configurationHistoryURL(for: gfw)
 
-        let task = URLSession.shared.dataTask( with: url ) { data, response, error in
+        task = URLSession.shared.dataTask( with: url ) { data, response, error in
             guard error == nil else {
-//                self.failed(with: GlassesUpdateError.versionChecker(
-//                    message: String(format: "Client error @", #line)))
+                dlog(message: "CLIENT ERROR",
+                        line: #line, function: #function, file: #fileID)
+
+                self.failed(with: GlassesUpdateError.networkUnavailable)
                 return
             }
 
@@ -216,8 +241,10 @@ internal final class VersionChecker: NSObject {
             }
 
             guard let data = data else {
-//                self.failed(with: GlassesUpdateError.versionChecker(
-//                    message: String(format: "Retrieved data is nil @", #line)))
+                dlog(message: "RETRIEVED DATA IS NIL",
+                        line: #line, function: #function, file: #fileID)
+
+                self.failed(with: GlassesUpdateError.networkUnavailable)
                 return
             }
 
@@ -238,7 +265,8 @@ internal final class VersionChecker: NSObject {
                 self.sdk.updateParameters.set(version: self.remoteConfigurationVersion!, for: .remote)
             }
         }
-        task.resume()
+
+        task?.resume()
     }
 
 

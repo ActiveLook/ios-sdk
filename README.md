@@ -4,6 +4,7 @@
 
 In order to use the ActiveLook SDK for iOS, you should have XCode installed together
 with [cocoapods](https://cocoapods.org).
+The SDK is also available using SPM.
 
 ## License
 
@@ -27,15 +28,23 @@ Then run the command:
 An example Podfile is included in the `demo-app` repo available on github at
 [demo-app](https://github.com/ActiveLook/demo-app)
 
+### Swift Package Manager
+To integrate ActiveLookSDK into your Xcode project using SPM, add a new package with the url https://github.com/ActiveLook/ios-sdk.git using the `main` branch.
+
 ### Info.plist
-To access Core Bluetooth APIs on apps linked on or after iOS 13, include the
+To access Core Bluetooth APIs on apps linked on or after iOS 13, fill in the
 `NSBluetoothAlwaysUsageDescription` key in your app's `Info.plist`.
+
+Also, add the `App Transport Security Settings` dictionary with the `Allow Arbitrary Loads` key set to `YES`.
 
 ## Example
 
 To test the SDK, clone the [demo-app](https://github.com/ActiveLook/demo-app):
 `git clone https://github.com/ActiveLook/demo-app.git`
 
+## Documentation
+
+The code is commented so that the documentation can be built on your machine using Xcode's `Build configuration` command, enabling symbolic documentation.
 
 ## Initialization
 
@@ -105,7 +114,6 @@ glasses.onDisconnect { [weak self] in
 }
 ```
 
-
 ## Device information
 
 To get information relative to discovered glasses as published over Bluetooth, you can access the following public properties:
@@ -158,24 +166,30 @@ glasses.battery { (batteryLevel : Int) in
 
 ## Notifications
 
-It is possible to subscribe to three types of notifications that the glasses will send over Bluetooth:
-* Battery level updates (periodically, every 30 seconds)
-* Gesture detection sensor triggered
-* Flow control events (when the state of the flow control changes)
+It is possible to subscribe to three types of notifications from the glasses. Once notified, the corresponding closure is called, if provided.
 
+* Battery level updates:
 ```swift
 glasses.subscribeToBatteryLevelNotifications(onBatteryLevelUpdate: { (batteryLevel: Int) -> (Void) in
     print("battery level update: \(batteryLevel)")
 })
+```
+-> An update is sent periodically, every 30 second.
 
+* Gesture detection sensor triggered
+```swift
 glasses.subscribeToFlowControlNotifications(onFlowControlUpdate: { (flowControlState: FlowControlState) -> (Void) in
     print("flow control state update: \(flowControlState)")
 })
+```
 
+* Flow control events (when the state of the flow control changes)
+```swift
 glasses.subscribeToSensorInterfaceNotifications(onSensorInterfaceTriggered: { () -> (Void) in
     print("sensor interface triggered")
 })
 ```
+-> Only non-internal states are passed thru. See `Public > ActiveLookType.swift : public enum FlowControlState{}` for more information.
 
 ## Disconnect
 
