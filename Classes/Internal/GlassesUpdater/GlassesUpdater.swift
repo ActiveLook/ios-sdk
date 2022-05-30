@@ -46,8 +46,8 @@ internal class GlassesUpdater {
     private var glasses: Glasses?
 
     private var rebootClosure: ( (Int) -> Void )?
-    private var successClosure: ( () -> () )?
-    private var errorClosure: ( (GlassesUpdateError) -> () )?
+    private var successClosure: ( () -> Void )?
+    private var errorClosure: ( (GlassesUpdateError) -> Void )?
 
     private var firmwareUpdater: FirmwareUpdater?
     private var versionChecker: VersionChecker?
