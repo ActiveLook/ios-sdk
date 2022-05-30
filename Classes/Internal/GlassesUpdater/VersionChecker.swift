@@ -331,9 +331,17 @@ internal final class VersionChecker: NSObject {
                 return
             }
 
-            guard let httpResponse = response as? HTTPURLResponse,
-                  (200...299).contains(httpResponse.statusCode)
-            else {
+            guard let httpResponse = response as? HTTPURLResponse else {
+                self.failed(with: GlassesUpdateError.downloader(message: "Invalid Response"))
+                return
+            }
+
+            guard httpResponse.statusCode != 403 else {
+                self.failed(with: GlassesUpdateError.invalidToken)
+                return
+            }
+
+            guard (200...299).contains(httpResponse.statusCode) else {
                 DispatchQueue.main.async {
                     self.remoteFWVersion =
                         FirmwareVersion(major:0,

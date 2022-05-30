@@ -29,6 +29,7 @@ internal enum GlassesUpdateError: Error
     case downloaderJsonError                    // 6
     case firmwareUpdater(message: String = "")  // 7
     case networkUnavailable                     // 8
+    case invalidToken                           // 9
     case connectionLost                         // 10
     case abortingUpdate                         // 11
 }
@@ -268,8 +269,6 @@ internal class GlassesUpdater {
         sdk?.updateParameters.notify(.updatingFw)
 
         downloader = nil
-
-        sdk?.updateParameters.update(.updatingFw)
 
         guard glasses!.areConnected() else {
             failed(with: GlassesUpdateError.glassesUpdater(message: "Glasses NOT connected"))
