@@ -32,16 +32,22 @@ internal enum UpdateState : String {
     case rebooting
     case checkingConfigVersion
     // case DOWNLOADING_CONFIGURATION -> calling startClosure(GlassesUpdate)
+    case noConfigUpdateAvailable
     case downloadingConfig
     // case UPDATING_CONFIGURATION -> calling progressClosure(GlassesUpdate)
     case updatingConfig
     // -> calling successClosure(GlassesUpdate)
     case upToDate
+    // case ERROR_UPDATE_FAIL_LOW_BATTERY
     // case ERROR_UPDATE_FORBIDDEN // UNAVAILABLE
     // case ERROR_DOWNGRADE_FORBIDDEN
+    case updateForbidden
+    case downgradeForbidden
     // case ERROR_UPDATE_FAIL
     //  -> calling failurexClosure(GlassesUpdate)
     case updateFailed
+    case lowBattery
+    // -> calling failureClosure(.gu(ERROR_UPDATE_FAIL_LOW_BATTERY))
 }
 
 
@@ -69,14 +75,20 @@ internal class GlassesUpdateParameters {
     private var softwareVersions: [SoftwareLocation : SoftwareVersions?]
     
     private var progress: Double = 0
+    private var batteryLevel: Int?
 
+    // used to match `UpdateStates` to `SDKGlassesUpdate.States`
     private var updateStateToGlassesUpdate: [[UpdateState]]
+
     private let downloadingFW: [UpdateState] = [.downloadingFw]
     private let updatingFW: [UpdateState] = [.updatingFw, .rebooting]
     private let downloadingCfg: [UpdateState] = [.downloadingConfig]
-    private let updatingCfg: [UpdateState] = [.updatingConfig]
-    private let upToDate: [UpdateState] = [.upToDate]
+    private let updatingCfg: [UpdateState] = [.updatingConfig, .upToDate]
     private let updateFailed: [UpdateState] = [.updateFailed]
+    private let updateFailedLowBattery: [UpdateState] = [.lowBattery]
+    private let updateForbidden: [UpdateState] = [.updateForbidden] // TODO: ASANA task "Check glasses FW version <= SDK version" – https://app.asana.com/0/1201639829815358/1202209982822311 – 220504
+    private let downgradeForbidden: [UpdateState] = [.downgradeForbidden] // TODO: ASANA task "Check glasses FW version <= SDK version" – https://app.asana.com/0/1201639829815358/1202209982822311 – 220504
+
     // FIXME: ^^^ RELATED TO GlassesUpdate ^^^
     
     // MARK: - Life Cycle
@@ -100,7 +112,8 @@ internal class GlassesUpdateParameters {
 
         self.updateStateToGlassesUpdate = [downloadingFW, updatingFW,
                                            downloadingCfg, updatingCfg,
-                                           upToDate, updateFailed]
+                                           updateFailed, updateFailedLowBattery,
+                                           updateForbidden, downgradeForbidden]
         
         self.softwareVersions = [ .device: nil, .remote: nil ]
         // FIXME: ^^^ RELATED TO GlassesUpdate ^^^
@@ -109,8 +122,7 @@ internal class GlassesUpdateParameters {
 
     // MARK: - Internal Functions
 
-    // TODO: change signature to func notify(_ stateUpdate: UpdateState, _ progress: Double = 0, _ batteryLevel: Double?){}
-    func notify(_ stateUpdate: UpdateState, _ progress: Double = 0)
+    func notify(_ stateUpdate: UpdateState, _ progress: Double = 0, _ batteryLevel: Int? = nil)
     {
         dlog(message: "progress update to \(stateUpdate) – \(progress)",
              line: #line, function: #function, file: #fileID)
@@ -123,8 +135,8 @@ internal class GlassesUpdateParameters {
         {
         case .downloadingFw, .downloadingConfig:
             // start closure
-            closureToSummon = startClosure
             self.progress = 0
+            closureToSummon = startClosure
 
         case .updatingFw, .rebooting, .updatingConfig:
             // progress closure
@@ -135,11 +147,12 @@ internal class GlassesUpdateParameters {
 
         case .upToDate:
             // success closure
-            closureToSummon = successClosure
             self.progress = 100
+            closureToSummon = successClosure
 
-        case .updateFailed:
+        case .updateFailed, .lowBattery, .updateForbidden, .downgradeForbidden:
             // failure closure
+            if batteryLevel != nil { self.batteryLevel = batteryLevel }
             closureToSummon = failureClosure
 
         default:
@@ -147,19 +160,23 @@ internal class GlassesUpdateParameters {
             return
         }
 
-        // new glassUpdate
-        let sdkGU = SdkGlassesUpdate(for: nil,
-                                     state: retrieveState(from: stateUpdate)!,
-                                     progress: self.progress,
-                                     sourceFirmwareVersion: getVersion(for: .device, softwareClass: .firmwares),
-                                     targetFirmwareVersion: getVersion(for: .remote, softwareClass: .firmwares),
-                                     sourceConfigurationVersion: getVersion(for: .device, softwareClass: .configurations),
-                                     targetConfigurationVersion: getVersion(for: .remote, softwareClass: .configurations))
-
-        closureToSummon!(sdkGU)
+        closureToSummon!(createSDKGU(state!))
     }
-    
-    
+
+
+    func createSDKGU(_ state: UpdateState) -> SdkGlassesUpdate
+    {
+        return SdkGlassesUpdate(for: nil,
+                                state: retrieveState(from: state)!,
+                                progress: self.progress,
+                                batteryLevel: self.batteryLevel,
+                                sourceFirmwareVersion: self.getVersion(for: .device, softwareClass: .firmwares),
+                                targetFirmwareVersion: self.getVersion(for: .remote, softwareClass: .firmwares),
+                                sourceConfigurationVersion: self.getVersion(for: .device, softwareClass: .configurations),
+                                targetConfigurationVersion: self.getVersion(for: .remote, softwareClass: .configurations))
+    }
+
+
     func set(version: SoftwareClassProtocol, for location: SoftwareLocation)
     {
         dlog(message: "",line: #line, function: #function, file: #fileID)
@@ -179,7 +196,7 @@ internal class GlassesUpdateParameters {
     }
 
     
-    func getVersion() -> String {
+    func getVersions() -> String {
         var versions = ""
         versions.append(getVersion(for: .device, softwareClass: .firmwares))
         versions.append(getVersion(for: .remote, softwareClass: .firmwares))
@@ -223,6 +240,14 @@ internal class GlassesUpdateParameters {
 
     // MARK: - Private functions
 
+    /// Retrieve the `State` associated with the internal `UpdateState`.
+    ///
+    /// The table `updateStateToGlassesUpdate[]` is used to match the different cases.
+    ///
+    /// - parameter stateUpdate: UpdateState — The internal state to retrieve
+    ///
+    /// - returns: `Optional` `State` to include in a `GlassesUpdate` object. Nil if not found.
+    ///
     private func retrieveState(from stateUpdate: UpdateState) -> State?
     {
         guard let index = updateStateToGlassesUpdate.firstIndex( where: {
