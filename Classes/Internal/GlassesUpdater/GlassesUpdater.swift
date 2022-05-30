@@ -53,6 +53,25 @@ internal class GlassesUpdater {
     private var versionChecker: VersionChecker?
     private var downloader: Downloader?
 
+    // If the batteryLevel is less than 10, the update will not proceed.
+    private var batteryLevel: Int? {
+        didSet {
+            guard let bl = batteryLevel else {
+                return
+            }
+
+            if bl < 10 {
+                sdk?.updateParameters.notify(.lowBattery, 0, bl)
+            } else {
+                if let vcr = vcResult {
+                    process(vcr)
+                }
+            }
+        }
+    }
+
+    private var vcResult: VersionCheckResult?
+
     private enum SoftwareAsset {
         case firmware(Firmware)
         case configuration(String)
@@ -121,6 +140,9 @@ internal class GlassesUpdater {
         versionChecker = VersionChecker()
 
         sdk?.updateParameters.notify(.startingUpdate)
+
+        // get battery level
+        glasses.battery( { self.batteryLevel = $0 } )
 
         // Start update process
         checkFirmwareRecency()
@@ -194,9 +216,19 @@ internal class GlassesUpdater {
     {
         switch result.status
         {
-        case .needsUpdate(let apiUrl) :
+        case .needsUpdate(let url) :
             dlog(message: "Firmware needs update",
                  line: #line, function: #function, file: #fileID)
+
+            // If battery level is < 10, update is stopped here, and will start back only when > 10
+            guard let bl = batteryLevel, bl >= 10 else {
+                glasses?.subscribeToBatteryLevelNotifications(onBatteryLevelUpdate: { self.batteryLevel = $0 })
+                vcResult = result
+                sdk?.updateParameters.notify(.lowBattery, 0, batteryLevel)
+                return
+            }
+
+            if vcResult != nil { vcResult = nil }
 
             guard NetworkMonitor.shared.isConnected else {
                 failed(with: GlassesUpdateError.networkUnavailable)
