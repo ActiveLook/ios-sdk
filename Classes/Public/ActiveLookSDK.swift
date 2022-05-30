@@ -607,7 +607,7 @@ public class ActiveLookSDK {
                 print("disconnected from unknown glasses")
                 if parent.updateParameters.isUpdating() {
                     parent.updater?.abort()
-                    parent.updateParameters.update(.updateFailed)
+                    parent.updateParameters.notify(.updateFailed)
                     parent.updateParameters.reset()
                 }
                 return
@@ -626,7 +626,7 @@ public class ActiveLookSDK {
             if parent.updateParameters.isUpdating()
             {
                 parent.updater?.abort()
-                parent.updateParameters.update(.updateFailed)
+                parent.updateParameters.notify(.updateFailed)
                 parent.updateParameters.reset()
             }
 

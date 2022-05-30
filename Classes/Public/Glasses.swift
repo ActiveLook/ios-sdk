@@ -1305,10 +1305,10 @@ public class Glasses {
                     if (flowControlState == FlowControlState.on ||
                         flowControlState == FlowControlState.off) {
                         // ON and OFF notifications are only used for internally
-                        parent?.flowControlState = flowControlState
+                        parent.flowControlState = flowControlState
                     } else {
                         // Other notifications are sent to the callback, if provided
-                        parent?.flowControlUpdateCallback?(flowControlState)
+                        parent.flowControlUpdateCallback?(flowControlState)
                     }
                 }
 
