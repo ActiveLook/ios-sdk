@@ -55,11 +55,13 @@ internal enum UpdateState : String {
 
 internal class GlassesUpdateParameters {
 
+    // TODO: refactor glassesUpdateParameter / GlassesUpdate / SdkGlassesUpdate
     // TODO: CREATE NEW class `UpdaterParameters{}`? to dissociate GlassesUpdate parameters from SDK ones?
 
     // FIXME: vvv RELATED TO Updater vvv
     var token: String
     var startClosure: StartClosureSignature
+    var updateAvailableClosure: UpdateAvailableClosureSignature
     var progressClosure: ProgressClosureSignature
     var successClosure: SuccessClosureSignature
     var failureClosure: FailureClosureSignature
@@ -95,13 +97,15 @@ internal class GlassesUpdateParameters {
     
     init(_ token: String,
          _ onUpdateStartCallback: @escaping StartClosureSignature,
+         _ onUpdateAvailableCallback: @escaping UpdateAvailableClosureSignature,
          _ onUpdateProgressCallback: @escaping ProgressClosureSignature,
          _ onUpdateSuccessCallback: @escaping SuccessClosureSignature,
-         _ onUpdateFailureCallback: @escaping FailureClosureSignature)
+         _ onUpdateFailureCallback: @escaping FailureClosureSignature )
     {
         // FIXME: vvv RELATED TO Updater vvv
         self.token = token
         self.startClosure = onUpdateStartCallback
+        self.updateAvailableClosure = onUpdateAvailableCallback
         self.progressClosure = onUpdateProgressCallback
         self.successClosure = onUpdateSuccessCallback
         self.failureClosure = onUpdateFailureCallback
