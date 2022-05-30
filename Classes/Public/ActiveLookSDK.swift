@@ -102,7 +102,9 @@ public class ActiveLookSDK {
     /// - parameters:
     ///     - token:  token used for authenticating with the update server.
     ///     - onUpdateStart:  callback asynchronously called when an update starts.
-    ///     - onUpdateAvailableCallback: callback asynchronously called if an update is available.
+    ///     - onUpdateAvailableCallback: callback asynchronously called when an update is available.
+    ///         - returns: `true` for the update to be performed.
+    ///         - returns: `false` for not performing the update, and the glasses are not connected.
     ///     - onUpdateProgress:  callback asynchronously called when an update progress.
     ///     - onUpdateSuccess:  callback asynchronously called when an update succeed.
     ///     - onUpdateError:  callback asynchronously called when an update fails.
@@ -304,8 +306,8 @@ public class ActiveLookSDK {
     /// - throws
     ///     - `ActiveLookError.alreadyConnected`: if glasses are already connected
     ///
-    /// - important: if `glasses` are connected, use `glasses.disconnect()`.
-    /// - important: it is impossible to cancel a connection while an update is ongoing.
+    /// - important: if a `glasses` object has already been returned, you need to
+    /// use `glasses.disconnect()` instead.
     ///
     /// Usage:
     ///
