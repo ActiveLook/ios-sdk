@@ -83,7 +83,7 @@ internal class GlassesUpdater {
 
         versionChecker = VersionChecker()
 
-        sdk?.updateParameters.update(.startingUpdate)
+        sdk?.updateParameters.notify(.startingUpdate)
 
         // Start update process
         checkFirmwareRecency()
@@ -135,7 +135,7 @@ internal class GlassesUpdater {
 
     private func checkFirmwareRecency()
     {
-        sdk?.updateParameters.update(.checkingFwVersion)
+        sdk?.updateParameters.notify(.checkingFwVersion)
 
         guard NetworkMonitor.shared.isConnected else {
             failed(with: GlassesUpdateError.networkUnavailable)
@@ -166,7 +166,7 @@ internal class GlassesUpdater {
                 return
             }
 
-            sdk?.updateParameters.update(.downloadingFw)
+            sdk?.updateParameters.notify(.downloadingFw)
 
             downloader = Downloader()
             downloader?.downloadFirmware(at: apiUrl,
@@ -184,7 +184,7 @@ internal class GlassesUpdater {
 
     private func updateFirmware(using firmware: Firmware)
     {
-        sdk?.updateParameters.update(.updatingFw)
+        sdk?.updateParameters.notify(.updatingFw)
 
         downloader = nil
 
@@ -225,7 +225,7 @@ internal class GlassesUpdater {
 
     private func checkConfigurationRecency()
     {
-        sdk?.updateParameters.update(.checkingConfigVersion)
+        sdk?.updateParameters.notify(.checkingConfigVersion)
 
         guard NetworkMonitor.shared.isConnected else {
             failed(with: GlassesUpdateError.networkUnavailable)
@@ -261,7 +261,7 @@ internal class GlassesUpdater {
                 return
             }
             
-            sdk?.updateParameters.update(.downloadingConfig)
+            sdk?.updateParameters.notify(.downloadingConfig)
 
             downloader = Downloader()
             downloader?.downloadConfiguration(at: apiUrl,
@@ -279,7 +279,7 @@ internal class GlassesUpdater {
 
     private func updateConfiguration(with configuration: String)
     {
-        sdk?.updateParameters.update(.updatingConfig)
+        sdk?.updateParameters.notify(.updatingConfig)
 
         downloader = nil
 

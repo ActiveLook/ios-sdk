@@ -315,7 +315,7 @@ public class Glasses {
             let progress = Double(100 - (elementsLeft * 99) / configSize)
             if progress > currentProgress {
                 currentProgress = progress
-                sdk?.updateParameters.update(.updatingConfig, progress)
+                sdk?.updateParameters.notify(.updatingConfig, progress)
             }
         }
 

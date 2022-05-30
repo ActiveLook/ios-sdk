@@ -447,7 +447,7 @@ public class ActiveLookSDK {
                          line: #line, function: #function, file: #fileID)
 
                     discoveredGlasses.connectionCallback?(glasses)
-                    self.updateParameters.update(.upToDate)
+                    self.updateParameters.notify(.upToDate)
                     self.updateParameters.reset()   // FIXME: can trigger warning '[connection] nw_resolver_start_query_timer_block_invoke [C1] Query fired: did not receive all answers in time for... in Downloader.swift'
                 },
             onError:
@@ -460,7 +460,7 @@ public class ActiveLookSDK {
                         // network not available. Update not possible, but glasses are still usable.
 
                         discoveredGlasses.connectionCallback?(glasses)
-                        self.updateParameters.update(.updateFailed)
+                        self.updateParameters.notify(.updateFailed)
 
                     case .connectionLost:
                         // connection lost while updating -> reconnect asap
@@ -468,7 +468,7 @@ public class ActiveLookSDK {
 
                     default:
                         discoveredGlasses.connectionErrorCallback?(ActiveLookError.sdkUpdateFailed)
-                        self.updateParameters.update(.updateFailed)
+                        self.updateParameters.notify(.updateFailed)
                     }
                     self.updateParameters.reset()   // FIXME: can trigger warning '[connection] nw_resolver_start_query_timer_block_invoke [C1] Query fired: did not receive all answers in time for... in Downloader.swift'
                 })

@@ -107,11 +107,10 @@ internal class GlassesUpdateParameters {
     }
 
 
-
     // MARK: - Internal Functions
 
-    // FIXME: vvv RELATED TO GlassesUpdate vvv
-    func update(_ stateUpdate: UpdateState, _ progress: Double = 0)
+    // TODO: change signature to func notify(_ stateUpdate: UpdateState, _ progress: Double = 0, _ batteryLevel: Double?){}
+    func notify(_ stateUpdate: UpdateState, _ progress: Double = 0)
     {
         dlog(message: "progress update to \(stateUpdate) – \(progress)",
              line: #line, function: #function, file: #fileID)
