@@ -53,6 +53,43 @@ internal class GlassesUpdater {
     private var versionChecker: VersionChecker?
     private var downloader: Downloader?
 
+    private enum SoftwareAsset {
+        case firmware(Firmware)
+        case configuration(String)
+    }
+
+    private struct Authorization {
+        let software: SoftwareAsset
+        var decision: Bool?
+
+        init(_ asset: SoftwareAsset) {
+            self.software = asset
+        }
+    }
+
+    private var authorization: Authorization? {
+        didSet {
+            guard let authorization = authorization else {
+                return
+            }
+
+            guard let decision = authorization.decision else {
+                return
+            }
+
+            guard decision else {
+                sdk?.updateParameters.notify(.updateFailed)
+                return
+            }
+
+            switch authorization.software {
+            case .firmware(let firmware):
+                updateFirmware(using: firmware)
+            case .configuration(let cfg):
+                updateConfiguration(with: cfg)
+            }
+        }
+    }
 
     // MARK: - Life cycle
 
@@ -110,7 +147,7 @@ internal class GlassesUpdater {
             break
 
         default:
-            sdk?.updateParameters.update(.updateFailed)
+            sdk?.updateParameters.notify(.updateFailed)
             break
         }
         
@@ -170,7 +207,7 @@ internal class GlassesUpdater {
 
             downloader = Downloader()
             downloader?.downloadFirmware(at: apiUrl,
-                                         onSuccess: {( data ) in self.updateFirmware(using: Firmware( with: data))},
+                                         onSuccess: {( data ) in self.askUpdateAuthorization(for: Firmware( with: data))},
                                          onError: {( error ) in self.failed(with: error )})
 
         case .isUpToDate, .noUpdateAvailable:
@@ -181,6 +218,16 @@ internal class GlassesUpdater {
         }
     }
 
+    private func askUpdateAuthorization(for firmware: Firmware)
+    {
+        guard let sdkGU = sdk?.updateParameters.createSDKGU(.updatingFw) else {
+            fatalError("cannot create SDKGlassesUpdate from .updatingFW")
+        }
+
+        // the decision is processed via an observer on `self.authorisation`
+        self.authorization = Authorization(.firmware(firmware))
+        self.authorization?.decision = sdk?.updateParameters.updateAvailableClosure(sdkGU)
+    }
 
     private func updateFirmware(using firmware: Firmware)
     {
@@ -265,7 +312,7 @@ internal class GlassesUpdater {
 
             downloader = Downloader()
             downloader?.downloadConfiguration(at: apiUrl,
-                                              onSuccess: { ( cfg ) in self.updateConfiguration(with: cfg ) },
+                                             onSuccess: { ( cfg ) in self.askUpdateAuthorization(for: cfg) },
                                               onError: { ( error ) in self.failed(with: error ) })
 
         case .isUpToDate, .noUpdateAvailable:
@@ -277,13 +324,24 @@ internal class GlassesUpdater {
     }
 
 
+    private func askUpdateAuthorization(for configuration: String)
+    {
+        guard let sdkGU = sdk?.updateParameters.createSDKGU(.updatingConfig) else {
+            fatalError("cannot create SDKGlassesUpdate from .updatingConfig")
+        }
+        // the decision is processed via an observer on `self.authorisation`
+        self.authorization = Authorization(.configuration(configuration))
+        self.authorization?.decision = sdk?.updateParameters.updateAvailableClosure(sdkGU)
+    }
+
+
     private func updateConfiguration(with configuration: String)
     {
         sdk?.updateParameters.notify(.updatingConfig)
 
         downloader = nil
 
-        sdk?.updateParameters.update(.updatingConfig)
+        sdk?.updateParameters.notify(.updatingConfig)
 
         guard glasses!.areConnected() else {
             failed(with: GlassesUpdateError.glassesUpdater(message: "Glasses NOT connected"))
