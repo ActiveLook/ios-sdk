@@ -433,6 +433,7 @@ public final class FirmwareUpdater: NSObject {
 extension FirmwareUpdater: CBPeripheralDelegate
 {
 
+    // TODO: make delegate react to battery level notifications !!!
     public func peripheral(_ peripheral: CBPeripheral,
                            didDiscoverServices error: Error?)
     {

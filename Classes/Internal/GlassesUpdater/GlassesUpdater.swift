@@ -139,6 +139,8 @@ internal class GlassesUpdater {
 
         versionChecker = VersionChecker()
 
+        // TODO: ASANA task "Check glasses FW version <= SDK version" – https://app.asana.com/0/1201639829815358/1202209982822311 – 220504
+
         sdk?.updateParameters.notify(.startingUpdate)
 
         // get battery level
@@ -238,7 +240,7 @@ internal class GlassesUpdater {
             sdk?.updateParameters.notify(.downloadingFw)
 
             downloader = Downloader()
-            downloader?.downloadFirmware(at: apiUrl,
+            downloader?.downloadFirmware(at: url,
                                          onSuccess: {( data ) in self.askUpdateAuthorization(for: Firmware( with: data))},
                                          onError: {( error ) in self.failed(with: error )})
 
@@ -281,6 +283,7 @@ internal class GlassesUpdater {
             failed(with: GlassesUpdateError.glassesUpdater(message: "Glasses NOT connected"))
             return
         }
+
         firmwareUpdater?.update(glasses!, with: firmware)
     }
 
@@ -331,7 +334,7 @@ internal class GlassesUpdater {
 
         switch result.status
         {
-        case .needsUpdate(let apiUrl):
+        case .needsUpdate(let url):
             dlog(message: "Configuration needs update", 
                  line: #line, function: #function, file: #fileID)
 
@@ -343,7 +346,7 @@ internal class GlassesUpdater {
             sdk?.updateParameters.notify(.downloadingConfig)
 
             downloader = Downloader()
-            downloader?.downloadConfiguration(at: apiUrl,
+            downloader?.downloadConfiguration(at: url,
                                              onSuccess: { ( cfg ) in self.askUpdateAuthorization(for: cfg) },
                                               onError: { ( error ) in self.failed(with: error ) })
 
