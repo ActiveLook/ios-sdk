@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## Version 4.2.4
+
+### New features
+- During the update process, possibility to accept or deny an update if available, using the SDK's closure `onUpdateAvailableCallback() -> Bool`
+
+### Changes
+- If the given `token` is invalid, the update is aborted and the glasses are not connected.
+
+---
+
 ## Version 4.2.3
 
 ### Fixes
