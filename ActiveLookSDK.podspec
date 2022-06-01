@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'ActiveLookSDK'
-  s.version          = '4.2.2'
+  s.version          = '4.2.4'
   s.summary          = 'An iOS library to interact with Active Look glasses'
   s.description      = <<-DESC
 This CocoaPod provides the ability to connect to ActiveLook glasses running

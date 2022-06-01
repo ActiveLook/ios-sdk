@@ -1,11 +1,27 @@
 # CHANGELOG
 
+## Version 4.2.4
+
+### New features
+- During the update process, possibility to accept or deny an update if available, using the SDK's closure `onUpdateAvailableCallback() -> Bool`
+
+### Changes
+- If the given `token` is invalid, the update is aborted and the glasses are not connected.
+
+---
+
 ## Version 4.2.3
 
 ### Fixes
 - Loosing connection with the glasses during a version check will not block auto-reconnect anymore (tested only on checks, no updates)
 - If the device's BLE is turned off while glasses are connected, they will auto-reconnect when the BLE is back on (non persistent)
 - Mirrors Android's management of FlowControl status updates
+- Flow control internal management
+- Fix cancel connection on disconnected glasses
+
+### Changes
+- Add reboot delay as parameters
+- Retry update on every connection
 
 ---
 
