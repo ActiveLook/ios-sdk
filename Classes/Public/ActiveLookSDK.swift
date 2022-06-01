@@ -111,6 +111,8 @@ public class ActiveLookSDK {
     ///
     ///  - returns: the `ActiveLookSDK`'s singleton
     ///
+    ///  - important: if the token is invalid, the glasses will not be connected.
+    ///
     public static func shared(token: String? = nil,
                               onUpdateStartCallback: StartClosureSignature? = nil,
                               onUpdateAvailableCallback: UpdateAvailableClosureSignature? = nil,

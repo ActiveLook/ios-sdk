@@ -59,6 +59,7 @@ Then, use its `shared` property to access the shared singleton. This can be call
 ```swift
 var activeLook: ActiveLookSDK = ActiveLookSDK.shared
 ```
+Then, use its `shared` property to access the shared singleton. This can be called from anywhere within your application.
 
 ## Scanning
 
