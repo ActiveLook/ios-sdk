@@ -106,8 +106,8 @@ internal final class GlassesUpdaterURL {
 
     // MARK: - Private Methods
 
-    private func generateURL(for firmwareVersion: FirmwareVersion) -> URL {
-
+    private func generateURL(for firmwareVersion: FirmwareVersion) -> URL
+    {
         guard let hardware = sdk?.updateParameters.hardware else {
             fatalError("NO HARDWARE SET")
         }
@@ -152,20 +152,30 @@ internal final class GlassesUpdaterURL {
     }
 
     
-    private func generateDownloadURL(for apiPathString: String) -> URL {
+    private func generateDownloadURL(for version: String) -> URL
+    {
+        guard let hardware = sdk?.updateParameters.hardware else {
+            fatalError("NO HARDWARE SET")
+        }
+
+        guard let token = sdk?.updateParameters.token else {
+            fatalError("NO TOKEN SET")
+        }
+
+        var version = version
 
         let separator: Character = "/"
 
-        var apiPath = apiPathString
-
-        if ( apiPath.first == separator ) {
-            _ = apiPath.removeFirst()
+        if ( version.first == separator ) {
+            _ = version.removeFirst()
         }
 
         let pathComponents = [
             self.apiVersion,
-            apiPath,
-
+            self.softwareClass.rawValue,
+            hardware,
+            token,
+            version
         ]
 
         var path = pathComponents.joined(separator: separator.description)

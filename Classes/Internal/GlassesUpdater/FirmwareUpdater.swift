@@ -100,7 +100,7 @@ public final class FirmwareUpdater: NSObject {
 
         self.firmware = firmware
 
-        sdk?.updateParameters.update(.updatingFw)
+        sdk?.updateParameters.notify(.updatingFw)
 
         peripheral?.discoverServices([CBUUID.SpotaService])
     }
@@ -118,7 +118,8 @@ public final class FirmwareUpdater: NSObject {
 
     private func rebooting()
     {
-        sdk?.updateParameters.update(.rebooting)
+        sdk?.updateParameters.notify(.rebooting)
+        sdk?.updateParameters.firmwareHasBeenUpdated()
         self.glasses?.resetPeripheralDelegate()
         
         successClosure()
@@ -384,7 +385,7 @@ public final class FirmwareUpdater: NSObject {
                 let progress = Double((blockId * 100) / firmware.blocks.count)
                 if ( progress > currentProgress ) {
                     currentProgress = progress
-                    sdk?.updateParameters.update(.updatingFw, progress)
+                    sdk?.updateParameters.notify(.updatingFw, progress)
                 }
                 
                 chunkId += 1
@@ -432,6 +433,7 @@ public final class FirmwareUpdater: NSObject {
 extension FirmwareUpdater: CBPeripheralDelegate
 {
 
+    // TODO: make delegate react to battery level notifications !!!
     public func peripheral(_ peripheral: CBPeripheral,
                            didDiscoverServices error: Error?)
     {

@@ -29,6 +29,7 @@ internal enum GlassesUpdateError: Error
     case downloaderJsonError                    // 6
     case firmwareUpdater(message: String = "")  // 7
     case networkUnavailable                     // 8
+    case invalidToken                           // 9
     case connectionLost                         // 10
     case abortingUpdate                         // 11
 }
@@ -46,13 +47,69 @@ internal class GlassesUpdater {
     private var glasses: Glasses?
 
     private var rebootClosure: ( (Int) -> Void )?
-    private var successClosure: ( () -> () )?
-    private var errorClosure: ( (GlassesUpdateError) -> () )?
+    private var successClosure: ( () -> Void )?
+    private var errorClosure: ( (GlassesUpdateError) -> Void )?
 
     private var firmwareUpdater: FirmwareUpdater?
     private var versionChecker: VersionChecker?
     private var downloader: Downloader?
 
+    // If the batteryLevel is less than 10, the update will not proceed.
+    private var batteryLevel: Int? {
+        didSet {
+            guard let bl = batteryLevel else {
+                return
+            }
+
+            if bl < 10 {
+                sdk?.updateParameters.notify(.lowBattery, 0, bl)
+            } else {
+                if let vcr = vcResult {
+                    process(vcr)
+                }
+            }
+        }
+    }
+
+    private var vcResult: VersionCheckResult?
+
+    private enum SoftwareAsset {
+        case firmware(Firmware)
+        case configuration(String)
+    }
+
+    private struct Authorization {
+        let software: SoftwareAsset
+        var decision: Bool?
+
+        init(_ asset: SoftwareAsset) {
+            self.software = asset
+        }
+    }
+
+    private var authorization: Authorization? {
+        didSet {
+            guard let authorization = authorization else {
+                return
+            }
+
+            guard let decision = authorization.decision else {
+                return
+            }
+
+            guard decision else {
+                sdk?.updateParameters.notify(.updateFailed)
+                return
+            }
+
+            switch authorization.software {
+            case .firmware(let firmware):
+                updateFirmware(using: firmware)
+            case .configuration(let cfg):
+                updateConfiguration(with: cfg)
+            }
+        }
+    }
 
     // MARK: - Life cycle
 
@@ -83,7 +140,12 @@ internal class GlassesUpdater {
 
         versionChecker = VersionChecker()
 
-        sdk?.updateParameters.update(.startingUpdate)
+        // TODO: ASANA task "Check glasses FW version <= SDK version" – https://app.asana.com/0/1201639829815358/1202209982822311 – 220504
+
+        sdk?.updateParameters.notify(.startingUpdate)
+
+        // get battery level
+        glasses.battery( { self.batteryLevel = $0 } )
 
         // Start update process
         checkFirmwareRecency()
@@ -110,7 +172,7 @@ internal class GlassesUpdater {
             break
 
         default:
-            sdk?.updateParameters.update(.updateFailed)
+            sdk?.updateParameters.notify(.updateFailed)
             break
         }
         
@@ -135,7 +197,7 @@ internal class GlassesUpdater {
 
     private func checkFirmwareRecency()
     {
-        sdk?.updateParameters.update(.checkingFwVersion)
+        sdk?.updateParameters.notify(.checkingFwVersion)
 
         guard NetworkMonitor.shared.isConnected else {
             failed(with: GlassesUpdateError.networkUnavailable)
@@ -157,20 +219,30 @@ internal class GlassesUpdater {
     {
         switch result.status
         {
-        case .needsUpdate(let apiUrl) :
+        case .needsUpdate(let url) :
             dlog(message: "Firmware needs update",
                  line: #line, function: #function, file: #fileID)
+
+            // If battery level is < 10, update is stopped here, and will start back only when > 10
+            guard let bl = batteryLevel, bl >= 10 else {
+                glasses?.subscribeToBatteryLevelNotifications(onBatteryLevelUpdate: { self.batteryLevel = $0 })
+                vcResult = result
+                sdk?.updateParameters.notify(.lowBattery, 0, batteryLevel)
+                return
+            }
+
+            if vcResult != nil { vcResult = nil }
 
             guard NetworkMonitor.shared.isConnected else {
                 failed(with: GlassesUpdateError.networkUnavailable)
                 return
             }
 
-            sdk?.updateParameters.update(.downloadingFw)
+            sdk?.updateParameters.notify(.downloadingFw)
 
             downloader = Downloader()
-            downloader?.downloadFirmware(at: apiUrl,
-                                         onSuccess: {( data ) in self.updateFirmware(using: Firmware( with: data))},
+            downloader?.downloadFirmware(at: url,
+                                         onSuccess: {( data ) in self.askUpdateAuthorization(for: Firmware( with: data))},
                                          onError: {( error ) in self.failed(with: error )})
 
         case .isUpToDate, .noUpdateAvailable:
@@ -181,14 +253,22 @@ internal class GlassesUpdater {
         }
     }
 
+    private func askUpdateAuthorization(for firmware: Firmware)
+    {
+        guard let sdkGU = sdk?.updateParameters.createSDKGU(.updatingFw) else {
+            fatalError("cannot create SDKGlassesUpdate from .updatingFW")
+        }
+
+        // the decision is processed via an observer on `self.authorisation`
+        self.authorization = Authorization(.firmware(firmware))
+        self.authorization?.decision = sdk?.updateParameters.updateAvailableClosure(sdkGU)
+    }
 
     private func updateFirmware(using firmware: Firmware)
     {
-        sdk?.updateParameters.update(.updatingFw)
+        sdk?.updateParameters.notify(.updatingFw)
 
         downloader = nil
-
-        sdk?.updateParameters.update(.updatingFw)
 
         guard glasses!.areConnected() else {
             failed(with: GlassesUpdateError.glassesUpdater(message: "Glasses NOT connected"))
@@ -202,6 +282,7 @@ internal class GlassesUpdater {
             failed(with: GlassesUpdateError.glassesUpdater(message: "Glasses NOT connected"))
             return
         }
+
         firmwareUpdater?.update(glasses!, with: firmware)
     }
 
@@ -225,7 +306,7 @@ internal class GlassesUpdater {
 
     private func checkConfigurationRecency()
     {
-        sdk?.updateParameters.update(.checkingConfigVersion)
+        sdk?.updateParameters.notify(.checkingConfigVersion)
 
         guard NetworkMonitor.shared.isConnected else {
             failed(with: GlassesUpdateError.networkUnavailable)
@@ -252,7 +333,7 @@ internal class GlassesUpdater {
 
         switch result.status
         {
-        case .needsUpdate(let apiUrl):
+        case .needsUpdate(let url):
             dlog(message: "Configuration needs update", 
                  line: #line, function: #function, file: #fileID)
 
@@ -261,11 +342,11 @@ internal class GlassesUpdater {
                 return
             }
             
-            sdk?.updateParameters.update(.downloadingConfig)
+            sdk?.updateParameters.notify(.downloadingConfig)
 
             downloader = Downloader()
-            downloader?.downloadConfiguration(at: apiUrl,
-                                              onSuccess: { ( cfg ) in self.updateConfiguration(with: cfg ) },
+            downloader?.downloadConfiguration(at: url,
+                                             onSuccess: { ( cfg ) in self.askUpdateAuthorization(for: cfg) },
                                               onError: { ( error ) in self.failed(with: error ) })
 
         case .isUpToDate, .noUpdateAvailable:
@@ -277,13 +358,24 @@ internal class GlassesUpdater {
     }
 
 
+    private func askUpdateAuthorization(for configuration: String)
+    {
+        guard let sdkGU = sdk?.updateParameters.createSDKGU(.updatingConfig) else {
+            fatalError("cannot create SDKGlassesUpdate from .updatingConfig")
+        }
+        // the decision is processed via an observer on `self.authorisation`
+        self.authorization = Authorization(.configuration(configuration))
+        self.authorization?.decision = sdk?.updateParameters.updateAvailableClosure(sdkGU)
+    }
+
+
     private func updateConfiguration(with configuration: String)
     {
-        sdk?.updateParameters.update(.updatingConfig)
+        sdk?.updateParameters.notify(.updatingConfig)
 
         downloader = nil
 
-        sdk?.updateParameters.update(.updatingConfig)
+        sdk?.updateParameters.notify(.updatingConfig)
 
         guard glasses!.areConnected() else {
             failed(with: GlassesUpdateError.glassesUpdater(message: "Glasses NOT connected"))

@@ -97,6 +97,8 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
 
         if !flowControlCharacteristic!.isNotifying { return false }
 
+        if !batteryLevelCharacteristic!.isNotifying { return false }
+
         return true
     }
 
@@ -163,6 +165,7 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
 
     // MARK: - CBPeripheralDelegate
 
+    // TODO: make delegate react to battery level notifications ???
     public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?)
     {
         guard error == nil else {
@@ -240,6 +243,8 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
 
             case CBUUID.BatteryLevelCharacteristic:
                 batteryLevelCharacteristic = characteristic
+                peripheral.readValue(for: characteristic)
+                peripheral.setNotifyValue(true, for: characteristic)
 
             case CBUUID.ActiveLookFlowControlCharacteristic:
                 flowControlCharacteristic = characteristic
