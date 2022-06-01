@@ -20,6 +20,7 @@ import CoreBluetooth
 // MARK: -  Type Alias
 
 public typealias StartClosureSignature = (SdkGlassesUpdate) -> Void
+public typealias UpdateAvailableClosureSignature = (SdkGlassesUpdate) -> Bool
 public typealias ProgressClosureSignature = (SdkGlassesUpdate) -> Void
 public typealias SuccessClosureSignature = (SdkGlassesUpdate) -> Void
 public typealias FailureClosureSignature = (SdkGlassesUpdate) -> Void
@@ -101,14 +102,20 @@ public class ActiveLookSDK {
     /// - parameters:
     ///     - token:  token used for authenticating with the update server.
     ///     - onUpdateStart:  callback asynchronously called when an update starts.
+    ///     - onUpdateAvailableCallback: callback asynchronously called when an update is available.
+    ///         - returns: `true` for the update to be performed.
+    ///         - returns: `false` for not performing the update, and the glasses are not connected.
     ///     - onUpdateProgress:  callback asynchronously called when an update progress.
     ///     - onUpdateSuccess:  callback asynchronously called when an update succeed.
     ///     - onUpdateError:  callback asynchronously called when an update fails.
     ///
     ///  - returns: the `ActiveLookSDK`'s singleton
     ///
+    ///  - important: if the token is invalid, the glasses will not be connected.
+    ///
     public static func shared(token: String? = nil,
                               onUpdateStartCallback: StartClosureSignature? = nil,
+                              onUpdateAvailableCallback: UpdateAvailableClosureSignature? = nil,
                               onUpdateProgressCallback: ProgressClosureSignature? = nil,
                               onUpdateSuccessCallback: SuccessClosureSignature? = nil,
                               onUpdateFailureCallback: FailureClosureSignature? = nil) throws -> ActiveLookSDK
@@ -118,12 +125,14 @@ public class ActiveLookSDK {
 
         if token != nil,
            onUpdateStartCallback != nil,
+           onUpdateAvailableCallback != nil,
            onUpdateProgressCallback != nil,
            onUpdateSuccessCallback != nil,
            onUpdateFailureCallback != nil
         {
             updateParameters = GlassesUpdateParameters(token!,
                                                        onUpdateStartCallback!,
+                                                       onUpdateAvailableCallback!,
                                                        onUpdateProgressCallback!,
                                                        onUpdateSuccessCallback!,
                                                        onUpdateFailureCallback!)
@@ -299,8 +308,8 @@ public class ActiveLookSDK {
     /// - throws
     ///     - `ActiveLookError.alreadyConnected`: if glasses are already connected
     ///
-    /// - important: if `glasses` are connected, use `glasses.disconnect()`.
-    /// - important: it is impossible to cancel a connection while an update is ongoing.
+    /// - important: if a `glasses` object has already been returned, you need to
+    /// use `glasses.disconnect()` instead.
     ///
     /// Usage:
     ///
@@ -442,7 +451,7 @@ public class ActiveLookSDK {
                          line: #line, function: #function, file: #fileID)
 
                     discoveredGlasses.connectionCallback?(glasses)
-                    self.updateParameters.update(.upToDate)
+                    self.updateParameters.notify(.upToDate)
                     self.updateParameters.reset()   // FIXME: can trigger warning '[connection] nw_resolver_start_query_timer_block_invoke [C1] Query fired: did not receive all answers in time for... in Downloader.swift'
                 },
             onError:
@@ -455,7 +464,7 @@ public class ActiveLookSDK {
                         // network not available. Update not possible, but glasses are still usable.
 
                         discoveredGlasses.connectionCallback?(glasses)
-                        self.updateParameters.update(.updateFailed)
+                        self.updateParameters.notify(.updateFailed)
 
                     case .connectionLost:
                         // connection lost while updating -> reconnect asap
@@ -463,7 +472,7 @@ public class ActiveLookSDK {
 
                     default:
                         discoveredGlasses.connectionErrorCallback?(ActiveLookError.sdkUpdateFailed)
-                        self.updateParameters.update(.updateFailed)
+                        self.updateParameters.notify(.updateFailed)
                     }
                     self.updateParameters.reset()   // FIXME: can trigger warning '[connection] nw_resolver_start_query_timer_block_invoke [C1] Query fired: did not receive all answers in time for... in Downloader.swift'
                 })
@@ -600,7 +609,7 @@ public class ActiveLookSDK {
                 print("disconnected from unknown glasses")
                 if parent.updateParameters.isUpdating() {
                     parent.updater?.abort()
-                    parent.updateParameters.update(.updateFailed)
+                    parent.updateParameters.notify(.updateFailed)
                     parent.updateParameters.reset()
                 }
                 return
@@ -619,7 +628,7 @@ public class ActiveLookSDK {
             if parent.updateParameters.isUpdating()
             {
                 parent.updater?.abort()
-                parent.updateParameters.update(.updateFailed)
+                parent.updateParameters.notify(.updateFailed)
                 parent.updateParameters.reset()
             }
 

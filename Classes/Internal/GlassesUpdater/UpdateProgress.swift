@@ -15,19 +15,23 @@
 
 import Foundation
 
+// FIXME: IS THIS CLASS STILL NEEDED? - 220506
 final internal class UpdateProgress: GlassesUpdate {
 
     private let discoveredGlasses: DiscoveredGlasses
     private let state: State
     private let progress: Double
+    private let batteryLevel: Int?
     private let sourceFirmwareVersion: String
     private let targetFirmwareVersion: String
     private let sourceConfigurationVersion: String
     private let targetConfigurationVersion: String
 
+
     init( _ discoveredGlasses: DiscoveredGlasses,
           _ state: State,
           _ progress: Double,
+          _ batteryLevel: Int?,
           _ sourceFirmwareVersion: String,
           _ targetFirmwareVersion: String,
           _ sourceConfigurationVersion: String,
@@ -36,53 +40,13 @@ final internal class UpdateProgress: GlassesUpdate {
         self.discoveredGlasses = discoveredGlasses
         self.state = state
         self.progress = progress
+        self.batteryLevel = batteryLevel
         self.sourceFirmwareVersion = sourceFirmwareVersion
         self.targetFirmwareVersion = targetFirmwareVersion
         self.sourceConfigurationVersion = sourceConfigurationVersion
         self.targetConfigurationVersion = targetConfigurationVersion
     }
 
-    func withStatus( state : State ) -> UpdateProgress {
-        return UpdateProgress(
-            discoveredGlasses, state, progress,
-            sourceFirmwareVersion, targetFirmwareVersion,
-            sourceConfigurationVersion, targetConfigurationVersion)
-    }
-
-    func withProgress( progress : Double ) -> UpdateProgress {
-        return UpdateProgress(
-            discoveredGlasses, state, progress,
-            sourceFirmwareVersion, targetFirmwareVersion,
-            sourceConfigurationVersion, targetConfigurationVersion)
-    }
-
-    func withSourceFirmwareVersion( sourceFirmwareVersion : String ) -> UpdateProgress {
-        return UpdateProgress(
-            discoveredGlasses, state, progress,
-            sourceFirmwareVersion, targetFirmwareVersion,
-            sourceConfigurationVersion, targetConfigurationVersion);
-    }
-
-    func withTargetFirmwareVersion( targetFirmwareVersion: String ) -> UpdateProgress {
-        return UpdateProgress(
-            discoveredGlasses, state, progress,
-            sourceFirmwareVersion, targetFirmwareVersion,
-            sourceConfigurationVersion, targetConfigurationVersion);
-    }
-
-    func withSourceConfigurationVersion( sourceConfigurationVersion : String ) -> UpdateProgress {
-        return UpdateProgress(
-            discoveredGlasses, state, progress,
-            sourceFirmwareVersion, targetFirmwareVersion,
-            sourceConfigurationVersion, targetConfigurationVersion);
-    }
-
-    func withTargetConfigurationVersion( targetConfigurationVersion : String) -> UpdateProgress {
-        return UpdateProgress(
-            discoveredGlasses, state, progress,
-            sourceFirmwareVersion, targetFirmwareVersion,
-            sourceConfigurationVersion, targetConfigurationVersion);
-    }
 
     func getDiscoveredGlasses() -> DiscoveredGlasses {
         return self.discoveredGlasses;
@@ -96,6 +60,10 @@ final internal class UpdateProgress: GlassesUpdate {
 
     func getProgress() -> Double {
         return self.progress;
+    }
+
+    func getBatteryLevel() -> Int? {
+        return self.batteryLevel
     }
 
 
@@ -117,5 +85,4 @@ final internal class UpdateProgress: GlassesUpdate {
     func getTargetConfigurationVersion() -> String {
         return self.targetConfigurationVersion;
     }
-
 }

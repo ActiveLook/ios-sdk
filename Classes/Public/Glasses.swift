@@ -82,6 +82,11 @@ public class Glasses {
         }
     }
 
+    // The battery level of the glasses.
+    private var batteryLevel: Int?
+
+    // closure to call when batteryLevel updated?
+    internal var batteryLevelUpdateClosure: ((Int) -> Void)?
     // The status of the flowControl server
     private var flowControlState: FlowControlState {
         didSet {
@@ -315,7 +320,7 @@ public class Glasses {
             let progress = Double(100 - (elementsLeft * 99) / configSize)
             if progress > currentProgress {
                 currentProgress = progress
-                sdk?.updateParameters.update(.updatingConfig, progress)
+                sdk?.updateParameters.notify(.updatingConfig, progress)
             }
         }
 
@@ -436,8 +441,10 @@ public class Glasses {
         self.peripheral.discoverCharacteristics(nil, for: spotaService!)
     }
 
-    /// Get information relative to the device as published over Bluetooth.
-    /// - Returns: The current information about the device, including its manufacturer name, model number, serial number, hardware version, software version and firmware version.
+    /// Returns a `DeviceInformation` object of the device, as published over Bluetooth.
+    ///
+    /// - returns: `DeviceInformation`
+    ///
     public func getDeviceInformation() -> DeviceInformation {
         guard let di = deviceInformationService else {
             return DeviceInformation()
@@ -1228,7 +1235,6 @@ public class Glasses {
     /// Subscribe to battery level notifications. The specified callback will return the battery value about once every thirty seconds.
     /// - Parameter batteryLevelUpdateCallback: A callback called asynchronously when the device sends a battery level notification.
     public func subscribeToBatteryLevelNotifications(onBatteryLevelUpdate batteryLevelUpdateCallback: @escaping (Int) -> (Void)) {
-        peripheral.setNotifyValue(true, for: batteryLevelCharacteristic!)
         self.batteryLevelUpdateCallback = batteryLevelUpdateCallback
     }
     
@@ -1247,7 +1253,6 @@ public class Glasses {
     
     /// Unsubscribe from battery level notifications.
     public func unsubscribeFromBatteryLevelNotifications() {
-        peripheral.setNotifyValue(false, for: batteryLevelCharacteristic!)
         batteryLevelUpdateCallback = nil
     }
     
@@ -1270,7 +1275,6 @@ public class Glasses {
 
         weak var parent: Glasses?
 
-
         public func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
             guard error == nil else {
                 print("error while updating notification state : \(error!.localizedDescription) for characteristic: \(characteristic.uuid)")
@@ -1288,32 +1292,37 @@ public class Glasses {
                 return
             }
 
+            guard let parent = parent else {
+                fatalError("cannot retrieve parent instance")
+            }
+
             //print("peripheral did update value for characteristic: ", characteristic.uuid)
             
             switch characteristic.uuid {
+            case CBUUID.ActiveLookFlowControlCharacteristic:
+                if let flowControlState = FlowControlState(rawValue: characteristic.valueAsInt)
+                {
+                    if (flowControlState == FlowControlState.on ||
+                        flowControlState == FlowControlState.off) {
+                        // ON and OFF notifications are only used for internally
+                        parent.flowControlState = flowControlState
+                    } else {
+                        // Other notifications are sent to the callback, if provided
+                        parent.flowControlUpdateCallback?(flowControlState)
+                    }
+                }
+
+            case CBUUID.ActiveLookSensorInterfaceCharacteristic:
+                parent.sensorInterfaceTriggeredCallback?()
+
             case CBUUID.ActiveLookTxCharacteristic:
                 if let data = characteristic.value {
-                    parent?.handleTxNotification(withData: data)
+                    parent.handleTxNotification(withData: data)
                 }
 
             case CBUUID.BatteryLevelCharacteristic:
-                parent?.batteryLevelUpdateCallback?(characteristic.valueAsInt)
-
-            case CBUUID.ActiveLookSensorInterfaceCharacteristic:
-                parent?.sensorInterfaceTriggeredCallback?()
-
-            case CBUUID.ActiveLookFlowControlCharacteristic:
-              if let flowControlState = FlowControlState(rawValue: characteristic.valueAsInt)
-              {
-                  if (flowControlState == FlowControlState.on ||
-                      flowControlState == FlowControlState.off) {
-                      // ON and OFF notifications are only used for internally
-                      parent?.flowControlState = flowControlState
-                  } else {
-                      // Other notifications are sent to the callback, if provided
-                      parent?.flowControlUpdateCallback?(flowControlState)
-                  }
-              }
+                parent.batteryLevel = characteristic.valueAsInt
+                parent.batteryLevelUpdateCallback?(characteristic.valueAsInt)
 
             default:
                 break
