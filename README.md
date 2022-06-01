@@ -19,7 +19,7 @@ in your Podfile:
 ```
 pod 'ActiveLookSDK',
     :git => 'https://github.com/ActiveLook/ios-sdk.git',
-    :tag = '4.2.3'
+    :tag = '4.2.4'
 ```
 
 Then run the command:
@@ -59,6 +59,7 @@ Then, use its `shared` property to access the shared singleton. This can be call
 ```swift
 var activeLook: ActiveLookSDK = ActiveLookSDK.shared
 ```
+Then, use its `shared` property to access the shared singleton. This can be called from anywhere within your application.
 
 ## Scanning
 

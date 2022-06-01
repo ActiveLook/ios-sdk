@@ -11,15 +11,16 @@ let package = Package(
     products: [
         .library(
             name: "ActiveLookSDK",
-            targets: ["ActiveLookSDK"]
-        )
+            targets: ["ActiveLookSDK"])
     ],
     dependencies: [],
     targets: [
         .target(
             name: "ActiveLookSDK",
             dependencies: [],
-            path: "Classes"
-        )
+            path: "Classes"),
+        .testTarget(
+            name: "ActiveLookSDKTests",
+            dependencies: ["ActiveLookSDK"]),
     ]
 )
