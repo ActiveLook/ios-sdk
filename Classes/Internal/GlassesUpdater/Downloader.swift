@@ -67,7 +67,6 @@ internal class Downloader: NSObject {
                 return
             }
 
-
             guard let httpResponse = response as? HTTPURLResponse else {
                 print("invalid response")
                 errorClosure(GlassesUpdateError.downloader(message: "Invalid Response"))

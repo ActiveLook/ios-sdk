@@ -19,7 +19,7 @@ in your Podfile:
 ```
 pod 'ActiveLookSDK',
     :git => 'https://github.com/ActiveLook/ios-sdk.git',
-    :tag = '4.2.4'
+    :tag = '4.2.4.1'
 ```
 
 Then run the command:

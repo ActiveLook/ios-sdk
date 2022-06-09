@@ -119,7 +119,6 @@ public final class FirmwareUpdater: NSObject {
     private func rebooting()
     {
         sdk?.updateParameters.notify(.rebooting)
-        sdk?.updateParameters.firmwareHasBeenUpdated()
         self.glasses?.resetPeripheralDelegate()
         
         successClosure()
