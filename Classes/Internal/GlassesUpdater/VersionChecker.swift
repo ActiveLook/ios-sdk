@@ -255,7 +255,8 @@ internal final class VersionChecker: NSObject {
             }
 
             let vers = decodedData.latest.version
-            let apiPath = decodedData.latest.api_path
+            let url = URL(fileURLWithPath: decodedData.latest.api_path)
+            let apiPath = url.lastPathComponent
 
             DispatchQueue.main.async {
                 self.remoteConfigurationVersion = ConfigurationVersion(
