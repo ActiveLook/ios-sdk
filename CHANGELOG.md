@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## Version 4.2.4.1
+
+### Fixes
+- fix: add a delay before reconnecting to FW until 4.3.2
+- fix: generate configuration download path with full version
+
+---
+
 ## Version 4.2.4
 
 ### New features
