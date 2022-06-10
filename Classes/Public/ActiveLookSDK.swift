@@ -624,13 +624,13 @@ public class ActiveLookSDK {
 
             print("central manager did disconnect from glasses \(glasses.name)")
 
-            glasses.disconnectionCallback?()
-
             if parent.updateParameters.isUpdating()
             {
                 parent.updater?.abort()
                 parent.updateParameters.notify(.updateFailed)
                 parent.updateParameters.reset()
+            } else {
+                glasses.disconnectionCallback?()
             }
 
             if !glasses.isIntentionalDisconnect {
