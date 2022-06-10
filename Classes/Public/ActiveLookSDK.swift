@@ -594,10 +594,6 @@ public class ActiveLookSDK {
                      line: #line, function: #function, file: #fileID)
 
                 discoveredGlasses.connectionErrorCallback?(error)
-
-                discoveredGlasses.connectionCallback = nil
-                discoveredGlasses.disconnectionCallback = nil
-                discoveredGlasses.connectionErrorCallback = nil
             } )
         }
 
