@@ -437,7 +437,7 @@ public class ActiveLookSDK {
                     // stopping scan to ensure state
                     self.centralManager.stopScan()
 
-                    DispatchQueue.main.asyncAfter(deadline: .now() + DispatchTimeInterval.seconds(delay)) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + DispatchTimeInterval.milliseconds(delay)) {
                         self.centralManager.connect(glasses.peripheral, options: nil)
                     }
                 },

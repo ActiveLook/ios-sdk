@@ -296,7 +296,7 @@ internal class GlassesUpdater {
             return
         }
 
-        let delay: Int = sdk.updateParameters.needDelayAfterReboot() ? 3 : 0
+        let delay: Int = sdk.updateParameters.needDelayAfterReboot() ? 3000 : 500
 
         rebootClosure?(delay)
     }
