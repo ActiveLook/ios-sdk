@@ -153,11 +153,12 @@ internal class GlassesUpdateParameters {
             // we are calling notify(.rebooting) twice:
             //  - once to signify that the fw update has completed, thus progress == 100
             //  - the 2nd time, to call the success() closure, so the notification flow is on par with Android
-            if progress < 100 {
-                self.progress = 100
-                closureToSummon = progressClosure
-            } else {
+            self.progress = 100
+
+            if progress > 100 {
                 closureToSummon = successClosure
+            } else {
+                closureToSummon = progressClosure
             }
 
         case .upToDate:
