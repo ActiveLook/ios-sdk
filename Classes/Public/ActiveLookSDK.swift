@@ -489,6 +489,14 @@ public class ActiveLookSDK {
                 fatalError("cannot retrieve parent instance")
             }
 
+            if central.state == .poweredOff {
+                if !parent.connectedGlassesArray.isEmpty {
+                    let g = parent.connectedGlassesArray.first
+                    g?.disconnectionCallback!()
+                }
+                return
+            }
+
             guard central.state == .poweredOn
             else {
                 parent.didAskForScan?.scanErrorCallback(
