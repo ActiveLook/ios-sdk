@@ -120,6 +120,7 @@ public final class FirmwareUpdater: NSObject {
     {
         sdk?.updateParameters.notify(.rebooting)
         self.glasses?.resetPeripheralDelegate()
+        self.glasses?.isIntentionalDisconnect = true
         
         successClosure()
     }
