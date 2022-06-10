@@ -142,12 +142,16 @@ internal class GlassesUpdateParameters {
             self.progress = 0
             closureToSummon = startClosure
 
-        case .updatingFw, .rebooting, .updatingConfig:
+        case .updatingFw, .updatingConfig:
             // progress closure
             if ( progress <= self.progress ) { return }
             
             self.progress = progress
             closureToSummon = progressClosure
+
+        case .rebooting:
+            self.progress = 100
+            closureToSummon = successClosure
 
         case .upToDate:
             // success closure
