@@ -629,6 +629,9 @@ public class ActiveLookSDK {
                 parent.updater?.abort()
                 parent.updateParameters.notify(.updateFailed)
                 parent.updateParameters.reset()
+            } else if parent.updateParameters.isRebooting() {
+                parent.updateParameters.notify(.rebooting)
+                glasses.disconnectionCallback?()
             } else {
                 glasses.disconnectionCallback?()
             }

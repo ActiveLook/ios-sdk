@@ -118,9 +118,7 @@ public final class FirmwareUpdater: NSObject {
 
     private func rebooting()
     {
-        sdk?.updateParameters.notify(.rebooting)
         self.glasses?.resetPeripheralDelegate()
-        self.glasses?.isIntentionalDisconnect = true
         
         successClosure()
     }
@@ -420,6 +418,10 @@ public final class FirmwareUpdater: NSObject {
                 message: String(format: "no SPOTA_MEM_DEV_UUID characteristic discovered@", #line)))
             return
         }
+
+        self.glasses?.isIntentionalDisconnect = true
+
+        sdk?.updateParameters.notify(.rebooting)
 
         peripheral?.writeValue( Data( UInt32(0xfd000000).byteArray ),
                                for: characteristic,
