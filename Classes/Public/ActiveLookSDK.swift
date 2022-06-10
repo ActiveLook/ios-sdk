@@ -417,12 +417,8 @@ public class ActiveLookSDK {
     {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
-        // TODO: check if glasses already in connected array...
-        if let index = connectedGlassesArray.firstIndex(where: { cGlasses in
-            glasses.peripheral.identifier == cGlasses.peripheral.identifier
-        }) {
-            connectedGlassesArray.remove(at: index)
-        }
+        // clear connectedGlassesArray to ensure that only one instance of a given device is present, ever.
+        connectedGlassesArray.removeAll()
 
         connectedGlassesArray.append(glasses)
 
@@ -503,6 +499,7 @@ public class ActiveLookSDK {
             if let connectedGlasses = parent.connectedGlassesArray.first {
                 // a pair of glasses was connected when bluetooth was turned of. Reconnect...
                 central.connect(connectedGlasses.peripheral)
+
                 return
             }
 
