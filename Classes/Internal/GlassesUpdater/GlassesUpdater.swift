@@ -390,8 +390,13 @@ internal class GlassesUpdater {
             return
         }
 
+        glasses?.clear()
+        glasses?.layoutDisplay(id: 0x09, text: "")
         glasses?.loadConfigurationWithClosures(cfg: configuration,
-                                               onSuccess: { self.configurationIsUpToDate() },
+                                               onSuccess: {
+                                                    self.glasses?.clear()
+                                                    self.configurationIsUpToDate()
+                                               },
                                                onError: { print("Configuration could not be downloaded") } )
     }
 
