@@ -105,14 +105,12 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
 
     private func isDone()
     {
-        self.glasses.fixInDeviceCmdStack {
-            self.initSuccessClosure?()
-            self.initSuccessClosure = nil
+        self.initSuccessClosure?()
+        self.initSuccessClosure = nil
 
-            self.initTimeoutTimer?.invalidate()
+        self.initTimeoutTimer?.invalidate()
 
-            self.glasses.resetPeripheralDelegate()
-        }
+        self.glasses.resetPeripheralDelegate()
     }
 
 
