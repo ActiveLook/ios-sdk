@@ -526,6 +526,16 @@ public class Glasses {
         commandQueue.enqueueFile(cfg)
     }
 
+    /// Magic fix for resetting stack in device
+    public func fixInDeviceCmdStack(goOn goOnClosure: @escaping () -> ()) {
+        self.subscribeToFlowControlNotifications(onFlowControlUpdate: { fcs in
+            self.unsubscribeFromFlowControlNotifications()
+            goOnClosure()
+        })
+        let fcError: [UInt8] = [UInt8(0xFF)] + [UInt8](repeating: 0x00, count: 531)
+        self.commandQueue.enqueue(fcError)
+    }
+
     // MARK: - General commands
     
     /// Power the device on or off.
