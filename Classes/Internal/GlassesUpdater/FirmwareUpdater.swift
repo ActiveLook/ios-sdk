@@ -380,7 +380,7 @@ public final class FirmwareUpdater: NSObject {
 
                 peripheral?.writeValue( Data( chunks[ chunkId ]), for: characteristic, type: .withoutResponse)
 
-                let progress = Double((blockId * 100) / firmware.blocks.count)
+                let progress: Double = Double(blockId * 100) / Double(firmware.blocks.count)
                 if ( progress > currentProgress ) {
                     currentProgress = progress
                     sdk?.updateParameters.notify(.updatingFw, progress)
