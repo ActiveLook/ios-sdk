@@ -317,7 +317,7 @@ public class Glasses {
             let elementsLeft = commandQueue.count
             dlog(message: "\(elementsLeft) left",
                  line: #line, function: #function, file: #fileID)
-            let progress = Double(100 - (elementsLeft * 99) / configSize)
+            let progress: Double = Double(100) - Double(elementsLeft * 99) / Double(configSize)
             if progress > currentProgress {
                 currentProgress = progress
                 sdk?.updateParameters.notify(.updatingConfig, progress)
