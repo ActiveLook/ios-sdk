@@ -1,5 +1,30 @@
 # CHANGELOG
 
+## Version 4.2.5
+
+### New features
+- Display update ongoing while updating
+- Do a cfgSet("ALooK") as first command.
+
+### Fixes
+- Fix not empty stack on connection in glasses
+- Firmware update progress precision
+- Configuration update progress precision
+- Low battery error before update started
+- Increase reboot delay
+- Solve a reconnection issue involving phone's BLE activity change
+- Make disconnect upon firmware update intentional
+- Notify only onUpdateFailureCallback() if disconnect happens during glasses update
+- Call disconnectionCallback() upon Bluetooth being powered off
+
+### Changes
+- Refactor .rebooting case
+- Change notifications to align with android ones
+- Change rebooting state to updatingFirmware = 100
+- Initialize connection callbacks no more upon glasses initializer error
+
+---
+
 ## Version 4.2.4.1
 
 ### Fixes
