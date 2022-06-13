@@ -61,13 +61,16 @@ internal class GlassesUpdater {
                 return
             }
 
-            if bl < 10 {
-                sdk?.updateParameters.notify(.lowBattery, 0, bl)
-            } else {
+            // TODO: NC Question: Are you sure about this ? It seams that a low battery notification if triggered
+            // TODO: NC Question: even if the update process has not been started.
+            // TODO: NC Question: In this class, the battery level is set first before checking anything
+            // TODO: Check if remove ok : if bl < 10 {
+            // TODO: Check if remove ok :    sdk?.updateParameters.notify(.lowBattery, 0, bl)
+            // TODO: Check if remove ok : } else {
                 if let vcr = vcResult {
                     process(vcr)
                 }
-            }
+            // }
         }
     }
 
@@ -225,7 +228,12 @@ internal class GlassesUpdater {
 
             // If battery level is < 10, update is stopped here, and will start back only when > 10
             guard let bl = batteryLevel, bl >= 10 else {
-                glasses?.subscribeToBatteryLevelNotifications(onBatteryLevelUpdate: { self.batteryLevel = $0 })
+                glasses?.subscribeToBatteryLevelNotifications(onBatteryLevelUpdate: {
+                    if $0 < 10 {
+                        self.sdk?.updateParameters.notify(.lowBattery, 0, $0)
+                    }
+                    self.batteryLevel = $0
+                })
                 vcResult = result
                 sdk?.updateParameters.notify(.lowBattery, 0, batteryLevel)
                 return
@@ -382,8 +390,13 @@ internal class GlassesUpdater {
             return
         }
 
+        glasses?.clear()
+        glasses?.layoutDisplay(id: 0x09, text: "")
         glasses?.loadConfigurationWithClosures(cfg: configuration,
-                                               onSuccess: { self.configurationIsUpToDate() },
+                                               onSuccess: {
+                                                    self.glasses?.clear()
+                                                    self.configurationIsUpToDate()
+                                               },
                                                onError: { print("Configuration could not be downloaded") } )
     }
 

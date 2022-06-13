@@ -586,7 +586,10 @@ public class ActiveLookSDK {
                                            onSuccess:
                                             {
                 print("central manager did connect to glasses \(discoveredGlasses.name)")
-                parent.updateInitializedGlasses(glasses)
+                glasses.fixInDeviceCmdStack {
+                    glasses.cfgSet(name: "ALooK")
+                    parent.updateInitializedGlasses(glasses)
+                }
             },
                                            onError:
                                             { (error) in
