@@ -142,12 +142,24 @@ internal class GlassesUpdateParameters {
             self.progress = 0
             closureToSummon = startClosure
 
-        case .updatingFw, .rebooting, .updatingConfig:
+        case .updatingFw, .updatingConfig:
             // progress closure
             if ( progress <= self.progress ) { return }
             
             self.progress = progress
             closureToSummon = progressClosure
+
+        case .rebooting:
+            // we are calling notify(.rebooting) twice:
+            //  - once to signify that the fw update has completed, thus progress == 100
+            //  - the 2nd time, to call the success() closure, so the notification flow is on par with Android
+            self.progress = 100
+
+            if progress > 100 {
+                closureToSummon = successClosure
+            } else {
+                closureToSummon = progressClosure
+            }
 
         case .upToDate:
             // success closure
@@ -227,6 +239,14 @@ internal class GlassesUpdateParameters {
         }
     }
 
+    func isRebooting() -> Bool {
+        switch state {
+        case .rebooting:
+            return true
+        default:
+            return false
+        }
+    }
 
     func firmwareHasBeenUpdated () {
         softwareVersions[.device]!!.firmware = softwareVersions[.remote]!!.firmware
