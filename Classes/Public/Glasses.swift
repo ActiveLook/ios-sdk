@@ -317,7 +317,7 @@ public class Glasses {
             let elementsLeft = commandQueue.count
             dlog(message: "\(elementsLeft) left",
                  line: #line, function: #function, file: #fileID)
-            let progress = Double(100 - (elementsLeft * 99) / configSize)
+            let progress: Double = Double(100) - Double(elementsLeft * 99) / Double(configSize)
             if progress > currentProgress {
                 currentProgress = progress
                 sdk?.updateParameters.notify(.updatingConfig, progress)
@@ -524,6 +524,16 @@ public class Glasses {
         self.errorClosure = errorClosure
 
         commandQueue.enqueueFile(cfg)
+    }
+
+    /// Magic fix for resetting stack in device
+    public func fixInDeviceCmdStack(goOn goOnClosure: @escaping () -> ()) {
+        self.subscribeToFlowControlNotifications(onFlowControlUpdate: { fcs in
+            self.unsubscribeFromFlowControlNotifications()
+            goOnClosure()
+        })
+        let fcError: [UInt8] = [UInt8(0xFF)] + [UInt8](repeating: 0x00, count: 531)
+        self.commandQueue.enqueue(fcError)
     }
 
     // MARK: - General commands

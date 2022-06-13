@@ -118,7 +118,6 @@ public final class FirmwareUpdater: NSObject {
 
     private func rebooting()
     {
-        sdk?.updateParameters.notify(.rebooting)
         self.glasses?.resetPeripheralDelegate()
         
         successClosure()
@@ -381,7 +380,7 @@ public final class FirmwareUpdater: NSObject {
 
                 peripheral?.writeValue( Data( chunks[ chunkId ]), for: characteristic, type: .withoutResponse)
 
-                let progress = Double((blockId * 100) / firmware.blocks.count)
+                let progress: Double = Double(blockId * 100) / Double(firmware.blocks.count)
                 if ( progress > currentProgress ) {
                     currentProgress = progress
                     sdk?.updateParameters.notify(.updatingFw, progress)
@@ -419,6 +418,10 @@ public final class FirmwareUpdater: NSObject {
                 message: String(format: "no SPOTA_MEM_DEV_UUID characteristic discovered@", #line)))
             return
         }
+
+        self.glasses?.isIntentionalDisconnect = true
+
+        sdk?.updateParameters.notify(.rebooting)
 
         peripheral?.writeValue( Data( UInt32(0xfd000000).byteArray ),
                                for: characteristic,
