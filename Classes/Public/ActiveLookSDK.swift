@@ -417,12 +417,8 @@ public class ActiveLookSDK {
     {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
-        // TODO: check if glasses already in connected array...
-        if let index = connectedGlassesArray.firstIndex(where: { cGlasses in
-            glasses.peripheral.identifier == cGlasses.peripheral.identifier
-        }) {
-            connectedGlassesArray.remove(at: index)
-        }
+        // clear connectedGlassesArray to ensure that only one instance of a given device is present, ever.
+        connectedGlassesArray.removeAll()
 
         connectedGlassesArray.append(glasses)
 
@@ -441,7 +437,7 @@ public class ActiveLookSDK {
                     // stopping scan to ensure state
                     self.centralManager.stopScan()
 
-                    DispatchQueue.main.asyncAfter(deadline: .now() + DispatchTimeInterval.seconds(delay)) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + DispatchTimeInterval.milliseconds(delay)) {
                         self.centralManager.connect(glasses.peripheral, options: nil)
                     }
                 },
@@ -493,6 +489,14 @@ public class ActiveLookSDK {
                 fatalError("cannot retrieve parent instance")
             }
 
+            if central.state == .poweredOff {
+                if !parent.connectedGlassesArray.isEmpty {
+                    let g = parent.connectedGlassesArray.first
+                    g?.disconnectionCallback!()
+                }
+                return
+            }
+
             guard central.state == .poweredOn
             else {
                 parent.didAskForScan?.scanErrorCallback(
@@ -503,6 +507,7 @@ public class ActiveLookSDK {
             if let connectedGlasses = parent.connectedGlassesArray.first {
                 // a pair of glasses was connected when bluetooth was turned of. Reconnect...
                 central.connect(connectedGlasses.peripheral)
+
                 return
             }
 
@@ -581,7 +586,10 @@ public class ActiveLookSDK {
                                            onSuccess:
                                             {
                 print("central manager did connect to glasses \(discoveredGlasses.name)")
-                parent.updateInitializedGlasses(glasses)
+                glasses.fixInDeviceCmdStack {
+                    glasses.cfgSet(name: "ALooK")
+                    parent.updateInitializedGlasses(glasses)
+                }
             },
                                            onError:
                                             { (error) in
@@ -589,10 +597,6 @@ public class ActiveLookSDK {
                      line: #line, function: #function, file: #fileID)
 
                 discoveredGlasses.connectionErrorCallback?(error)
-
-                discoveredGlasses.connectionCallback = nil
-                discoveredGlasses.disconnectionCallback = nil
-                discoveredGlasses.connectionErrorCallback = nil
             } )
         }
 
@@ -623,13 +627,16 @@ public class ActiveLookSDK {
 
             print("central manager did disconnect from glasses \(glasses.name)")
 
-            glasses.disconnectionCallback?()
-
             if parent.updateParameters.isUpdating()
             {
                 parent.updater?.abort()
                 parent.updateParameters.notify(.updateFailed)
                 parent.updateParameters.reset()
+            } else if parent.updateParameters.isRebooting() {
+                parent.updateParameters.notify(.rebooting, 101)
+                glasses.disconnectionCallback?()
+            } else {
+                glasses.disconnectionCallback?()
             }
 
             if !glasses.isIntentionalDisconnect {
