@@ -568,7 +568,8 @@ public class ActiveLookSDK {
 
             guard let discoveredGlasses: DiscoveredGlasses = parent.discoveredGlasses(fromPeripheral: peripheral)
             else {
-                print("connected to unknown glasses") // TODO: Raise error ?
+                print("connected to unknown glasses") // TODO: Raise error or disconnect ?
+                central.cancelPeripheralConnection(peripheral)
                 return
             }
 
