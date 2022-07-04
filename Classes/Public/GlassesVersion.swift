@@ -72,6 +72,10 @@ public struct FirmwareVersion: SoftwareClassProtocol, Equatable {
 
     public static func >(lhs: FirmwareVersion, rhs: FirmwareVersion) -> Bool {
 
+        if (lhs.major > rhs.major) {
+            return true
+        }
+
         if (lhs.major == rhs.major) && (lhs.minor > rhs.minor) {
             return true
         }
