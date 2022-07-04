@@ -15,6 +15,7 @@
 
 import Foundation
 import CoreBluetooth
+import UIKit
 
 // MARK: - Internal Enumerations
 
@@ -269,7 +270,9 @@ internal class GlassesUpdater {
 
         // the decision is processed via an observer on `self.authorisation`
         self.authorization = Authorization(.firmware(firmware))
-        self.authorization?.decision = sdk?.updateParameters.updateAvailableClosure(sdkGU)
+        sdk?.updateParameters.updateAvailableClosure(sdkGU, {
+            self.authorization?.decision = true
+        })
     }
 
     private func updateFirmware(using firmware: Firmware)
@@ -373,7 +376,9 @@ internal class GlassesUpdater {
         }
         // the decision is processed via an observer on `self.authorisation`
         self.authorization = Authorization(.configuration(configuration))
-        self.authorization?.decision = sdk?.updateParameters.updateAvailableClosure(sdkGU)
+        sdk?.updateParameters.updateAvailableClosure(sdkGU, {
+            self.authorization?.decision = true
+        })
     }
 
 
