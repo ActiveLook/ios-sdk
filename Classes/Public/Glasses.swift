@@ -490,9 +490,7 @@ public class Glasses {
     /// Check if firmware is at least
     /// - Parameter version: the version to compare to
     public func isFirmwareAtLeast(version: String) -> Bool {
-        let gVersion = self.getDeviceInformation().firmwareVersion
-        guard gVersion != nil else { return false }
-        if (gVersion ?? "" >= "v\(version).0b") {
+        if self.compareFirmwareAtLeast(version: version).rawValue <= 0 {
             return true
         } else {
             return false
@@ -502,8 +500,10 @@ public class Glasses {
     /// Compare the firmware against a certain version
     /// - Parameter version: the version to compare to
     public func compareFirmwareAtLeast(version: String) -> ComparisonResult {
+        let version = "v\(version).0b"
         let gVersion = self.getDeviceInformation().firmwareVersion
-        return (gVersion ?? "").compare("v\(version).0b")
+        guard let gVersion = gVersion else { fatalError("gVersion not set") }
+        return version.compare(gVersion, options: .numeric)
     }
     
     /// load a configuration file
