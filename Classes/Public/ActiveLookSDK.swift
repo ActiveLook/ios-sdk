@@ -622,9 +622,12 @@ public class ActiveLookSDK {
             }
 
             if let index = parent.connectedGlassesArray.firstIndex(
-                where: { $0.identifier == glasses.identifier } )
+                where: { $0.identifier == glasses.identifier
+                      // the following check is needed to ensure auto-reconnection even if the bluetooth was switched ON > OFF > ON via Settings.app
+                      && $0.isIntentionalDisconnect == true
+                } )
             {
-                parent.connectedGlassesArray.remove(at: index)
+                    parent.connectedGlassesArray.remove(at: index)
             }
 
             print("central manager did disconnect from glasses \(glasses.name)")
