@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## Version 4.3.0
+
+### Breaking changes
+- Use an anonymous function to accept update
+
+### Fixes
+- Auto-reconnect of glasses after turning Bluetooth OFF/ON in Settings.app
+- Firmware comparison using also major number
+- Firmware comparison using .numeric Strings' compare option
+- Connected to unknown glasses
+
 ## Version 4.2.5
 
 ### New features
