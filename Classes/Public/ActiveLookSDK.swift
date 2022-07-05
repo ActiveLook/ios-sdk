@@ -20,7 +20,7 @@ import CoreBluetooth
 // MARK: -  Type Alias
 
 public typealias StartClosureSignature = (SdkGlassesUpdate) -> Void
-public typealias UpdateAvailableClosureSignature = (SdkGlassesUpdate) -> Bool
+public typealias UpdateAvailableClosureSignature = (SdkGlassesUpdate, () -> Void) -> Void
 public typealias ProgressClosureSignature = (SdkGlassesUpdate) -> Void
 public typealias SuccessClosureSignature = (SdkGlassesUpdate) -> Void
 public typealias FailureClosureSignature = (SdkGlassesUpdate) -> Void
@@ -103,8 +103,9 @@ public class ActiveLookSDK {
     ///     - token:  token used for authenticating with the update server.
     ///     - onUpdateStart:  callback asynchronously called when an update starts.
     ///     - onUpdateAvailableCallback: callback asynchronously called when an update is available.
-    ///         - returns: `true` for the update to be performed.
-    ///         - returns: `false` for not performing the update, and the glasses are not connected.
+    ///         Together with a GlassesUpdate object, an anonymous function is transmited.
+    ///         To accept and proceed with an update, call this anonymous function.
+    ///         To refuse an update, do nothing.
     ///     - onUpdateProgress:  callback asynchronously called when an update progress.
     ///     - onUpdateSuccess:  callback asynchronously called when an update succeed.
     ///     - onUpdateError:  callback asynchronously called when an update fails.
@@ -568,7 +569,8 @@ public class ActiveLookSDK {
 
             guard let discoveredGlasses: DiscoveredGlasses = parent.discoveredGlasses(fromPeripheral: peripheral)
             else {
-                print("connected to unknown glasses") // TODO: Raise error ?
+                print("connected to unknown glasses") // TODO: Raise error or disconnect ?
+                central.cancelPeripheralConnection(peripheral)
                 return
             }
 
@@ -620,9 +622,12 @@ public class ActiveLookSDK {
             }
 
             if let index = parent.connectedGlassesArray.firstIndex(
-                where: { $0.identifier == glasses.identifier } )
+                where: { $0.identifier == glasses.identifier
+                      // the following check is needed to ensure auto-reconnection even if the bluetooth was switched ON > OFF > ON via Settings.app
+                      && $0.isIntentionalDisconnect == true
+                } )
             {
-                parent.connectedGlassesArray.remove(at: index)
+                    parent.connectedGlassesArray.remove(at: index)
             }
 
             print("central manager did disconnect from glasses \(glasses.name)")
