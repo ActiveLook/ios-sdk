@@ -162,11 +162,12 @@ public class LayoutParameters {
     }
 
     public func addSubCommandText(x: UInt16, y: UInt16, txt: String) -> LayoutParameters {
+        let encodedText = txt.asNullTerminatedUInt8Array
         self.subCommands.append(0x09)
         self.subCommands += x.asUInt8Array
         self.subCommands += y.asUInt8Array
-        self.subCommands.append(UInt8(txt.count))
-        self.subCommands += Array(txt.asNullTerminatedUInt8Array)
+        self.subCommands.append(UInt8(encodedText.count))
+        self.subCommands += encodedText
         return self
     }
 
