@@ -773,6 +773,7 @@ public class Glasses {
     /// Draw a multiple connected lines at the corresponding coordinates.
     /// - Parameters:
     ///  - points: array of uint16 tuples (x, y).
+    @available(*, deprecated, message: "use polyline with thickness instead")
     public func polyline(points: [Point]) {
 
         var data: [UInt8] = []
@@ -785,6 +786,23 @@ public class Glasses {
         sendCommand(id: .polyline, withData: data)
     }
 
+    /// Draw a multiple connected lines at the corresponding coordinates.
+    /// - Parameters:
+    ///  - thickness: the thickness of all lines.
+    ///  - points: array of uint16 tuples (x, y).
+    public func polyline(thickness: UInt8, points: [Point]) {
+        let reserved: UInt8 = 0
+        var data: [UInt8] = []
+        data.append(thickness)
+        data.append(reserved)
+        data.append(reserved)
+        points.forEach { point in
+            data.append(contentsOf:point.x.asUInt8Array)
+            data.append(contentsOf:point.y.asUInt8Array)
+        }
+        sendCommand(id: .polyline, withData: data)
+        
+    }
     
     // MARK: - Bitmap commands
 
