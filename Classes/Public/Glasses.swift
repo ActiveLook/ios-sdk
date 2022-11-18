@@ -1010,6 +1010,43 @@ public class Glasses {
         }
     }
     
+    /// Clears screen of the corresponding layout area
+    /// - Parameters:
+    ///   - id: The id of the layout to display
+    ///   - x: The x coordinate of the position of the layout
+    ///   - y: The y coordinate of the position of the layout
+    public func layoutClearExtended(id: UInt8, x: UInt16, y: UInt8) {
+        var data: [UInt8] = [id]
+        data.append(contentsOf: x.asUInt8Array)
+        data.append(y) // y is only encoded on 1 byte
+        
+        sendCommand(id: .layoutClearExtended, withData: data)
+    }
+    
+    /// Clear area and display text with layout id parameters
+    /// - Parameters:
+    ///   - id: The id of the layout to display
+    ///   - text: The text value of the layout
+    public func layoutClearAndDisplay(id: UInt8, text: String) {
+        var data: [UInt8] = [id]
+        data.append(contentsOf: text.asNullTerminatedUInt8Array)
+        sendCommand(id: .layoutClearAndDisplay, withData: data)
+    }
+    
+    /// Clear area and display text with layout id at position x y. The position is not saved
+    /// - Parameters:
+    ///   - id: The id of the layout to display
+    ///   - x: The x coordinate of the position of the layout
+    ///   - y: The y coordinate of the position of the layout
+    ///   - text: The text value of the layout
+    public func layoutClearAndDisplayExtended(id: UInt8, x: UInt16, y: UInt8, text: String) {
+        var data: [UInt8] = [id]
+        data.append(contentsOf: x.asUInt8Array)
+        data.append(y) // y is only encoded on 1 byte
+        data.append(contentsOf: text.asNullTerminatedUInt8Array)
+        
+        sendCommand(id: .layoutClearAndDisplayExtended, withData: data)
+    }
     
     // MARK: - Gauge commands
     
