@@ -81,6 +81,7 @@ internal enum CommandID: UInt8 {
     case pageDisplay = 0x83
     case pageClear = 0x84
     case pageList = 0x85
+    case pageClearAndDisplay = 0x86
 
     case pixelCount = 0xA5
     case getChargingCounter = 0xA7

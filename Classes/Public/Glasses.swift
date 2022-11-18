@@ -1171,6 +1171,16 @@ public class Glasses {
     }
     
     
+    /// Clear area and display a page
+    public func pageClearAndDisplay(id: UInt8, texts: [String]) {
+        var withData: [UInt8] = [id]
+        texts.forEach { text in
+            withData += text.asNullTerminatedUInt8Array
+        }
+        sendCommand(id: .pageClearAndDisplay, withData: withData)
+    }
+    
+    
     // MARK: - Statistics commands
     /// Get number of pixel activated on display
     /// - Parameter callback: A callback called asynchronously when the device answers
