@@ -15,6 +15,7 @@ limitations under the License.
 
 import Foundation
 import CoreBluetooth
+import UIKit
 
 /// A representation of connected ActiveLook® glasses.
 ///
@@ -826,8 +827,53 @@ public class Glasses {
         }
     }
     
+    /// Save an image of the specified width and on a specific format.
+    /// - Parameters:
+    ///     - id: The id of the image to display
+    ///     - image: The image that will be saved
+    ///     - imageFormat: The format the data will be saved
+    public func imgSave(id: UInt8, image: UIImage, imgSaveFmt: ImgSaveFmt) {
+        switch imgSaveFmt{
+            case .MONO_4BPP:
+                let imageData =  ImageConverter().getImageData(img: image, fmt: imgSaveFmt)
+            
+                var firstChunkData: [UInt8] = [id]
+                firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
+                firstChunkData.append(contentsOf: imageData.width.asUInt8Array)
+                firstChunkData.append(imgSaveFmt.rawValue)
+            
+                sendCommand(id: .imgSave, withData: firstChunkData)
+                // TODO Should be using bigger chunk size (505) but not working on 3.7.4b
+                let chunkedImageData = imageData.data.chunked(into: 121) // 128 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+                        
+                for chunk in chunkedImageData {
+                    sendCommand(id: .imgSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
+                }
+            break
+            case .MONO_1BPP:
+                let imageData =  ImageConverter().getImageData1bpp(img: image, fmt: imgSaveFmt)
+            
+                var firstChunkData: [UInt8] = [id]
+                firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
+                firstChunkData.append(contentsOf: imageData.width.asUInt8Array)
+                firstChunkData.append(imgSaveFmt.rawValue)
+            
+                imageData.data.forEach { line in
+                    sendCommand(id: .imgSave, withData: line)
+                }
+            break
+            /*
+            case ImageSaveFormat.MONO_4BPP_HEATSHRINK:
+            break
+            case ImageSaveFormat.MONO_4BPP_HEATSHRINK_SAVE_COMP:
+            break
+             */
+        }
+    }
+    
     /// Save a 4bpp image of the specified width.
     /// - Parameter imageData: The data representing the image to save
+    @available(*, deprecated, message: "use imgSave with imageSaveFormat instead")
     public func imgSave(id: UInt8, imageData: ImageData) {
         var firstChunkData: [UInt8] = [id]
         firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
@@ -867,12 +913,14 @@ public class Glasses {
     }
 
     /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
+    @available(*, deprecated, message: "use imgSave with imageSaveFormat instead")
     public func imgStream(imageData: ImageData, x: Int16, y: Int16) {
         // TODO Infer size from data length
         // TODO Create command and send command
     }
 
     /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
+    @available(*, deprecated, message: "use imgSave with imageSaveFormat instead")
     public func imgSave1bpp(imageData: ImageData) {
         // TODO Create command and send command
     }
