@@ -25,8 +25,8 @@ internal class ImageMDP05{
         let height = rotatedPixelsArray.count
         let width = rotatedPixelsArray[0].count
         
-        var encodedImg : [[Int]] =  [[]]
-        
+        var encodedImg : [[Int]] =  [[Int]](repeating: [Int](repeating: 0, count: width), count: height)
+
         //reduce to 4bpp
         for y in 0 ..< height {
             for x in 0 ..< width {
