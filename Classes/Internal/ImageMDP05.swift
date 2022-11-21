@@ -39,15 +39,15 @@ internal class ImageMDP05{
         return encodedImg
     }
     
-    ///convert image to MDP05 default format
+    ///convert image to MDP05 1bpp format
     internal func convert1Bpp(image : UIImage) -> [[Int]]{
         let rotatedPixelsArray  : [[Pixel]] = image.getRotatedPixels_180()
         
         let height = rotatedPixelsArray.count
         let width = rotatedPixelsArray[0].count
         
-        var encodedImg : [[Int]] =  [[]]
-        
+        var encodedImg : [[Int]] =  [[Int]](repeating: [Int](repeating: 0, count: width), count: height)
+
         //reduce to 1 bpp
         for y in 0 ..< height {
             for x in 0 ..< width {

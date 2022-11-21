@@ -858,6 +858,8 @@ public class Glasses {
                 firstChunkData.append(contentsOf: imageData.width.asUInt8Array)
                 firstChunkData.append(imgSaveFmt.rawValue)
             
+                sendCommand(id: .imgSave, withData: firstChunkData)
+            
                 imageData.data.forEach { line in
                     sendCommand(id: .imgSave, withData: line)
                 }

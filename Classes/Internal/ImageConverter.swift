@@ -101,7 +101,8 @@ internal class ImageConverter {
     private func getCmd1Bpp(matrix : [[Int]]) -> [[UInt8]]{
         let height = matrix.count
         let width = matrix[0].count
-        
+        let arraySize = height * Int((Double(width)/8.0).rounded())
+
         //Compress img 1 bit per pixel
         var encodedImg : [[UInt8]] = [[]]
         
