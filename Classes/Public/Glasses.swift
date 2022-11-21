@@ -873,7 +873,7 @@ public class Glasses {
     
     /// Save a 4bpp image of the specified width.
     /// - Parameter imageData: The data representing the image to save
-    @available(*, deprecated, message: "use imgSave with imageSaveFormat instead")
+    @available(*, deprecated, message: "use imgSave with imgSaveFmt instead")
     public func imgSave(id: UInt8, imageData: ImageData) {
         var firstChunkData: [UInt8] = [id]
         firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
@@ -913,14 +913,14 @@ public class Glasses {
     }
 
     /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
-    @available(*, deprecated, message: "use imgSave with imageSaveFormat instead")
+    @available(*, deprecated, message: "use imgSave with imgSaveFmt instead")
     public func imgStream(imageData: ImageData, x: Int16, y: Int16) {
         // TODO Infer size from data length
         // TODO Create command and send command
     }
 
     /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
-    @available(*, deprecated, message: "use imgSave with imageSaveFormat instead")
+    @available(*, deprecated, message: "use imgSave with imgSaveFmt instead")
     public func imgSave1bpp(imageData: ImageData) {
         // TODO Create command and send command
     }
