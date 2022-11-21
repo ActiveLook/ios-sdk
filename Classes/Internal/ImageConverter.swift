@@ -17,7 +17,7 @@ import UIKit
 
 internal class ImageConverter {
     
-    internal func getImageData(img: UIImage, fmt: ImageSaveFormat) -> ImageData{
+    internal func getImageData(img: UIImage, fmt: ImgSaveFmt) -> ImageData{
         let matrix : [[Int]] = convert(img: img, fmt: fmt)
         let width : Int = matrix[0].count
         var cmds : [UInt8] = []
@@ -34,7 +34,7 @@ internal class ImageConverter {
         return ImageData(width: UInt16(width), data: cmds)
     }
     
-    internal func getImageData1bpp(img: UIImage, fmt: ImageSaveFormat) -> ImageData1bpp{
+    internal func getImageData1bpp(img: UIImage, fmt: ImgSaveFmt) -> ImageData1bpp{
         let matrix : [[Int]] = convert(img: img, fmt: fmt)
         let width : Int = matrix[0].count
         var cmds : [[UInt8]] = [[]]
@@ -52,7 +52,7 @@ internal class ImageConverter {
     }
 
     //MARK: - Convert pixels to specific format without compression
-    private func convert(img: UIImage, fmt: ImageSaveFormat) -> [[Int]]{
+    private func convert(img: UIImage, fmt: ImgSaveFmt) -> [[Int]]{
         var convert : [[Int]] = [[]]
         
         switch fmt {
