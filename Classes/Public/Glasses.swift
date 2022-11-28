@@ -859,10 +859,18 @@ public class Glasses {
                 firstChunkData.append(imgSaveFmt.rawValue)
             
                 sendCommand(id: .imgSave, withData: firstChunkData)
-            
+                
+                // TODO Stack line should be better
                 imageData.data.forEach { line in
                     sendCommand(id: .imgSave, withData: line)
                 }
+            
+                /*
+                var Data : [UInt8] = []
+                imageData.data.forEach { line in
+                    Data.append(contentsOf: line)
+                }
+                sendCommand(id: .imgSave, withData: Data)*/
             break
             /*
             case ImageSaveFormat.MONO_4BPP_HEATSHRINK:

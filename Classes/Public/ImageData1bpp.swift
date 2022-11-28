@@ -29,6 +29,6 @@ public class ImageData1bpp {
     public init(width: UInt16, data: [[UInt8]]) {
         self.width = width
         self.data = data
-        self.size = UInt32(data.count)
+        self.size = UInt32(data.count * data[0].count)
     }
 }
