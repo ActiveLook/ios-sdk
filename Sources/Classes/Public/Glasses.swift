@@ -1680,23 +1680,23 @@ public class Glasses {
         {
             return dispatchQueue.sync(flags: .barrier)
             {
-                guard !self.elements.isEmpty else
-                {
-                    return nil
+                var cmdStack = Data([])
+                while cmdStack.count < mtu && !self.elements.isEmpty {
+                    let remaining = mtu - cmdStack.count
+                    let first = self.elements.removeFirst()
+                    if first.count <= remaining {
+                        cmdStack.append(contentsOf: first)
+                        if first.count == remaining || self.elements.isEmpty {
+                            return cmdStack
+                        }
+                    } else {
+                        cmdStack.append(contentsOf: Data(first[0...remaining-1]))
+                        let firstTail = Data(first[remaining...first.count-1])
+                        self.elements.insert(firstTail, at: 0)
+                        return cmdStack
+                    }
                 }
-
-                let first = self.elements.removeFirst()
-
-                if first.count <= mtu {
-                    return first
-                }
-
-                let firstHead = Data(first[0...mtu-1])
-                let firstTail = Data(first[mtu...first.count-1])
-
-                self.elements.insert(firstTail, at: 0)
-
-                return firstHead
+                return nil // Question: Why not an empty array?
             }
         }
 
