@@ -6,7 +6,8 @@ let package = Package(
     name: "ActiveLookSDK",
     platforms: [
         .iOS(.v13),
-        .watchOS(.v6)
+        .watchOS(.v6),
+        .macOS(.v12)
     ],
     products: [
         .library(
