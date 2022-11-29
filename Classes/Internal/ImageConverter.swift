@@ -50,6 +50,23 @@ internal class ImageConverter {
         
         return ImageData1bpp(width: UInt16(width), data: cmds)
     }
+    
+    internal func getImageDataStream1bpp(img: UIImage, fmt: ImgStreamFmt) -> ImageData1bpp{
+        let matrix : [[Int]] = convertStream(img: img, fmt: fmt)
+        let width : Int = matrix[0].count
+        var cmds : [[UInt8]] = [[]]
+        
+        switch fmt {
+        case .MONO_1BPP:
+            cmds = getCmd1Bpp(matrix: matrix)
+            break
+        default:
+            print("Unknown image format")
+            break
+        }
+        
+        return ImageData1bpp(width: UInt16(width), data: cmds)
+    }
 
     //MARK: - Convert pixels to specific format without compression
     private func convert(img: UIImage, fmt: ImgSaveFmt) -> [[Int]]{
@@ -61,6 +78,21 @@ internal class ImageConverter {
             break
         case .MONO_4BPP:
             convert = ImageMDP05().convertDefault(image: img)
+            break
+        }
+        
+        return convert;
+    }
+    
+    private func convertStream(img: UIImage, fmt: ImgStreamFmt) -> [[Int]]{
+        var convert : [[Int]] = [[]]
+        
+        switch fmt {
+        case .MONO_1BPP:
+            convert = ImageMDP05().convert1Bpp(image: img)
+            break
+        default:
+            print("Unknown image format")
             break
         }
         

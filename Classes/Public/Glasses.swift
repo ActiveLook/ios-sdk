@@ -831,7 +831,7 @@ public class Glasses {
     /// - Parameters:
     ///     - id: The id of the image to display
     ///     - image: The image that will be saved
-    ///     - imageFormat: The format the data will be saved
+    ///     - imgSaveFmt: The format the data will be saved
     public func imgSave(id: UInt8, image: UIImage, imgSaveFmt: ImgSaveFmt) {
         switch imgSaveFmt{
             case .MONO_4BPP:
@@ -922,11 +922,32 @@ public class Glasses {
         sendCommand(id: .imgDelete, withValue: 0xFF)
     }
 
-    /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
-    @available(*, deprecated, message: "use imgSave with imgSaveFmt instead")
-    public func imgStream(imageData: ImageData, x: Int16, y: Int16) {
-        // TODO Infer size from data length
-        // TODO Create command and send command
+    /// Stream an image on display without saving it in memory
+    /// - Parameters:
+    ///   - image: The image that will be stream
+    ///   - x: The x coordinate of the image to display
+    ///   - y: The y coordinate of the image to display
+    ///   - imgStreamFmt: The format the data will be saved
+    public func imgStream(image: UIImage, x: Int16, y: Int16, imgStreamFmt: ImgStreamFmt) {
+        switch imgStreamFmt{
+            case .MONO_1BPP:
+                let imageData =  ImageConverter().getImageDataStream1bpp(img: image, fmt: imgStreamFmt)
+            
+                var firstChunkData: [UInt8] = []
+                firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
+                firstChunkData.append(contentsOf: imageData.width.asUInt8Array)
+                firstChunkData.append(contentsOf: x.asUInt8Array)
+                firstChunkData.append(contentsOf: y.asUInt8Array)
+                firstChunkData.append(imgStreamFmt.rawValue)
+            
+                sendCommand(id: .imgStream, withData: firstChunkData)
+                
+                // TODO Stack line should be better
+                imageData.data.forEach { line in
+                    sendCommand(id: .imgStream, withData: line)
+                }
+            break
+        }
     }
 
     /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
