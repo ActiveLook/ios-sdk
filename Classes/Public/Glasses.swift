@@ -835,42 +835,10 @@ public class Glasses {
     public func imgSave(id: UInt8, image: UIImage, imgSaveFmt: ImgSaveFmt) {
         switch imgSaveFmt{
             case .MONO_4BPP:
-                let imageData =  ImageConverter().getImageData(img: image, fmt: imgSaveFmt)
-            
-                var firstChunkData: [UInt8] = [id]
-                firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
-                firstChunkData.append(contentsOf: imageData.width.asUInt8Array)
-                firstChunkData.append(imgSaveFmt.rawValue)
-            
-                sendCommand(id: .imgSave, withData: firstChunkData)
-                // TODO Should be using bigger chunk size (505) but not working on 3.7.4b
-                let chunkedImageData = imageData.data.chunked(into: 121) // 128 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
-                        
-                for chunk in chunkedImageData {
-                    sendCommand(id: .imgSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
-                }
+                imgSave4bpp(id: id, image: image)
             break
             case .MONO_1BPP:
-                let imageData =  ImageConverter().getImageData1bpp(img: image, fmt: imgSaveFmt)
-            
-                var firstChunkData: [UInt8] = [id]
-                firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
-                firstChunkData.append(contentsOf: imageData.width.asUInt8Array)
-                firstChunkData.append(imgSaveFmt.rawValue)
-            
-                sendCommand(id: .imgSave, withData: firstChunkData)
-                
-                // TODO Stack line should be better
-                imageData.data.forEach { line in
-                    sendCommand(id: .imgSave, withData: line)
-                }
-            
-                /*
-                var Data : [UInt8] = []
-                imageData.data.forEach { line in
-                    Data.append(contentsOf: line)
-                }
-                sendCommand(id: .imgSave, withData: Data)*/
+                imgSave1bpp(id: id, image: image)
             break
             /*
             case ImageSaveFormat.MONO_4BPP_HEATSHRINK:
@@ -882,7 +850,9 @@ public class Glasses {
     }
     
     /// Save a 4bpp image of the specified width.
-    /// - Parameter imageData: The data representing the image to save
+    /// - Parameters:
+    ///     - id: The id of the image to display
+    ///     - imageData: The data representing the image to save
     @available(*, deprecated, message: "use imgSave with imgSaveFmt instead")
     public func imgSave(id: UInt8, imageData: ImageData) {
         var firstChunkData: [UInt8] = [id]
@@ -931,31 +901,105 @@ public class Glasses {
     public func imgStream(image: UIImage, x: Int16, y: Int16, imgStreamFmt: ImgStreamFmt) {
         switch imgStreamFmt{
             case .MONO_1BPP:
-                let imageData =  ImageConverter().getImageDataStream1bpp(img: image, fmt: imgStreamFmt)
-            
-                var firstChunkData: [UInt8] = []
-                firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
-                firstChunkData.append(contentsOf: imageData.width.asUInt8Array)
-                firstChunkData.append(contentsOf: x.asUInt8Array)
-                firstChunkData.append(contentsOf: y.asUInt8Array)
-                firstChunkData.append(imgStreamFmt.rawValue)
-            
-                sendCommand(id: .imgStream, withData: firstChunkData)
-                
-                // TODO Stack line should be better
-                imageData.data.forEach { line in
-                    sendCommand(id: .imgStream, withData: line)
-                }
+            imgStream1bpp(image: image, x: x, y: x)
             break
         }
     }
-
-    /// WARNING: NOT TESTED / NOT FULLY IMPLEMENTED
-    @available(*, deprecated, message: "use imgSave with imgSaveFmt instead")
-    public func imgSave1bpp(imageData: ImageData) {
-        // TODO Create command and send command
+    
+    /// Save an image of the specified width and on a 4bpp format.
+    /// - Parameters:
+    ///     - id: The id of the image to display
+    ///     - image: The image that will be saved
+    public func imgSave4bpp(id: UInt8, image: UIImage) {
+        let imgSaveFmt = ImgSaveFmt.MONO_4BPP
+        
+        let imageData =  ImageConverter().getImageData(img: image, fmt: imgSaveFmt)
+    
+        var firstChunkData: [UInt8] = [id]
+        firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
+        firstChunkData.append(contentsOf: imageData.width.asUInt8Array)
+        firstChunkData.append(imgSaveFmt.rawValue)
+    
+        sendCommand(id: .imgSave, withData: firstChunkData)
+        // TODO Should be using bigger chunk size (505) but not working on 3.7.4b
+        let chunkedImageData = imageData.data.chunked(into: 121) // 128 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+                
+        for chunk in chunkedImageData {
+            sendCommand(id: .imgSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
+        }
     }
     
+    /// Save an image of the specified width and on a 1bpp format.
+    /// - Parameters:
+    ///     - id: The id of the image to display
+    ///     - image: The image that will be saved
+    public func imgSave1bpp(id: UInt8, image: UIImage) {
+        let imgSaveFmt = ImgSaveFmt.MONO_1BPP
+        
+        let imageData =  ImageConverter().getImageData1bpp(img: image, fmt: imgSaveFmt)
+    
+        var firstChunkData: [UInt8] = [id]
+        firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
+        firstChunkData.append(contentsOf: imageData.width.asUInt8Array)
+        firstChunkData.append(imgSaveFmt.rawValue)
+    
+        sendCommand(id: .imgSave, withData: firstChunkData)
+        
+        // TODO Should be using bigger chunk size (505) but not working on 3.7.4b
+        let ChunkSize : Int = 121
+        
+        var data : [UInt8] = []
+        
+        for (index,line) in imageData.data.enumerated() {
+            let isNextIndexValid = imageData.data.indices.contains(index+1)
+        
+            if isNextIndexValid{
+                if data.count == 0 {
+                    data = line
+                }else if data.count + line.count <= ChunkSize{
+                    data.append(contentsOf: line)
+                }else if data.count + line.count > ChunkSize{
+                    sendCommand(id: .imgSave, withData: data)
+                    data = line
+                }
+            }else{
+                if data.count == 0 {
+                    sendCommand(id: .imgSave, withData: line)
+                }else if data.count + line.count <= ChunkSize{
+                    data.append(contentsOf: line)
+                    sendCommand(id: .imgSave, withData: data)
+                }else if data.count + line.count > ChunkSize{
+                    sendCommand(id: .imgSave, withData: data)
+                    sendCommand(id: .imgSave, withData: line)
+                }
+            }
+        }
+    }
+    
+    /// Stream an image on display without saving it in memory and on a 1bpp format.
+    /// - Parameters:
+    ///   - image: The image that will be stream
+    ///   - x: The x coordinate of the image to display
+    ///   - y: The y coordinate of the image to display
+    public func imgStream1bpp(image: UIImage, x: Int16, y: Int16) {
+        let imgStreamFmt = ImgStreamFmt.MONO_1BPP
+        
+        let imageData =  ImageConverter().getImageDataStream1bpp(img: image, fmt: imgStreamFmt)
+    
+        var firstChunkData: [UInt8] = []
+        firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
+        firstChunkData.append(contentsOf: imageData.width.asUInt8Array)
+        firstChunkData.append(contentsOf: x.asUInt8Array)
+        firstChunkData.append(contentsOf: y.asUInt8Array)
+        firstChunkData.append(imgStreamFmt.rawValue)
+    
+        sendCommand(id: .imgStream, withData: firstChunkData)
+        
+        // TODO Stack line should be better
+        imageData.data.forEach { line in
+            sendCommand(id: .imgStream, withData: line)
+        }
+    }
     
     // MARK: - Font commands
     
