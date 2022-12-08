@@ -994,10 +994,34 @@ public class Glasses {
         firstChunkData.append(imgStreamFmt.rawValue)
     
         sendCommand(id: .imgStream, withData: firstChunkData)
+        // TODO Should be using bigger chunk size (505) but not working on 3.7.4b
+        let ChunkSize : Int = 121
         
-        // TODO Stack line should be better
-        imageData.data.forEach { line in
-            sendCommand(id: .imgStream, withData: line)
+        var data : [UInt8] = []
+        
+        for (index,line) in imageData.data.enumerated() {
+            let isNextIndexValid = imageData.data.indices.contains(index+1)
+        
+            if isNextIndexValid{
+                if data.count == 0 {
+                    data = line
+                }else if data.count + line.count <= ChunkSize{
+                    data.append(contentsOf: line)
+                }else if data.count + line.count > ChunkSize{
+                    sendCommand(id: .imgStream, withData: data)
+                    data = line
+                }
+            }else{
+                if data.count == 0 {
+                    sendCommand(id: .imgStream, withData: line)
+                }else if data.count + line.count <= ChunkSize{
+                    data.append(contentsOf: line)
+                    sendCommand(id: .imgStream, withData: data)
+                }else if data.count + line.count > ChunkSize{
+                    sendCommand(id: .imgStream, withData: data)
+                    sendCommand(id: .imgStream, withData: line)
+                }
+            }
         }
     }
     
