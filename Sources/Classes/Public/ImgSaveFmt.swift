@@ -19,7 +19,7 @@ import Foundation
 @objc public enum ImgSaveFmt: UInt8 {
     case MONO_4BPP = 0  ///4bpp
     case MONO_1BPP = 1  ///1bpp, transformed into 4bpp by the firmware before saving
-    //case MONO_4BPP_HEATSHRINK = 2 ///4bpp with Heatshrink compression, decompressed into 4bpp by the firmware before saving
+    case MONO_4BPP_HEATSHRINK = 2 ///4bpp with Heatshrink compression, decompressed into 4bpp by the firmware before saving
     //case MONO_4BPP_HEATSHRINK_SAVE_COMP = 3 ///4bpp with Heatshrink compression, stored compressed, decompressed into 4bpp before display
 }
 

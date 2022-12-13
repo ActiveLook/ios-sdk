@@ -7,7 +7,7 @@
 //
 
 #import "RNHeatshrinkDecoder.h"
-#import "heatshrink/heatshrink_decoder.h"
+#import "heatshrink_decoder.h"
 
 @interface RNHeatshrinkDecoder()
     

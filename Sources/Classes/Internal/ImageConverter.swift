@@ -14,6 +14,7 @@ limitations under the License.
 
 import Foundation
 import UIKit
+import Heatshrink
 
 internal class ImageConverter {
     
@@ -25,6 +26,9 @@ internal class ImageConverter {
         switch fmt {
         case .MONO_4BPP:
             cmds = getCmd4Bpp(matrix: matrix)
+            break
+        case .MONO_4BPP_HEATSHRINK:
+            cmds = getCmdCompress4BppHeatshrink(matrix: matrix)
             break
         default:
             print("Unknown image format")
@@ -79,6 +83,9 @@ internal class ImageConverter {
         case .MONO_4BPP:
             convert = ImageMDP05().convertDefault(image: img)
             break
+        case .MONO_4BPP_HEATSHRINK:
+            convert = ImageMDP05().convertDefault(image: img)
+            break
         }
         
         return convert;
@@ -128,6 +135,12 @@ internal class ImageConverter {
             }
         }
         return  encodedImg
+    }
+    
+    private func getCmdCompress4BppHeatshrink(matrix: [[Int]]) -> [UInt8]{
+        let encoder = RNHeatshrinkEncoder(windowSize: 8, andLookaheadSize: 4)
+        let matrixData : Data = 
+        return [UInt8](encoder.encode(matrix))
     }
     
     private func getCmd1Bpp(matrix : [[Int]]) -> [[UInt8]]{
