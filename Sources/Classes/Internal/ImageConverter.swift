@@ -30,8 +30,10 @@ internal class ImageConverter {
             imageData = ImageData(width: UInt16(width), data: cmds)
             break
         case .MONO_4BPP_HEATSHRINK:
-            cmds = getCmdCompress4BppHeatshrink(matrix: matrix)
-            imageData = ImageData(width: UInt16(width), data: cmds, size: UInt32(matrix.count))
+            let encodedImg = getCmd4Bpp(matrix: matrix)
+            let matrixData = Data(bytes: encodedImg, count: encodedImg.count)
+            cmds = getCmdCompress4BppHeatshrink(encodedImg: matrixData)
+            imageData = ImageData(width: UInt16(width), data: cmds, size: UInt32(encodedImg[0]))
             break
         default:
             print("Unknown image format")
@@ -134,13 +136,9 @@ internal class ImageConverter {
         return  encodedImg
     }
     
-    private func getCmdCompress4BppHeatshrink(matrix: [[Int]]) -> [UInt8]{
-        let encodedImg = getCmd4Bpp(matrix: matrix)
-        
+    private func getCmdCompress4BppHeatshrink(encodedImg: Data) -> [UInt8]{
         let encoder = RNHeatshrinkEncoder(windowSize: 8, andLookaheadSize: 4)
-        let matrixData = Data(bytes: encodedImg, count: encodedImg.count)
-        
-        return [UInt8](encoder.encode(matrixData))
+        return [UInt8](encoder.encode(encodedImg))
     }
     
     private func getCmd1Bpp(matrix : [[Int]]) -> [[UInt8]]{
