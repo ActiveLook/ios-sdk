@@ -33,7 +33,7 @@ internal class ImageConverter {
             let encodedImg = getCmd4Bpp(matrix: matrix)
             let matrixData = Data(bytes: encodedImg, count: encodedImg.count)
             cmds = getCmdCompress4BppHeatshrink(encodedImg: matrixData)
-            imageData = ImageData(width: UInt16(width), data: cmds, size: UInt32(encodedImg[0]))
+            imageData = ImageData(width: UInt16(width), data: cmds, size: UInt32(encodedImg.count))
             break
         default:
             print("Unknown image format")
