@@ -22,20 +22,23 @@ internal class ImageConverter {
         let matrix : [[Int]] = convert(img: img, fmt: fmt)
         let width : Int = matrix[0].count
         var cmds : [UInt8] = []
+        var imageData = ImageData()
         
         switch fmt {
         case .MONO_4BPP:
             cmds = getCmd4Bpp(matrix: matrix)
+            imageData = ImageData(width: UInt16(width), data: cmds)
             break
         case .MONO_4BPP_HEATSHRINK:
             cmds = getCmdCompress4BppHeatshrink(matrix: matrix)
+            imageData = ImageData(width: UInt16(width), data: cmds, size: UInt32(matrix.count))
             break
         default:
             print("Unknown image format")
             break
         }
         
-        return ImageData(width: UInt16(width), data: cmds)
+        return imageData
     }
     
     internal func getImageData1bpp(img: UIImage, fmt: ImgSaveFmt) -> ImageData1bpp{
@@ -132,14 +135,11 @@ internal class ImageConverter {
     }
     
     private func getCmdCompress4BppHeatshrink(matrix: [[Int]]) -> [UInt8]{
+        let encodedImg = getCmd4Bpp(matrix: matrix)
+        
         let encoder = RNHeatshrinkEncoder(windowSize: 8, andLookaheadSize: 4)
-        var bytes : [UInt8] = []
-        matrix.forEach( { line in
-            line.forEach({ byte in
-                bytes.append(UInt8(byte))
-            })
-        } )
-        var matrixData = Data(bytes: bytes, count: bytes.count)
+        let matrixData = Data(bytes: encodedImg, count: encodedImg.count)
+        
         return [UInt8](encoder.encode(matrixData))
     }
     
@@ -177,3 +177,10 @@ internal class ImageConverter {
         return encodedImg
     }
 }
+
+extension Array where Element: Comparable {
+    func containsSameElements(as other: [Element]) -> Bool {
+        return self.count == other.count && self.sorted() == other.sorted()
+    }
+}
+
