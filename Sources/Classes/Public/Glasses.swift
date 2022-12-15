@@ -917,6 +917,22 @@ public class Glasses {
             case .MONO_1BPP:
             imgStream1bpp(image: image, x: x, y: x)
             break
+        case .MONO_4BPP_HEATSHRINK:
+            let imageData =  ImageConverter().getImageDataStream4bpp(img: image, fmt: imgStreamFmt)
+
+            var firstChunkData: [UInt8] = []
+            firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
+            firstChunkData.append(contentsOf: imageData.width.asUInt8Array)
+            firstChunkData.append(imgStreamFmt.rawValue)
+        
+            sendCommand(id: .imgStream, withData: firstChunkData)
+            // TODO Should be using bigger chunk size (505) but not working on 3.7.4b
+            let chunkedImageData = imageData.data.chunked(into: 121) // 128 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+                    
+            for chunk in chunkedImageData {
+                sendCommand(id: .imgStream, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
+            }
+        break
         }
     }
     

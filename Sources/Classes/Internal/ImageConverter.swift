@@ -69,9 +69,33 @@ internal class ImageConverter {
         case .MONO_1BPP:
             cmds = getCmd1Bpp(matrix: matrix)
             break
+        default:
+            print("Unknown image format")
+            break
         }
         
         return ImageData1bpp(width: UInt16(width), data: cmds)
+    }
+    
+    internal func getImageDataStream4bpp(img: UIImage, fmt: ImgStreamFmt) -> ImageData{
+        let matrix : [[Int]] = convertStream(img: img, fmt: fmt)
+        let width : Int = matrix[0].count
+        var cmds : [UInt8] = []
+        var imageData = ImageData()
+        
+        switch fmt {
+        case .MONO_4BPP_HEATSHRINK:
+            let encodedImg = getCmd4Bpp(matrix: matrix)
+            let matrixData = Data(bytes: encodedImg, count: encodedImg.count)
+            cmds = getCmdCompress4BppHeatshrink(encodedImg: matrixData)
+            imageData = ImageData(width: UInt16(width), data: cmds, size: UInt32(encodedImg.count))
+            break
+        default:
+            print("Unknown image format")
+            break
+        }
+        
+        return imageData
     }
 
     //MARK: - Convert pixels to specific format without compression
@@ -99,6 +123,9 @@ internal class ImageConverter {
         switch fmt {
         case .MONO_1BPP:
             convert = ImageMDP05().convert1Bpp(image: img)
+            break
+        case .MONO_4BPP_HEATSHRINK:
+            convert = ImageMDP05().convertDefault(image: img)
             break
         }
         
@@ -175,10 +202,3 @@ internal class ImageConverter {
         return encodedImg
     }
 }
-
-extension Array where Element: Comparable {
-    func containsSameElements(as other: [Element]) -> Bool {
-        return self.count == other.count && self.sorted() == other.sorted()
-    }
-}
-

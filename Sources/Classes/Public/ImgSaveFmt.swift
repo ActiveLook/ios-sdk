@@ -26,5 +26,5 @@ import Foundation
 /// Supported image streaming format
 @objc public enum ImgStreamFmt: UInt8 {
     case MONO_1BPP = 1  ///1bpp
-    //case MONO_4BPP_HEATSHRINK = 2 ///4bpp with Heatshrink compression
+    case MONO_4BPP_HEATSHRINK = 2 ///4bpp with Heatshrink compression
 }
