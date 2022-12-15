@@ -923,6 +923,8 @@ public class Glasses {
             var firstChunkData: [UInt8] = []
             firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
             firstChunkData.append(contentsOf: imageData.width.asUInt8Array)
+            firstChunkData.append(contentsOf: x.asUInt8Array)
+            firstChunkData.append(contentsOf: y.asUInt8Array)
             firstChunkData.append(imgStreamFmt.rawValue)
         
             sendCommand(id: .imgStream, withData: firstChunkData)
