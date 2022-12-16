@@ -849,8 +849,7 @@ public class Glasses {
                 firstChunkData.append(imgSaveFmt.rawValue)
             
                 sendCommand(id: .imgSave, withData: firstChunkData)
-                // TODO Should be using bigger chunk size (505) but not working on 3.7.4b
-                let chunkedImageData = imageData.data.chunked(into: 121) // 128 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+                let chunkedImageData = imageData.data.chunked(into: 505) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
                         
                 for chunk in chunkedImageData {
                     sendCommand(id: .imgSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
@@ -875,8 +874,7 @@ public class Glasses {
         
         sendCommand(id: .imgSave, withData: firstChunkData)
         
-        // TODO Should be using bigger chunk size (505) but not working on 3.7.4b
-        let chunkedImageData = imageData.data.chunked(into: 121) // 128 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+        let chunkedImageData = imageData.data.chunked(into: 505) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
                 
         for chunk in chunkedImageData {
             sendCommand(id: .imgSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
@@ -928,8 +926,7 @@ public class Glasses {
             firstChunkData.append(imgStreamFmt.rawValue)
         
             sendCommand(id: .imgStream, withData: firstChunkData)
-            // TODO Should be using bigger chunk size (505) but not working on 3.7.4b
-            let chunkedImageData = imageData.data.chunked(into: 121) // 128 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+            let chunkedImageData = imageData.data.chunked(into: 505) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
                     
             for chunk in chunkedImageData {
                 sendCommand(id: .imgStream, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
@@ -953,8 +950,7 @@ public class Glasses {
         firstChunkData.append(imgSaveFmt.rawValue)
     
         sendCommand(id: .imgSave, withData: firstChunkData)
-        // TODO Should be using bigger chunk size (505) but not working on 3.7.4b
-        let chunkedImageData = imageData.data.chunked(into: 121) // 128 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+        let chunkedImageData = imageData.data.chunked(into: 505) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
                 
         for chunk in chunkedImageData {
             sendCommand(id: .imgSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
@@ -977,34 +973,20 @@ public class Glasses {
     
         sendCommand(id: .imgSave, withData: firstChunkData)
         
-        // TODO Should be using bigger chunk size (505) but not working on 3.7.4b
-        let ChunkSize : Int = 121
+        let ChunkSize : Int = 505
         
         var data : [UInt8] = []
         
         for (index,line) in imageData.data.enumerated() {
-            let isNextIndexValid = imageData.data.indices.contains(index+1)
-        
-            if isNextIndexValid{
-                if data.count == 0 {
-                    data = line
-                }else if data.count + line.count <= ChunkSize{
-                    data.append(contentsOf: line)
-                }else if data.count + line.count > ChunkSize{
-                    sendCommand(id: .imgSave, withData: data)
-                    data = line
-                }
-            }else{
-                if data.count == 0 {
-                    sendCommand(id: .imgSave, withData: line)
-                }else if data.count + line.count <= ChunkSize{
-                    data.append(contentsOf: line)
-                    sendCommand(id: .imgSave, withData: data)
-                }else if data.count + line.count > ChunkSize{
-                    sendCommand(id: .imgSave, withData: data)
-                    sendCommand(id: .imgSave, withData: line)
-                }
+            if data.count + line.count <= ChunkSize {
+                data.append(contentsOf: line)
+            } else {
+                sendCommand(id: .imgSave, withData: data)
+                data = line
             }
+        }
+        if data.count > 0 {
+            sendCommand(id: .imgSave, withData: data)
         }
     }
     
@@ -1026,8 +1008,7 @@ public class Glasses {
         firstChunkData.append(imgStreamFmt.rawValue)
     
         sendCommand(id: .imgStream, withData: firstChunkData)
-        // TODO Should be using bigger chunk size (505) but not working on 3.7.4b
-        let ChunkSize : Int = 121
+        let ChunkSize : Int = 505
         
         var data : [UInt8] = []
         
@@ -1078,8 +1059,7 @@ public class Glasses {
 
         sendCommand(id: .fontSave, withData: firstChunkData)
         
-        // TODO Should be using bigger chunk size (505) but not working on 3.7.4b
-        let chunkedCommandData = fontData.data.chunked(into: 121) // 128 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+        let chunkedCommandData = fontData.data.chunked(into: 505) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
 
         for chunk in chunkedCommandData {
             sendCommand(id: .fontSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
@@ -1680,23 +1660,23 @@ public class Glasses {
         {
             return dispatchQueue.sync(flags: .barrier)
             {
-                guard !self.elements.isEmpty else
-                {
-                    return nil
+                var cmdStack = Data([])
+                while cmdStack.count < mtu && !self.elements.isEmpty {
+                    let remaining = mtu - cmdStack.count
+                    let first = self.elements.removeFirst()
+                    if first.count <= remaining {
+                        cmdStack.append(contentsOf: first)
+                        if first.count == remaining || self.elements.isEmpty {
+                            return cmdStack
+                        }
+                    } else {
+                        cmdStack.append(contentsOf: Data(first[0...remaining-1]))
+                        let firstTail = Data(first[remaining...first.count-1])
+                        self.elements.insert(firstTail, at: 0)
+                        return cmdStack
+                    }
                 }
-
-                let first = self.elements.removeFirst()
-
-                if first.count <= mtu {
-                    return first
-                }
-
-                let firstHead = Data(first[0...mtu-1])
-                let firstTail = Data(first[mtu...first.count-1])
-
-                self.elements.insert(firstTail, at: 0)
-
-                return firstHead
+                return nil // Question: Why not an empty array?
             }
         }
 
