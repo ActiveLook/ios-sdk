@@ -849,8 +849,7 @@ public class Glasses {
                 firstChunkData.append(imgSaveFmt.rawValue)
             
                 sendCommand(id: .imgSave, withData: firstChunkData)
-                // TODO Should be using bigger chunk size (505) but not working on 3.7.4b
-                let chunkedImageData = imageData.data.chunked(into: 121) // 128 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+                let chunkedImageData = imageData.data.chunked(into: 505) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
                         
                 for chunk in chunkedImageData {
                     sendCommand(id: .imgSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
@@ -875,8 +874,7 @@ public class Glasses {
         
         sendCommand(id: .imgSave, withData: firstChunkData)
         
-        // TODO Should be using bigger chunk size (505) but not working on 3.7.4b
-        let chunkedImageData = imageData.data.chunked(into: 121) // 128 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+        let chunkedImageData = imageData.data.chunked(into: 505) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
                 
         for chunk in chunkedImageData {
             sendCommand(id: .imgSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
@@ -928,8 +926,7 @@ public class Glasses {
             firstChunkData.append(imgStreamFmt.rawValue)
         
             sendCommand(id: .imgStream, withData: firstChunkData)
-            // TODO Should be using bigger chunk size (505) but not working on 3.7.4b
-            let chunkedImageData = imageData.data.chunked(into: 121) // 128 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+            let chunkedImageData = imageData.data.chunked(into: 505) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
                     
             for chunk in chunkedImageData {
                 sendCommand(id: .imgStream, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
@@ -953,8 +950,7 @@ public class Glasses {
         firstChunkData.append(imgSaveFmt.rawValue)
     
         sendCommand(id: .imgSave, withData: firstChunkData)
-        // TODO Should be using bigger chunk size (505) but not working on 3.7.4b
-        let chunkedImageData = imageData.data.chunked(into: 121) // 128 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+        let chunkedImageData = imageData.data.chunked(into: 505) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
                 
         for chunk in chunkedImageData {
             sendCommand(id: .imgSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
@@ -977,8 +973,7 @@ public class Glasses {
     
         sendCommand(id: .imgSave, withData: firstChunkData)
         
-        // TODO Should be using bigger chunk size (505) but not working on 3.7.4b
-        let ChunkSize : Int = 121
+        let ChunkSize : Int = 505
         
         var data : [UInt8] = []
         
@@ -1026,8 +1021,7 @@ public class Glasses {
         firstChunkData.append(imgStreamFmt.rawValue)
     
         sendCommand(id: .imgStream, withData: firstChunkData)
-        // TODO Should be using bigger chunk size (505) but not working on 3.7.4b
-        let ChunkSize : Int = 121
+        let ChunkSize : Int = 505
         
         var data : [UInt8] = []
         
@@ -1078,8 +1072,7 @@ public class Glasses {
 
         sendCommand(id: .fontSave, withData: firstChunkData)
         
-        // TODO Should be using bigger chunk size (505) but not working on 3.7.4b
-        let chunkedCommandData = fontData.data.chunked(into: 121) // 128 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+        let chunkedCommandData = fontData.data.chunked(into: 505) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
 
         for chunk in chunkedCommandData {
             sendCommand(id: .fontSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
