@@ -2,7 +2,16 @@
 
 ## Version 4.4.0
 
-
+### New features
+- Stack commands before sending to eyewear
+- New commands :
+  - `layoutClearAndDisplayExtended` : clear a layout before displaying it at a position
+  - `layoutClearAndDisplay` : clear a layout before displaying it
+  - `layoutClearExtended` : clear a layout at a position
+  - `pageClearAndDisplay` : clear a page before displaying it
+  - `imgSave` : save image in new format
+  - `streamImg` : display an image without saving it
+  - `polyline` : choose the thickness of your polyline
 
 ## Version 4.3.0
 
