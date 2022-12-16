@@ -199,3 +199,7 @@ When done interacting with ActiveLook glasses, simply call the `disconnect()` me
 ```swift
 glasses.disconnect()
 ```
+
+## Acknolegment
+
+We are currently using code from [nobre84/heatshrink-objc](https://github.com/nobre84/heatshrink-objc) (thanks to him). We did'nt find a easiest way to use it than add it to our code.
