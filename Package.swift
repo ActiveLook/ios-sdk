@@ -12,14 +12,18 @@ let package = Package(
     products: [
         .library(
             name: "ActiveLookSDK",
-            targets: ["ActiveLookSDK"])
+            targets: ["ActiveLookSDK","Heatshrink"])
     ],
     dependencies: [],
     targets: [
         .target(
             name: "ActiveLookSDK",
-            dependencies: [],
-            path: "Classes"),
+            dependencies: ["Heatshrink"],
+            path: "Sources",
+            exclude: ["Heatshrink"]),
+        .target(
+            name: "Heatshrink",
+            path: "Sources/Heatshrink"),
         .testTarget(
             name: "ActiveLookSDKTests",
             dependencies: ["ActiveLookSDK"]),

@@ -26,9 +26,21 @@ public class ImageData1bpp {
     
     public let size: UInt32
     
+    public init() {
+        self.width = 0
+        self.data = []
+        self.size = 0
+    }
+    
     public init(width: UInt16, data: [[UInt8]]) {
         self.width = width
         self.data = data
         self.size = UInt32(data.count * data[0].count)
+    }
+    
+    public init(width: UInt16, data: [[UInt8]], size: UInt32) {
+        self.width = width
+        self.data = data
+        self.size = size
     }
 }

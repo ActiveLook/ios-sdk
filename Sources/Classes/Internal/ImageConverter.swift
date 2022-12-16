@@ -14,6 +14,9 @@ limitations under the License.
 
 import Foundation
 import UIKit
+#if canImport(Heatshrink)
+import Heatshrink
+#endif
 
 internal class ImageConverter {
     
@@ -25,13 +28,18 @@ internal class ImageConverter {
         switch fmt {
         case .MONO_4BPP:
             cmds = getCmd4Bpp(matrix: matrix)
-            break
+            return ImageData(width: UInt16(width), data: cmds)
+        case .MONO_4BPP_HEATSHRINK:
+            let encodedImg = getCmd4Bpp(matrix: matrix)
+            let matrixData = Data(bytes: encodedImg, count: encodedImg.count)
+            cmds = getCmdCompress4BppHeatshrink(encodedImg: matrixData)
+            return ImageData(width: UInt16(width), data: cmds, size: UInt32(encodedImg.count))
         default:
             print("Unknown image format")
             break
         }
         
-        return ImageData(width: UInt16(width), data: cmds)
+        return ImageData()
     }
     
     internal func getImageData1bpp(img: UIImage, fmt: ImgSaveFmt) -> ImageData1bpp{
@@ -67,6 +75,25 @@ internal class ImageConverter {
         
         return ImageData1bpp(width: UInt16(width), data: cmds)
     }
+    
+    internal func getImageDataStream4bpp(img: UIImage, fmt: ImgStreamFmt) -> ImageData{
+        let matrix : [[Int]] = convertStream(img: img, fmt: fmt)
+        let width : Int = matrix[0].count
+        var cmds : [UInt8] = []
+        
+        switch fmt {
+        case .MONO_4BPP_HEATSHRINK:
+            let encodedImg = getCmd4Bpp(matrix: matrix)
+            let matrixData = Data(bytes: encodedImg, count: encodedImg.count)
+            cmds = getCmdCompress4BppHeatshrink(encodedImg: matrixData)
+            return ImageData(width: UInt16(width), data: cmds, size: UInt32(encodedImg.count))
+        default:
+            print("Unknown image format")
+            break
+        }
+        
+        return ImageData()
+    }
 
     //MARK: - Convert pixels to specific format without compression
     private func convert(img: UIImage, fmt: ImgSaveFmt) -> [[Int]]{
@@ -77,6 +104,9 @@ internal class ImageConverter {
             convert = ImageMDP05().convert1Bpp(image: img)
             break
         case .MONO_4BPP:
+            convert = ImageMDP05().convertDefault(image: img)
+            break
+        case .MONO_4BPP_HEATSHRINK:
             convert = ImageMDP05().convertDefault(image: img)
             break
         }
@@ -91,8 +121,8 @@ internal class ImageConverter {
         case .MONO_1BPP:
             convert = ImageMDP05().convert1Bpp(image: img)
             break
-        default:
-            print("Unknown image format")
+        case .MONO_4BPP_HEATSHRINK:
+            convert = ImageMDP05().convertDefault(image: img)
             break
         }
         
@@ -128,6 +158,11 @@ internal class ImageConverter {
             }
         }
         return  encodedImg
+    }
+    
+    private func getCmdCompress4BppHeatshrink(encodedImg: Data) -> [UInt8]{
+        let encoder = RNHeatshrinkEncoder(windowSize: 8, andLookaheadSize: 4)
+        return [UInt8](encoder.encode(encodedImg))
     }
     
     private func getCmd1Bpp(matrix : [[Int]]) -> [[UInt8]]{
