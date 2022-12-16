@@ -978,28 +978,15 @@ public class Glasses {
         var data : [UInt8] = []
         
         for (index,line) in imageData.data.enumerated() {
-            let isNextIndexValid = imageData.data.indices.contains(index+1)
-        
-            if isNextIndexValid{
-                if data.count == 0 {
-                    data = line
-                }else if data.count + line.count <= ChunkSize{
-                    data.append(contentsOf: line)
-                }else if data.count + line.count > ChunkSize{
-                    sendCommand(id: .imgSave, withData: data)
-                    data = line
-                }
-            }else{
-                if data.count == 0 {
-                    sendCommand(id: .imgSave, withData: line)
-                }else if data.count + line.count <= ChunkSize{
-                    data.append(contentsOf: line)
-                    sendCommand(id: .imgSave, withData: data)
-                }else if data.count + line.count > ChunkSize{
-                    sendCommand(id: .imgSave, withData: data)
-                    sendCommand(id: .imgSave, withData: line)
-                }
+            if data.count + line.count <= ChunkSize {
+                data.append(contentsOf: line)
+            } else {
+                sendCommand(id: .imgSave, withData: data)
+                data = line
             }
+        }
+        if data.count > 0 {
+            sendCommand(id: .imgSave, withData: data)
         }
     }
     
