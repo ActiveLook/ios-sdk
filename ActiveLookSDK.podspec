@@ -8,10 +8,10 @@
 
 Pod::Spec.new do |s|
   s.name             = 'ActiveLookSDK'
-  s.version          = '4.3.0'
-  s.summary          = 'An iOS library to interact with Active Look glasses'
+  s.version          = '4.4.0'
+  s.summary          = 'An iOS library to interact with ActiveLook eyewear'
   s.description      = <<-DESC
-This CocoaPod provides the ability to connect to ActiveLook glasses running
+This CocoaPod provides the ability to connect to ActiveLook eyewear running
 a firmware >= 4.0.0  and send various commands
                        DESC
 
@@ -19,7 +19,7 @@ a firmware >= 4.0.0  and send various commands
   s.license          = { :type => 'Apache', :file => 'LICENSE' }
   s.author           = { "Sylvain Romillon" => "sylvain.romillon@microoled.net" }
   s.source           = { :git => 'https://github.com/ActiveLook/ios-sdk.git', :tag => s.version.to_s }
-  s.source_files     = 'Classes/**/*'
+  s.source_files     = 'Sources/**/*'
   s.swift_version    = '5.0'
 
   s.ios.deployment_target       = '12.0'
