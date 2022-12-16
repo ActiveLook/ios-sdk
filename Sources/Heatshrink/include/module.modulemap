@@ -1,0 +1,4 @@
+module Heatshrink [system]{
+    header "heatshrink-Bridging-Header.h"
+    export *
+}

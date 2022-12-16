@@ -6,19 +6,24 @@ let package = Package(
     name: "ActiveLookSDK",
     platforms: [
         .iOS(.v13),
-        .watchOS(.v6)
+        .watchOS(.v6),
+        .macOS(.v12)
     ],
     products: [
         .library(
             name: "ActiveLookSDK",
-            targets: ["ActiveLookSDK"])
+            targets: ["ActiveLookSDK","Heatshrink"])
     ],
     dependencies: [],
     targets: [
         .target(
             name: "ActiveLookSDK",
-            dependencies: [],
-            path: "Classes"),
+            dependencies: ["Heatshrink"],
+            path: "Sources",
+            exclude: ["Heatshrink"]),
+        .target(
+            name: "Heatshrink",
+            path: "Sources/Heatshrink"),
         .testTarget(
             name: "ActiveLookSDKTests",
             dependencies: ["ActiveLookSDK"]),
