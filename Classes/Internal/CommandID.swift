@@ -65,6 +65,9 @@ internal enum CommandID: UInt8 {
     case layoutPosition = 0x65
     case layoutDisplayExtended = 0x66
     case layoutGet = 0x67
+    case layoutClearExtended = 0x68
+    case layoutClearAndDisplay = 0x69
+    case layoutClearAndDisplayExtended = 0x6A
 
     case gaugeDisplay = 0x70
     case gaugeSave = 0x71
@@ -78,6 +81,7 @@ internal enum CommandID: UInt8 {
     case pageDisplay = 0x83
     case pageClear = 0x84
     case pageList = 0x85
+    case pageClearAndDisplay = 0x86
 
     case pixelCount = 0xA5
     case getChargingCounter = 0xA7
