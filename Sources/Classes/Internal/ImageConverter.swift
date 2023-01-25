@@ -29,7 +29,7 @@ internal class ImageConverter {
         case .MONO_4BPP:
             cmds = getCmd4Bpp(matrix: matrix)
             return ImageData(width: UInt16(width), data: cmds)
-        case .MONO_4BPP_HEATSHRINK:
+        case .MONO_4BPP_HEATSHRINK, .MONO_4BPP_HEATSHRINK_SAVE_COMP:
             let encodedImg = getCmd4Bpp(matrix: matrix)
             let matrixData = Data(bytes: encodedImg, count: encodedImg.count)
             cmds = getCmdCompress4BppHeatshrink(encodedImg: matrixData)
@@ -106,7 +106,7 @@ internal class ImageConverter {
         case .MONO_4BPP:
             convert = ImageMDP05().convertDefault(image: img)
             break
-        case .MONO_4BPP_HEATSHRINK:
+        case .MONO_4BPP_HEATSHRINK, .MONO_4BPP_HEATSHRINK_SAVE_COMP:
             convert = ImageMDP05().convertDefault(image: img)
             break
         }
