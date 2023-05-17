@@ -44,6 +44,7 @@ internal enum CommandID: UInt8 {
     case circf = 0x36
     case txt = 0x37
     case polyline = 0x38
+    case holdFlush = 0x39
 
     case imgSave = 0x41
     case imgDisplay = 0x42

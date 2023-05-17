@@ -806,6 +806,18 @@ public class Glasses {
         sendCommand(id: .polyline, withData: data)
         
     }
+
+    /// Hold or flush the graphic engine.
+    /// When held, new display commands are stored in memory and are displayed when the graphic engine is flushed.
+    /// This allows stacking multiple graphic operations and displaying them simultaneously without screen flickering.
+    /// Warning: Clear is not held by the graphic engine, a white rectangle can be used instead.
+    /// - Parameters:
+    ///  - holdFlush: action hold or flush display
+    public func holdFlush(holdFlush: HoldFlushAction){
+        var data: [UInt8] = []
+        data.append(holdFlush.rawValue)
+        sendCommand(id: .holdFlush, withData: data)
+    }
     
     // MARK: - Bitmap commands
 

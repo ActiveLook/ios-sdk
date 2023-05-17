@@ -66,3 +66,9 @@ public enum TextRotation: UInt8 {
 public typealias Point = (x: UInt16, y: UInt16)
 
 internal typealias CommandResponseData = [UInt8]
+
+// Hold or flush commands
+@objc public enum HoldFlushAction: UInt8 {
+    case HOLD = 0  
+    case FLUSH = 1  
+}
