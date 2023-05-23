@@ -1,9 +1,14 @@
 # CHANGELOG
 
-## Version 4.4.1
+## Version 4.4.2
 
 ### Fixes
 - Don't need anymore stuffing byte to flush glasses stack
+  
+## Version 4.4.1
+
+### Fixes
+- Hotfixe init TimeOutDuration
 
 ## Version 4.4.0
 
