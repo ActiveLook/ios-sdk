@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## Version 4.4.1
+
+### Fixes
+- Don't need anymore stuffing byte to flush glasses stack
+
 ## Version 4.4.0
 
 ### New features
