@@ -1210,6 +1210,23 @@ public class Glasses {
         
         sendCommand(id: .layoutDisplayExtended, withData: data)
     }
+    
+    /// Display the specified layout at the specified position with the specified value. Position is not saved
+    /// - Parameters:
+    ///   - id: The id of the layout to display
+    ///   - x: The x coordinate of the position of the layout
+    ///   - y: The y coordinate of the position of the layout
+    ///   - text: The text value of the layout
+    ///   - ExtraCmd: extra commands with the same format as used to save addtional command to a layout.
+    public func layoutDisplayExtended(id: UInt8, x: UInt16, y: UInt8, text: String, extraCmd: LayoutExtraCmd) {
+        var data: [UInt8] = [id]
+        data.append(contentsOf: x.asUInt8Array)
+        data.append(y) // y is only encoded on 1 byte
+        data.append(contentsOf: text.asNullTerminatedUInt8Array)
+        data.append(contentsOf: extraCmd.toCommandData())
+        
+        sendCommand(id: .layoutDisplayExtended, withData: data)
+    }
 
     /// Get a layout
     /// - Parameters:
@@ -1255,6 +1272,24 @@ public class Glasses {
         data.append(contentsOf: x.asUInt8Array)
         data.append(y) // y is only encoded on 1 byte
         data.append(contentsOf: text.asNullTerminatedUInt8Array)
+        
+        sendCommand(id: .layoutClearAndDisplayExtended, withData: data)
+    }
+    
+    /// Clear area and display text with layout id at position x y. The position is not saved
+    /// - Parameters:
+    ///   - id: The id of the layout to display
+    ///   - x: The x coordinate of the position of the layout
+    ///   - y: The y coordinate of the position of the layout
+    ///   - text: The text value of the layout
+    ///   - ExtraCmd: extra commands with the same format as used to save addtional command to a layout.
+    public func layoutClearAndDisplayExtended(id: UInt8, x: UInt16, y: UInt8, text: String, extraCmd: LayoutExtraCmd) {
+        var data: [UInt8] = [id]
+        data.append(contentsOf: x.asUInt8Array)
+        data.append(y) // y is only encoded on 1 byte
+        data.append(contentsOf: text.asNullTerminatedUInt8Array)
+        data.append(contentsOf: extraCmd.toCommandData())
+
         
         sendCommand(id: .layoutClearAndDisplayExtended, withData: data)
     }
