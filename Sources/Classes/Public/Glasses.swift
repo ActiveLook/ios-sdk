@@ -1426,7 +1426,47 @@ public class Glasses {
         sendCommand(id: .pageClearAndDisplay, withData: withData)
     }
     
+    // MARK: - Animation commands
     
+    // TODO animeSave
+    //public func animeSave(){}
+    
+    /// Delete the specified animation
+    /// - Parameter id: The id of the animation to delete
+    public func animDelete(id: UInt8) {
+        sendCommand(id: .animDelete, withValue: id)
+    }
+    
+    /// Display the specified animation at the corresponding coordinates
+    /// - Parameters:
+    ///   - handlerId: The value is specified by the user and used to stop the animation
+    ///   - id: The id of the animation to display
+    ///   - delay: Set the inter-frame duration in ms
+    ///   - repeatAnim: is for the repeat count or 0xFF for infinite repetition
+    ///   - x: The x coordinate
+    ///   - y: The y coordinate
+    public func animDisplay(handlerId: UInt8, id: UInt8, delay: UInt16, repeatAnim: UInt8, x: Int16, y: Int16){
+        var data: [UInt8] = []
+        
+        data.append(handlerId)
+        data.append(id)
+        data.append(contentsOf: delay.asUInt8Array)
+        data.append(repeatAnim)
+        data.append(contentsOf: x.asUInt8Array)
+        data.append(contentsOf: y.asUInt8Array)
+    
+        sendCommand(id: .animDisplay, withData: data)
+    }
+    
+    /// Stop and clear the screen of the corresponding animation
+    /// - Parameter handlerId: The handlerId of the animation to stop, if the value is set to 0xFF, clear & stop all animations
+    public func animClear(handlerId: UInt8) {
+        sendCommand(id: .animClear, withValue: handlerId)
+    }
+    
+    // TODO animList
+    //public func animList(){}
+
     // MARK: - Statistics commands
     /// Get number of pixel activated on display
     /// - Parameter callback: A callback called asynchronously when the device answers
