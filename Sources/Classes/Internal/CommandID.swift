@@ -46,6 +46,8 @@ internal enum CommandID: UInt8 {
     case polyline = 0x38
     case holdFlush = 0x39
 
+    case widget = 0x3A
+
     case imgSave = 0x41
     case imgDisplay = 0x42
     case imgStream = 0x44
