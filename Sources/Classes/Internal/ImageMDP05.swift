@@ -30,9 +30,9 @@ internal class ImageMDP05{
         //reduce to 4bpp
         for y in 0 ..< height {
             for x in 0 ..< width {
-                let gray8bit : Int =  rotatedPixelsArray[y][x].rgbTo8bitGrayWeightedConvertion();
+                let gray8bit : Int =  rotatedPixelsArray[y][x].rgbTo8bitGrayWeightedConvertion()
                 //convert gray8bit to gray4bit
-                let gray4bit = Int((Double(gray8bit)/17).rounded(.toNearestOrAwayFromZero))
+                let gray4bit = Int((Double(gray8bit)/16))
                 encodedImg[y][x] =  gray4bit
             }
         }

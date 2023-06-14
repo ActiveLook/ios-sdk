@@ -55,6 +55,8 @@ public class Glasses {
     internal var disconnectionCallback: (() -> Void)?
     
     internal var isIntentionalDisconnect: Bool = false
+    
+    internal let chunkSize: Int = 505
 
     // MARK: - Fileprivate properties
 
@@ -841,24 +843,11 @@ public class Glasses {
                 imgSave1bpp(id: id, image: image)
             break
             case .MONO_4BPP_HEATSHRINK:
-                let imageData =  ImageConverter().getImageData(img: image, fmt: imgSaveFmt)
-            
-                var firstChunkData: [UInt8] = [id]
-                firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
-                firstChunkData.append(contentsOf: imageData.width.asUInt8Array)
-                firstChunkData.append(imgSaveFmt.rawValue)
-            
-                sendCommand(id: .imgSave, withData: firstChunkData)
-                let chunkedImageData = imageData.data.chunked(into: 505) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
-                        
-                for chunk in chunkedImageData {
-                    sendCommand(id: .imgSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
-                }
+                imgSave4bppHeatShrink(id: id, image: image)
             break
-            /*
-            case ImageSaveFormat.MONO_4BPP_HEATSHRINK_SAVE_COMP:
+            case .MONO_4BPP_HEATSHRINK_SAVE_COMP:
+                imgSave4bppHeatShrinkSaveComp(id: id, image: image)
             break
-             */
         }
     }
     
@@ -874,7 +863,7 @@ public class Glasses {
         
         sendCommand(id: .imgSave, withData: firstChunkData)
         
-        let chunkedImageData = imageData.data.chunked(into: 505) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+        let chunkedImageData = imageData.data.chunked(into: chunkSize) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
                 
         for chunk in chunkedImageData {
             sendCommand(id: .imgSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
@@ -916,21 +905,7 @@ public class Glasses {
             imgStream1bpp(image: image, x: x, y: x)
             break
         case .MONO_4BPP_HEATSHRINK:
-            let imageData =  ImageConverter().getImageDataStream4bpp(img: image, fmt: imgStreamFmt)
-
-            var firstChunkData: [UInt8] = []
-            firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
-            firstChunkData.append(contentsOf: imageData.width.asUInt8Array)
-            firstChunkData.append(contentsOf: x.asUInt8Array)
-            firstChunkData.append(contentsOf: y.asUInt8Array)
-            firstChunkData.append(imgStreamFmt.rawValue)
-        
-            sendCommand(id: .imgStream, withData: firstChunkData)
-            let chunkedImageData = imageData.data.chunked(into: 505) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
-                    
-            for chunk in chunkedImageData {
-                sendCommand(id: .imgStream, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
-            }
+            imgStream4bppHeatShrink(image: image, x: x, y: y)
         break
         }
     }
@@ -950,7 +925,7 @@ public class Glasses {
         firstChunkData.append(imgSaveFmt.rawValue)
     
         sendCommand(id: .imgSave, withData: firstChunkData)
-        let chunkedImageData = imageData.data.chunked(into: 505) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+        let chunkedImageData = imageData.data.chunked(into: chunkSize) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
                 
         for chunk in chunkedImageData {
             sendCommand(id: .imgSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
@@ -973,12 +948,11 @@ public class Glasses {
     
         sendCommand(id: .imgSave, withData: firstChunkData)
         
-        let ChunkSize : Int = 505
         
         var data : [UInt8] = []
         
-        for (index,line) in imageData.data.enumerated() {
-            if data.count + line.count <= ChunkSize {
+        for (_,line) in imageData.data.enumerated() {
+            if data.count + line.count <= chunkSize {
                 data.append(contentsOf: line)
             } else {
                 sendCommand(id: .imgSave, withData: data)
@@ -987,6 +961,48 @@ public class Glasses {
         }
         if data.count > 0 {
             sendCommand(id: .imgSave, withData: data)
+        }
+    }
+    
+    /// Save an image of the specified width and on a 4bpp format with Heatshrink compression, decompressed into 4bpp by the firmware before saving
+    /// - Parameters:
+    ///     - id: The id of the image to display
+    ///     - image: The image that will be saved
+    public func imgSave4bppHeatShrink(id: UInt8, image: UIImage){
+        let imgSaveFmt = ImgSaveFmt.MONO_4BPP_HEATSHRINK
+        let imageData =  ImageConverter().getImageData(img: image, fmt: imgSaveFmt)
+
+        var firstChunkData: [UInt8] = [id]
+        firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
+        firstChunkData.append(contentsOf: imageData.width.asUInt8Array)
+        firstChunkData.append(imgSaveFmt.rawValue)
+
+        sendCommand(id: .imgSave, withData: firstChunkData)
+        let chunkedImageData = imageData.data.chunked(into: chunkSize) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+                
+        for chunk in chunkedImageData {
+            sendCommand(id: .imgSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
+        }
+    }
+    
+    /// Save an image of the specified width and on a 4bpp format with Heatshrink compression, stored compressed, decompressed into 4bpp before display
+    /// - Parameters:
+    ///     - id: The id of the image to display
+    ///     - image: The image that will be saved
+    public func imgSave4bppHeatShrinkSaveComp(id: UInt8, image: UIImage){
+        let imgSaveFmt = ImgSaveFmt.MONO_4BPP_HEATSHRINK_SAVE_COMP
+        let imageData =  ImageConverter().getImageData(img: image, fmt: imgSaveFmt)
+
+        var firstChunkData: [UInt8] = [id]
+        firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
+        firstChunkData.append(contentsOf: imageData.width.asUInt8Array)
+        firstChunkData.append(imgSaveFmt.rawValue)
+
+        sendCommand(id: .imgSave, withData: firstChunkData)
+        let chunkedImageData = imageData.data.chunked(into: chunkSize) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+                
+        for chunk in chunkedImageData {
+            sendCommand(id: .imgSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
         }
     }
     
@@ -1008,7 +1024,6 @@ public class Glasses {
         firstChunkData.append(imgStreamFmt.rawValue)
     
         sendCommand(id: .imgStream, withData: firstChunkData)
-        let ChunkSize : Int = 505
         
         var data : [UInt8] = []
         
@@ -1018,23 +1033,48 @@ public class Glasses {
             if isNextIndexValid{
                 if data.count == 0 {
                     data = line
-                }else if data.count + line.count <= ChunkSize{
+                }else if data.count + line.count <= chunkSize{
                     data.append(contentsOf: line)
-                }else if data.count + line.count > ChunkSize{
+                }else if data.count + line.count > chunkSize{
                     sendCommand(id: .imgStream, withData: data)
                     data = line
                 }
             }else{
                 if data.count == 0 {
                     sendCommand(id: .imgStream, withData: line)
-                }else if data.count + line.count <= ChunkSize{
+                }else if data.count + line.count <= chunkSize{
                     data.append(contentsOf: line)
                     sendCommand(id: .imgStream, withData: data)
-                }else if data.count + line.count > ChunkSize{
+                }else if data.count + line.count > chunkSize{
                     sendCommand(id: .imgStream, withData: data)
                     sendCommand(id: .imgStream, withData: line)
                 }
             }
+        }
+    }
+    
+    /// Stream an image on display without saving it in memory and on a 4bpp format with Heatshrink compression
+    /// - Parameters:
+    ///   - image: The image that will be stream
+    ///   - x: The x coordinate of the image to display
+    ///   - y: The y coordinate of the image to display
+    public func imgStream4bppHeatShrink(image: UIImage, x: Int16, y: Int16){
+        let imgStreamFmt = ImgStreamFmt.MONO_4BPP_HEATSHRINK
+        
+        let imageData =  ImageConverter().getImageDataStream4bpp(img: image, fmt: imgStreamFmt)
+
+        var firstChunkData: [UInt8] = []
+        firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
+        firstChunkData.append(contentsOf: imageData.width.asUInt8Array)
+        firstChunkData.append(contentsOf: x.asUInt8Array)
+        firstChunkData.append(contentsOf: y.asUInt8Array)
+        firstChunkData.append(imgStreamFmt.rawValue)
+    
+        sendCommand(id: .imgStream, withData: firstChunkData)
+        let chunkedImageData = imageData.data.chunked(into: chunkSize) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+                
+        for chunk in chunkedImageData {
+            sendCommand(id: .imgStream, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
         }
     }
     
@@ -1059,7 +1099,7 @@ public class Glasses {
 
         sendCommand(id: .fontSave, withData: firstChunkData)
         
-        let chunkedCommandData = fontData.data.chunked(into: 505) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+        let chunkedCommandData = fontData.data.chunked(into: chunkSize) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
 
         for chunk in chunkedCommandData {
             sendCommand(id: .fontSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
