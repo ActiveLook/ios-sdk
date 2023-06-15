@@ -1580,8 +1580,223 @@ public class Glasses {
             callback(Int(commandResponseData[0]))
         }
     }
+    
+    // MARK: - Widget commands
 
-
+    /// Draw an "Open Gauge" Widget
+    /// - Parameters:
+    ///   - size: The widget's size
+    ///   - x: The x coordinate of the bottom right corner of the widget
+    ///   - y The y coordinate of the bottom right corner of the widget
+    ///   - value: The cursor (icon) position on the gauge
+    ///   - imgId: The image id for the icon
+    ///   - valueType: The type of formatting to be applied to the shown value
+    ///   - unit: The unit string to be displayed
+    ///   - shownValue: The shown value displayed and formatted according to valueType
+    public func widgetOpenGauge(size: WidgetSize, x: Int16, y: Int16, value: UInt8, imgId: UInt8, valueType: WidgetValueType, unit: String, shownValue: String){
+        let type : UInt8 = 0
+        
+        var data: [UInt8] = []
+        
+        data.append(type)
+        data.append(size.rawValue)
+        data.append(contentsOf: x.asUInt8Array)
+        data.append(contentsOf: y.asUInt8Array)
+        data.append(value)
+        data.append(imgId)
+        data.append(valueType.rawValue)
+        data.append(contentsOf: unit.asNullTerminatedUInt8Array)
+        data.append(contentsOf: shownValue.asNullTerminatedUInt8Array)
+        
+        sendCommand(id: .widget, withData: data)
+    }
+    
+    /// Draw an "Range Gauge" Widget
+    /// - Parameters:
+    ///   - size: The widget's size
+    ///   - x: The x coordinate of the bottom right corner of the widget
+    ///   - y The y coordinate of the bottom right corner of the widget
+    ///   - value: The cursor (icon) position on the gauge
+    ///   - imgId: The image id for the icon
+    ///   - valueType: The type of formatting to be applied to the shown value
+    ///   - unit: The unit string to be displayed
+    ///   - shownValue: The shown value displayed and formatted according to valueType
+    ///   - min: The string displayed at the beginning of the gauge
+    ///   - max: The string displayed at the end of the gauge
+    public func widgetRangeGauge(size: WidgetSize, x: Int16, y: Int16, value: UInt8, imgId: UInt8, valueType: WidgetValueType, unit: String, shownValue: String, min: String, max: String){
+        let type : UInt8 = 1
+        
+        var data: [UInt8] = []
+        
+        data.append(type)
+        data.append(size.rawValue)
+        data.append(contentsOf: x.asUInt8Array)
+        data.append(contentsOf: y.asUInt8Array)
+        data.append(value)
+        data.append(imgId)
+        data.append(valueType.rawValue)
+        data.append(contentsOf: unit.asNullTerminatedUInt8Array)
+        data.append(contentsOf: shownValue.asNullTerminatedUInt8Array)
+        data.append(contentsOf: min.asNullTerminatedUInt8Array)
+        data.append(contentsOf: max.asNullTerminatedUInt8Array)
+        
+        sendCommand(id: .widget, withData: data)
+    }
+    
+    /// Draw an "Zone Gauge" Widget
+    /// - Parameters:
+    ///   - size: The widget's size
+    ///   - x: The x coordinate of the bottom right corner of the widget
+    ///   - y The y coordinate of the bottom right corner of the widget
+    ///   - value: The cursor (icon) position on the gauge
+    ///   - imgId: The image id for the icon
+    ///   - valueType: The type of formatting to be applied to the shown value
+    ///   - unit: The unit string to be displayed
+    ///   - shownValue: The shown value displayed and formatted according to valueType
+    ///   - chosenZone: The selected zone which is widened
+    ///   - zoneNb: The number of zones
+    public func widgetGaugeZone(size: WidgetSize, x: Int16, y: Int16, value: UInt8, imgId: UInt8, valueType: WidgetValueType, unit: String, shownValue: String, chosenZone: UInt8, zoneNb: UInt8){
+        let type : UInt8 = 2
+        
+        var data: [UInt8] = []
+        
+        data.append(type)
+        data.append(size.rawValue)
+        data.append(contentsOf: x.asUInt8Array)
+        data.append(contentsOf: y.asUInt8Array)
+        data.append(value)
+        data.append(imgId)
+        data.append(valueType.rawValue)
+        data.append(contentsOf: unit.asNullTerminatedUInt8Array)
+        data.append(contentsOf: shownValue.asNullTerminatedUInt8Array)
+        data.append(chosenZone)
+        data.append(zoneNb)
+        
+        sendCommand(id: .widget, withData: data)
+    }
+    
+    /// Draw an "Target" Widget
+    /// - Parameters:
+    ///   - size: The widget's size
+    ///   - x: The x coordinate of the bottom right corner of the widget
+    ///   - y The y coordinate of the bottom right corner of the widget
+    ///   - value: The cursor (icon) position on the gauge
+    ///   - imgId: The image id for the icon
+    ///   - valueType: The type of formatting to be applied to the shown value
+    ///   - unit: The unit string to be displayed
+    ///   - shownValue: The shown value displayed and formatted according to valueType
+    ///   - goal: The goal string displayed at the end of the progress bar
+    public func widgetTarget(size: WidgetSize, x: Int16, y: Int16, value: UInt8, imgId: UInt8, valueType: WidgetValueType, unit: String, shownValue: String, goal: String){
+        let type : UInt8 = 3
+        
+        var data: [UInt8] = []
+        
+        data.append(type)
+        data.append(size.rawValue)
+        data.append(contentsOf: x.asUInt8Array)
+        data.append(contentsOf: y.asUInt8Array)
+        data.append(value)
+        data.append(imgId)
+        data.append(valueType.rawValue)
+        data.append(contentsOf: unit.asNullTerminatedUInt8Array)
+        data.append(contentsOf: shownValue.asNullTerminatedUInt8Array)
+        data.append(contentsOf: goal.asNullTerminatedUInt8Array)
+        
+        sendCommand(id: .widget, withData: data)
+    }
+    
+    /// Draw an "Target Left" Widget
+    /// - Parameters:
+    ///   - size: The widget's size
+    ///   - x: The x coordinate of the bottom right corner of the widget
+    ///   - y The y coordinate of the bottom right corner of the widget
+    ///   - value: The cursor (icon) position on the gauge
+    ///   - imgId: The image id for the icon
+    ///   - valueType: The type of formatting to be applied to the shown value
+    ///   - unit: The unit string to be displayed
+    ///   - shownValue: The shown value displayed and formatted according to valueType
+    ///   - goal: The goal string displayed at the end of the progress bar
+    public func widgetTargetLeft(size: WidgetSize, x: Int16, y: Int16, value: UInt8, imgId: UInt8, valueType: WidgetValueType, unit: String, shownValue: String, goal: String){
+        let type : UInt8 = 4
+        
+        var data: [UInt8] = []
+        
+        data.append(type)
+        data.append(size.rawValue)
+        data.append(contentsOf: x.asUInt8Array)
+        data.append(contentsOf: y.asUInt8Array)
+        data.append(value)
+        data.append(imgId)
+        data.append(valueType.rawValue)
+        data.append(contentsOf: unit.asNullTerminatedUInt8Array)
+        data.append(contentsOf: shownValue.asNullTerminatedUInt8Array)
+        data.append(contentsOf: goal.asNullTerminatedUInt8Array)
+        
+        sendCommand(id: .widget, withData: data)
+    }
+    
+    /// Draw an "Bar chart" Widget
+    /// - Parameters:
+    ///   - size: The widget's size
+    ///   - x: The x coordinate of the bottom right corner of the widget
+    ///   - y The y coordinate of the bottom right corner of the widget
+    ///   - imgId: The image id for the icon
+    ///   - valueType: The type of formatting to be applied to the shown value
+    ///   - unit: The unit string to be displayed
+    ///   - shownValue: The shown value displayed and formatted according to valueType
+    ///   - chosenZone: The selected zone which is widened
+    ///   - zoneNb: The number of zones
+    ///   - zoneNbValue: The values for each bar
+    public func widgetBarChart(size: WidgetSize, x: Int16, y: Int16, imgId: UInt8, valueType: WidgetValueType, unit: String, shownValue: String, chosenZone: UInt8, zoneNb: UInt8, zoneNbValue: [UInt8]){
+        let type : UInt8 = 5
+        
+        var data: [UInt8] = []
+        
+        data.append(type)
+        data.append(size.rawValue)
+        data.append(contentsOf: x.asUInt8Array)
+        data.append(contentsOf: y.asUInt8Array)
+        data.append(imgId)
+        data.append(valueType.rawValue)
+        data.append(contentsOf: unit.asNullTerminatedUInt8Array)
+        data.append(contentsOf: shownValue.asNullTerminatedUInt8Array)
+        data.append(chosenZone)
+        data.append(zoneNb)
+        
+        zoneNbValue.forEach { zoneValue in
+            data.append(zoneValue)
+        }
+        
+        sendCommand(id: .widget, withData: data)
+    }
+    
+    /// Draw an "Data" Widget
+    /// - Parameters:
+    ///   - size: The widget's size
+    ///   - x: The x coordinate of the bottom right corner of the widget
+    ///   - y The y coordinate of the bottom right corner of the widget
+    ///   - imgId: The image id for the icon
+    ///   - valueType: The type of formatting to be applied to the shown value
+    ///   - unit: The unit string to be displayed
+    ///   - shownValue: The shown value displayed and formatted according to valueType
+    public func widgetData(size: WidgetSize, x: Int16, y: Int16, imgId: UInt8, valueType: WidgetValueType, unit: String, shownValue: String){
+        let type : UInt8 = 6
+        var value : UInt8 = 0
+        var data: [UInt8] = []
+        
+        data.append(type)
+        data.append(size.rawValue)
+        data.append(contentsOf: x.asUInt8Array)
+        data.append(contentsOf: y.asUInt8Array)
+        data.append(value)
+        data.append(imgId)
+        data.append(valueType.rawValue)
+        data.append(contentsOf: unit.asNullTerminatedUInt8Array)
+        data.append(contentsOf: shownValue.asNullTerminatedUInt8Array)
+        
+        sendCommand(id: .widget, withData: data)
+    }
+    
     // MARK: - Device Commands
     
     /// Shutdown the device
