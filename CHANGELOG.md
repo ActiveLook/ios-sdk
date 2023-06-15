@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## Version 4.5.0
+
+### New features
+- New commands :
+  - `holdFlush` : When held, new display commands are stored in memory and are displayed when the graphic engine is flushed.
+  - `layoutDisplayExtended`  & `layoutClearAndDisplayExtended` with `ExtraCmd`:  Extra commands allow you to add elements to an existing layout without saving the modification.
+  - `anim` : delete, clear, display saved animations
+  - `ImgSaveFmt`: new image save format `4bpp HeatShrink Save Comp`
+  - `widget` : still under development, for debugging purpose (requirement : FW >= 4.11)
+  
 ## Version 4.4.2
 
 ### Fixes
