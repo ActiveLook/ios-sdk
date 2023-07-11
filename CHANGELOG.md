@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## Version 4.5.1
+
+### Fixes
+- `addSubCommandText` : add Null Terminated char to string length
+- `widgetTargetLeft`: workaround to fix bmp position outside of the widget
+- change FW API URL
+  
 ## Version 4.5.0
 
 ### New features
