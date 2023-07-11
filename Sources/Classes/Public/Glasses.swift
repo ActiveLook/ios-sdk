@@ -1725,7 +1725,7 @@ public class Glasses {
         data.append(size.rawValue)
         data.append(contentsOf: x.asUInt8Array)
         data.append(contentsOf: y.asUInt8Array)
-        data.append(value)
+        data.append(value < 16 ? 16 : value > 237 ? 237 : value)
         data.append(imgId)
         data.append(valueType.rawValue)
         data.append(contentsOf: unit.asNullTerminatedUInt8Array)
