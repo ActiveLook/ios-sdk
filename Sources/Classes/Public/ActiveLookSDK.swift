@@ -325,7 +325,10 @@ public class ActiveLookSDK {
         if nil != connectedDevices.first(where: { $0.identifier == dgUUID }) {
             throw ActiveLookError.alreadyConnected
         }
-
+        if let glasses = self.connectedGlasses(fromPeripheral: discoveredGlasses.peripheral) {
+            print("Intentional Discovered Glasses disconnection")
+            glasses.isIntentionalDisconnect = true
+        }
         centralManager.cancelPeripheralConnection(discoveredGlasses.peripheral)
     }
 
@@ -367,7 +370,12 @@ public class ActiveLookSDK {
         else {
             throw ActiveLookError.cannotRetrieveGlasses
         }
-
+        
+        if let glasses = self.connectedGlasses(fromPeripheral: rp) {
+            print("Intentional Serialized Glasses disconnection")
+            glasses.isIntentionalDisconnect = true
+        }
+        
         centralManager.cancelPeripheralConnection(rp)
     }
 
@@ -632,21 +640,19 @@ public class ActiveLookSDK {
 
             print("central manager did disconnect from glasses \(glasses.name)")
 
-            if parent.updateParameters.isUpdating()
-            {
+            if parent.updateParameters.isUpdating(){
                 parent.updater?.abort()
                 parent.updateParameters.notify(.updateFailed)
                 parent.updateParameters.reset()
             } else if parent.updateParameters.isRebooting() {
                 parent.updateParameters.notify(.rebooting, 101)
                 glasses.disconnectionCallback?()
-            } else {
+            } else if !glasses.isIntentionalDisconnect {
                 glasses.disconnectionCallback?()
-            }
-
-            if !glasses.isIntentionalDisconnect {
                 print("unwanted disconnect: reconnecting as soon as possible")
                 central.connect(peripheral)
+            } else {
+                print("wanted disconnect: not reconnecting")
             }
         }
 
