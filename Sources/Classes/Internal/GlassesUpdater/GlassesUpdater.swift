@@ -149,10 +149,12 @@ internal class GlassesUpdater {
         sdk?.updateParameters.notify(.startingUpdate)
 
         // get battery level
-        glasses.battery( { self.batteryLevel = $0 } )
-
-        // Start update process
-        checkFirmwareRecency()
+        glasses.battery({ b in
+                self.batteryLevel = b
+                // Start update process
+                self.checkFirmwareRecency()
+            }
+        )
     }
 
     func abort() -> Void {
