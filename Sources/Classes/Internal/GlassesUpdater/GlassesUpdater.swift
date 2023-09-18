@@ -149,10 +149,12 @@ internal class GlassesUpdater {
         sdk?.updateParameters.notify(.startingUpdate)
 
         // get battery level
-        glasses.battery( { self.batteryLevel = $0 } )
-
-        // Start update process
-        checkFirmwareRecency()
+        glasses.battery({ b in
+                self.batteryLevel = b
+                // Start update process
+                self.checkFirmwareRecency()
+            }
+        )
     }
 
     func abort() -> Void {
@@ -347,6 +349,22 @@ internal class GlassesUpdater {
         case .needsUpdate(let url):
             dlog(message: "Configuration needs update", 
                  line: #line, function: #function, file: #fileID)
+            
+            // If battery level is < 10, update is stopped here, and will start back only when > 10
+            guard let bl = batteryLevel, bl >= 10 else {
+                glasses?.subscribeToBatteryLevelNotifications(onBatteryLevelUpdate: {
+                    print("Battery level from notify: \($0)")
+                    if $0 < 10 {
+                        self.sdk?.updateParameters.notify(.lowBattery, 0, $0)
+                    }
+                    self.batteryLevel = $0
+                })
+                vcResult = result
+                sdk?.updateParameters.notify(.lowBattery, 0, batteryLevel)
+                return
+            }
+
+            if vcResult != nil { vcResult = nil }
 
             guard NetworkMonitor.shared.isConnected else {
                 failed(with: GlassesUpdateError.networkUnavailable)

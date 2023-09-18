@@ -1983,7 +1983,9 @@ public class Glasses {
                 let comps = file.components(separatedBy: "\n")
 
                 for line in comps {
-                    tempQueue.append(line.hexaData)
+                    if !line.isEmpty{
+                        tempQueue.append(line.hexaData)
+                    }
                 }
 
                 if isUpdating
