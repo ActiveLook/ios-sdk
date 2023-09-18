@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## Version 4.5.2
+
+### Fixes
+- Check battery level before glasses update
+- Block config update if battery level < 10%
+- Empty config line are not anymore queued
+- Fix `cancelConnection` on `DiscoveredGlasses` & `serializedGlasses`
+  
 ## Version 4.5.1
 
 ### Fixes
