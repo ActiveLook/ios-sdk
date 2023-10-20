@@ -259,16 +259,18 @@ internal final class VersionChecker: NSObject {
             }
 
             let vers = decodedData.latest.version
-            let oldVers = decodedData.older
-            var olderVersion: String = "0"
+            let oldVersions = decodedData.older
+            var originVersion: String = "0"
             
-            oldVers.forEach{ version in
-                if (version.version[3] == gcfgVersion && olderVersion == "0"){
-                    olderVersion = "\(version.version[0]).\(version.version[1]).\(version.version[2]).\(version.version[3])"
+            for versionDesc in oldVersions {
+                if (versionDesc.version[3] == gcfgVersion){
+                    originVersion = "\(versionDesc.version[0]).\(versionDesc.version[1]).\(versionDesc.version[2]).\(versionDesc.version[3])"
+                    break
                 }
             }
+            
             let url = URL(fileURLWithPath: decodedData.latest.api_path)
-            let apiPath = "\(url.lastPathComponent)/\(olderVersion)"
+            let apiPath = "\(url.lastPathComponent)/\(originVersion)"
 
             DispatchQueue.main.async {
                 self.remoteConfigurationVersion = ConfigurationVersion(
