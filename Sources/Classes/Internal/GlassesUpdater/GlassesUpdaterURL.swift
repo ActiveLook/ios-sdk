@@ -169,10 +169,13 @@ internal final class GlassesUpdaterURL {
         if ( version.first == separator ) {
             _ = version.removeFirst()
         }
-
+        var softwareClassStr : String = self.softwareClass.rawValue
+        if (self.softwareClass == .configurations){
+            softwareClassStr = "diff_\(softwareClassStr)"
+        }
         let pathComponents = [
             self.apiVersion,
-            self.softwareClass.rawValue,
+            softwareClassStr,
             hardware,
             token,
             version

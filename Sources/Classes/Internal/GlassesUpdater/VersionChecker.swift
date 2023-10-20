@@ -34,19 +34,18 @@ internal struct VersionCheckResult {
 
 
 // MARK: - FilePrivate Structures
-
-fileprivate struct Latest: Codable {
+fileprivate struct ConfigDescription: Codable{
     let api_path: String
     let version: [Int]
 }
 
-
 fileprivate struct ConfigurationJSON: Codable {
-    let latest: Latest
+    let latest: ConfigDescription
+    let older: [ConfigDescription]
 }
 
 fileprivate struct FirmwareJSON: Codable {
-    let latest: Latest
+    let latest: ConfigDescription
 }
 
 
@@ -174,9 +173,8 @@ internal final class VersionChecker: NSObject {
             let cfgVers = ConfigurationVersion(major: Int(config.version))
             self.sdk.updateParameters.set(version: cfgVers, for: .device)
             self.glassesConfigurationVersion = config.version
+            self.fetchConfigurationHistory()
         })
-
-        fetchConfigurationHistory()
     }
 
     internal func abort() {
@@ -214,7 +212,13 @@ internal final class VersionChecker: NSObject {
                 readDeviceFWVersion()
             return
         }
-
+        
+        guard let gcfgVersion = glassesConfigurationVersion else{
+            dlog(message: "CAN'T RETRIEVE CFG VERSION",
+                    line: #line, function: #function, file: #fileID)
+            return
+        }
+        
         // format URL string
         let url = urlGenerator.configurationHistoryURL(for: gfw)
 
@@ -255,8 +259,16 @@ internal final class VersionChecker: NSObject {
             }
 
             let vers = decodedData.latest.version
+            let oldVers = decodedData.older
+            var olderVersion: String = "0"
+            
+            oldVers.forEach{ version in
+                if (version.version[3] == gcfgVersion && olderVersion == "0"){
+                    olderVersion = "\(version.version[0]).\(version.version[1]).\(version.version[2]).\(version.version[3])"
+                }
+            }
             let url = URL(fileURLWithPath: decodedData.latest.api_path)
-            let apiPath = url.lastPathComponent
+            let apiPath = "\(url.lastPathComponent)/\(olderVersion)"
 
             DispatchQueue.main.async {
                 self.remoteConfigurationVersion = ConfigurationVersion(
