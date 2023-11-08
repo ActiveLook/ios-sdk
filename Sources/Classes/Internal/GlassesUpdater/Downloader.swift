@@ -62,33 +62,43 @@ internal class Downloader: NSObject {
         
         task = URLSession.shared.dataTask( with: url ) { data, response, error in
             guard error == nil else {
-                errorClosure( GlassesUpdateError.downloader(
-                    message: String(format: "Client error @", #line) ) )
+                DispatchQueue.main.async {
+                    errorClosure( GlassesUpdateError.downloader(
+                        message: String(format: "Client error @", #line) ) )
+                }
                 return
             }
 
             guard let httpResponse = response as? HTTPURLResponse else {
                 print("invalid response")
-                errorClosure(GlassesUpdateError.downloader(message: "Invalid Response"))
+                DispatchQueue.main.async {
+                    errorClosure(GlassesUpdateError.downloader(message: "Invalid Response"))
+                }
                 return
             }
 
             guard httpResponse.statusCode != 403 else {
                 print("403")
-                errorClosure(GlassesUpdateError.invalidToken)
+                DispatchQueue.main.async {
+                    errorClosure(GlassesUpdateError.invalidToken)
+                }
                 return
             }
 
             guard (200...299).contains(httpResponse.statusCode) else
             {
-                errorClosure( GlassesUpdateError.downloader(
-                    message: String(format: "Server error @", #line) ) )
+                DispatchQueue.main.async {
+                    errorClosure( GlassesUpdateError.downloader(
+                        message: String(format: "Server error @", #line) ) )
+                }
                 return
             }
 
             guard let data = data else {
-                errorClosure( GlassesUpdateError.downloader(
-                    message: String(format: "ERROR while downloading file @", #line) ))
+                DispatchQueue.main.async {
+                    errorClosure( GlassesUpdateError.downloader(
+                        message: String(format: "ERROR while downloading file @", #line) ))
+                }
                 return
             }
 
@@ -108,22 +118,28 @@ internal class Downloader: NSObject {
 
         task = URLSession.shared.dataTask( with: url ) { data, response, error in
             guard error == nil else {
-                errorClosure( GlassesUpdateError.downloader(
-                    message: String(format: "Client error @", #line) ) )
+                DispatchQueue.main.async {
+                    errorClosure( GlassesUpdateError.downloader(
+                        message: String(format: "Client error @", #line) ) )
+                }
                 return
             }
 
             guard let httpResponse = response as? HTTPURLResponse,
                   (200...299).contains(httpResponse.statusCode)
             else {
-                errorClosure( GlassesUpdateError.downloader(
-                    message: String(format: "Server error @", #line) ) )
+                DispatchQueue.main.async {
+                    errorClosure( GlassesUpdateError.downloader(
+                        message: String(format: "Server error @", #line) ) )
+                }
                 return
             }
 
             guard let data = data else {
-                errorClosure( GlassesUpdateError.downloader(
-                    message: String(format: "ERROR while downloading file @", #line) ))
+                DispatchQueue.main.async {
+                    errorClosure( GlassesUpdateError.downloader(
+                        message: String(format: "ERROR while downloading file @", #line) ))
+                }
                 return
             }
 
