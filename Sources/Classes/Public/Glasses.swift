@@ -17,18 +17,6 @@ import Foundation
 import CoreBluetooth
 import UIKit
 
-extension Data {
-    struct HexEncodingOptions: OptionSet {
-        let rawValue: Int
-        static let upperCase = HexEncodingOptions(rawValue: 1 << 0)
-    }
-
-    func hexEncodedString(options: HexEncodingOptions = []) -> String {
-        let format = options.contains(.upperCase) ? "%02hhX" : "%02hhx"
-        return self.map { String(format: format, $0) }.joined()
-    }
-}
-
 /// A representation of connected ActiveLook® glasses.
 ///
 /// Commands can be sent directly using the corresponding method.
@@ -352,8 +340,6 @@ public class Glasses {
             }
         }
 
-        print("bytes length control: \(value.count)")
-        print("\(value.hexEncodedString(options: .upperCase))")
         peripheral.writeValue(value, for: rxCharacteristic!, type: .withResponse)
 
         rxCharacteristicState = .busy
@@ -1968,7 +1954,6 @@ public class Glasses {
             switch characteristic.uuid {
             
             case CBUUID.ActiveLookRxCharacteristic:
-                print("DID WRITE COMMMAND IN GLASSES")
                 parent?.rxCharacteristicState = .available
 
             default:
@@ -2062,7 +2047,6 @@ public class Glasses {
                         cmdStack.append(contentsOf: first)
                         if first.count == remaining || self.elements.isEmpty {
                             parent?.isLastCommandWrittenComplete = true
-                            print("dequeue last, \(cmdStack.count)")
                             return cmdStack
                         }
                     } else {
@@ -2070,7 +2054,6 @@ public class Glasses {
                         let firstTail = Data(first[remaining...first.count-1])
                         self.elements.insert(firstTail, at: 0)
                         parent?.isLastCommandWrittenComplete = false
-                        print("dequeue not last, \(cmdStack.count)")
                         return cmdStack
                     }
                 }

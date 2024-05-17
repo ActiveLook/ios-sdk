@@ -150,7 +150,7 @@ public final class FirmwareUpdater: NSObject {
             self.currentAddr! += block_size
             
             let progress: Double = (1.0 - (Double(self.eraseSize!) / Double(size))) * 50
-            print("Progress: \(progress) | Remaining erase size: \(self.eraseSize!)")
+            print("Remaining erase size: \(self.eraseSize!)")
             sdk?.updateParameters.notify(.updatingFw, progress)
         }
     }
@@ -188,7 +188,7 @@ public final class FirmwareUpdater: NSObject {
             self.writeSize! -= sub_len
             
             let progress: Double = (1.0 - (Double(self.writeSize!) / Double(size))) * 50 + 50
-            print("Progress: \(progress) | Writing size remaining : \(self.writeSize!)")
+            print("Writing size remaining : \(self.writeSize!)")
             sdk?.updateParameters.notify(.updatingFw, progress)
         }
     }
@@ -725,7 +725,6 @@ extension FirmwareUpdater: CBPeripheralDelegate
                             self.currentAddr = nil
                             sendQSPIResetSignal()
                         } else {
-                            print("(isLastCommandWrittenComplete) Writing bytes")
                             self.FW4120_write(glasses, with: firmware)
                         }
                 }
