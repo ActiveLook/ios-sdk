@@ -169,6 +169,7 @@ internal class GlassesUpdateParameters {
         case .updateFailed, .lowBattery, .updateForbidden, .downgradeForbidden:
             // failure closure
             if batteryLevel != nil { self.batteryLevel = batteryLevel }
+            print("failure state : \(stateUpdate)")
             closureToSummon = failureClosure
 
         default:
