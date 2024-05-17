@@ -259,6 +259,10 @@ public class Glasses {
         rxCharacteristicState = .available
     }
     
+    internal func notifyFlowControl(state: FlowControlState) {
+        flowControlState = state
+    }
+    
     // MARK: - Private methods
     
     private func getNextQueryId() -> UInt8

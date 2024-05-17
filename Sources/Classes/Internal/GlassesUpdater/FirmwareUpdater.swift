@@ -610,6 +610,10 @@ extension FirmwareUpdater: CBPeripheralDelegate
 
         switch characteristic.uuid
         {
+        case CBUUID.ActiveLookFlowControlCharacteristic:
+            if let flowControlState = FlowControlState(rawValue: characteristic.valueAsInt) {
+                glasses?.notifyFlowControl(state: flowControlState)
+            }
         case CBUUID.SUOTA_VERSION_UUID :
             suotaVersion = Int(value.withUnsafeBytes( { $0.load(as: UInt8.self ) }))
 
