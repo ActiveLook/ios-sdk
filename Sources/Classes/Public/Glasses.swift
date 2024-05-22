@@ -55,6 +55,8 @@ public class Glasses {
     internal var disconnectionCallback: (() -> Void)?
     
     internal var isIntentionalDisconnect: Bool = false
+    
+    internal let chunkSize: Int = 505
 
     // MARK: - Fileprivate properties
 
@@ -82,6 +84,7 @@ public class Glasses {
             }
         }
     }
+    internal var isLastCommandWrittenComplete: Bool = true
 
     // The battery level of the glasses.
     private var batteryLevel: Int?
@@ -239,7 +242,15 @@ public class Glasses {
         return self.peripheral.state == .connected
     }
 
-
+    internal func setRxCharacteristicAvailable() {
+        if (rxCharacteristicState == .available) { return }
+        rxCharacteristicState = .available
+    }
+    
+    internal func notifyFlowControl(state: FlowControlState) {
+        flowControlState = state
+    }
+    
     // MARK: - Private methods
     
     private func getNextQueryId() -> UInt8
@@ -250,7 +261,8 @@ public class Glasses {
 
     private func sendCommand(id commandId: CommandID,
                              withData data: [UInt8]? = [],
-                             callback: ((CommandResponseData) -> Void)? = nil )
+                             callback: ((CommandResponseData) -> Void)? = nil,
+                             withoutQueryId: Bool = false)
     {
         let header: UInt8 = 0xFF, footer: UInt8 = 0xAA
         let queryId = getNextQueryId()
@@ -258,13 +270,13 @@ public class Glasses {
         let defaultLength: Int = 5 // Header + CommandId + CommandFormat + Command length (one byte) + Footer
         let queryLength: Int = 1 // Query ID is used internally and always encoded on 1 byte
         let dataLength: Int = data?.count ?? 0
-        var totalLength: Int = defaultLength + queryLength + dataLength
+        var totalLength: Int = withoutQueryId ? defaultLength + dataLength : defaultLength + queryLength + dataLength
         
         if totalLength > 255 {
             totalLength += 1 // We must add one byte to encode length on 2 bytes
         }
     
-        let commandFormat: UInt8 = UInt8((totalLength > 255 ? 0x10 : 0x00) | queryLength)
+        let commandFormat: UInt8 = withoutQueryId ? UInt8((totalLength > 255 ? 0x10 : 0x00)) : UInt8((totalLength > 255 ? 0x10 : 0x00) | queryLength)
 
         var bytes = [header, commandId.rawValue, commandFormat]
         
@@ -274,7 +286,10 @@ public class Glasses {
             bytes.append(UInt8(totalLength))
         }
         
-        bytes.append(queryId)
+        if !withoutQueryId {
+            bytes.append(queryId)
+        }
+                
         if (data != nil) { bytes.append(contentsOf: data!) }
         bytes.append(footer)
         
@@ -804,6 +819,18 @@ public class Glasses {
         sendCommand(id: .polyline, withData: data)
         
     }
+
+    /// Hold or flush the graphic engine.
+    /// When held, new display commands are stored in memory and are displayed when the graphic engine is flushed.
+    /// This allows stacking multiple graphic operations and displaying them simultaneously without screen flickering.
+    /// Warning: Clear is not held by the graphic engine, a white rectangle can be used instead.
+    /// - Parameters:
+    ///  - holdFlush: action hold or flush display
+    public func holdFlush(holdFlush: HoldFlushAction){
+        var data: [UInt8] = []
+        data.append(holdFlush.rawValue)
+        sendCommand(id: .holdFlush, withData: data)
+    }
     
     // MARK: - Bitmap commands
 
@@ -841,24 +868,11 @@ public class Glasses {
                 imgSave1bpp(id: id, image: image)
             break
             case .MONO_4BPP_HEATSHRINK:
-                let imageData =  ImageConverter().getImageData(img: image, fmt: imgSaveFmt)
-            
-                var firstChunkData: [UInt8] = [id]
-                firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
-                firstChunkData.append(contentsOf: imageData.width.asUInt8Array)
-                firstChunkData.append(imgSaveFmt.rawValue)
-            
-                sendCommand(id: .imgSave, withData: firstChunkData)
-                let chunkedImageData = imageData.data.chunked(into: 505) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
-                        
-                for chunk in chunkedImageData {
-                    sendCommand(id: .imgSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
-                }
+                imgSave4bppHeatShrink(id: id, image: image)
             break
-            /*
-            case ImageSaveFormat.MONO_4BPP_HEATSHRINK_SAVE_COMP:
+            case .MONO_4BPP_HEATSHRINK_SAVE_COMP:
+                imgSave4bppHeatShrinkSaveComp(id: id, image: image)
             break
-             */
         }
     }
     
@@ -874,7 +888,7 @@ public class Glasses {
         
         sendCommand(id: .imgSave, withData: firstChunkData)
         
-        let chunkedImageData = imageData.data.chunked(into: 505) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+        let chunkedImageData = imageData.data.chunked(into: chunkSize) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
                 
         for chunk in chunkedImageData {
             sendCommand(id: .imgSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
@@ -916,21 +930,7 @@ public class Glasses {
             imgStream1bpp(image: image, x: x, y: x)
             break
         case .MONO_4BPP_HEATSHRINK:
-            let imageData =  ImageConverter().getImageDataStream4bpp(img: image, fmt: imgStreamFmt)
-
-            var firstChunkData: [UInt8] = []
-            firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
-            firstChunkData.append(contentsOf: imageData.width.asUInt8Array)
-            firstChunkData.append(contentsOf: x.asUInt8Array)
-            firstChunkData.append(contentsOf: y.asUInt8Array)
-            firstChunkData.append(imgStreamFmt.rawValue)
-        
-            sendCommand(id: .imgStream, withData: firstChunkData)
-            let chunkedImageData = imageData.data.chunked(into: 505) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
-                    
-            for chunk in chunkedImageData {
-                sendCommand(id: .imgStream, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
-            }
+            imgStream4bppHeatShrink(image: image, x: x, y: y)
         break
         }
     }
@@ -950,7 +950,7 @@ public class Glasses {
         firstChunkData.append(imgSaveFmt.rawValue)
     
         sendCommand(id: .imgSave, withData: firstChunkData)
-        let chunkedImageData = imageData.data.chunked(into: 505) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+        let chunkedImageData = imageData.data.chunked(into: chunkSize) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
                 
         for chunk in chunkedImageData {
             sendCommand(id: .imgSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
@@ -973,12 +973,11 @@ public class Glasses {
     
         sendCommand(id: .imgSave, withData: firstChunkData)
         
-        let ChunkSize : Int = 505
         
         var data : [UInt8] = []
         
-        for (index,line) in imageData.data.enumerated() {
-            if data.count + line.count <= ChunkSize {
+        for (_,line) in imageData.data.enumerated() {
+            if data.count + line.count <= chunkSize {
                 data.append(contentsOf: line)
             } else {
                 sendCommand(id: .imgSave, withData: data)
@@ -987,6 +986,48 @@ public class Glasses {
         }
         if data.count > 0 {
             sendCommand(id: .imgSave, withData: data)
+        }
+    }
+    
+    /// Save an image of the specified width and on a 4bpp format with Heatshrink compression, decompressed into 4bpp by the firmware before saving
+    /// - Parameters:
+    ///     - id: The id of the image to display
+    ///     - image: The image that will be saved
+    public func imgSave4bppHeatShrink(id: UInt8, image: UIImage){
+        let imgSaveFmt = ImgSaveFmt.MONO_4BPP_HEATSHRINK
+        let imageData =  ImageConverter().getImageData(img: image, fmt: imgSaveFmt)
+
+        var firstChunkData: [UInt8] = [id]
+        firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
+        firstChunkData.append(contentsOf: imageData.width.asUInt8Array)
+        firstChunkData.append(imgSaveFmt.rawValue)
+
+        sendCommand(id: .imgSave, withData: firstChunkData)
+        let chunkedImageData = imageData.data.chunked(into: chunkSize) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+                
+        for chunk in chunkedImageData {
+            sendCommand(id: .imgSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
+        }
+    }
+    
+    /// Save an image of the specified width and on a 4bpp format with Heatshrink compression, stored compressed, decompressed into 4bpp before display
+    /// - Parameters:
+    ///     - id: The id of the image to display
+    ///     - image: The image that will be saved
+    public func imgSave4bppHeatShrinkSaveComp(id: UInt8, image: UIImage){
+        let imgSaveFmt = ImgSaveFmt.MONO_4BPP_HEATSHRINK_SAVE_COMP
+        let imageData =  ImageConverter().getImageData(img: image, fmt: imgSaveFmt)
+
+        var firstChunkData: [UInt8] = [id]
+        firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
+        firstChunkData.append(contentsOf: imageData.width.asUInt8Array)
+        firstChunkData.append(imgSaveFmt.rawValue)
+
+        sendCommand(id: .imgSave, withData: firstChunkData)
+        let chunkedImageData = imageData.data.chunked(into: chunkSize) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+                
+        for chunk in chunkedImageData {
+            sendCommand(id: .imgSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
         }
     }
     
@@ -1008,7 +1049,6 @@ public class Glasses {
         firstChunkData.append(imgStreamFmt.rawValue)
     
         sendCommand(id: .imgStream, withData: firstChunkData)
-        let ChunkSize : Int = 505
         
         var data : [UInt8] = []
         
@@ -1018,23 +1058,48 @@ public class Glasses {
             if isNextIndexValid{
                 if data.count == 0 {
                     data = line
-                }else if data.count + line.count <= ChunkSize{
+                }else if data.count + line.count <= chunkSize{
                     data.append(contentsOf: line)
-                }else if data.count + line.count > ChunkSize{
+                }else if data.count + line.count > chunkSize{
                     sendCommand(id: .imgStream, withData: data)
                     data = line
                 }
             }else{
                 if data.count == 0 {
                     sendCommand(id: .imgStream, withData: line)
-                }else if data.count + line.count <= ChunkSize{
+                }else if data.count + line.count <= chunkSize{
                     data.append(contentsOf: line)
                     sendCommand(id: .imgStream, withData: data)
-                }else if data.count + line.count > ChunkSize{
+                }else if data.count + line.count > chunkSize{
                     sendCommand(id: .imgStream, withData: data)
                     sendCommand(id: .imgStream, withData: line)
                 }
             }
+        }
+    }
+    
+    /// Stream an image on display without saving it in memory and on a 4bpp format with Heatshrink compression
+    /// - Parameters:
+    ///   - image: The image that will be stream
+    ///   - x: The x coordinate of the image to display
+    ///   - y: The y coordinate of the image to display
+    public func imgStream4bppHeatShrink(image: UIImage, x: Int16, y: Int16){
+        let imgStreamFmt = ImgStreamFmt.MONO_4BPP_HEATSHRINK
+        
+        let imageData =  ImageConverter().getImageDataStream4bpp(img: image, fmt: imgStreamFmt)
+
+        var firstChunkData: [UInt8] = []
+        firstChunkData.append(contentsOf: imageData.size.asUInt8Array)
+        firstChunkData.append(contentsOf: imageData.width.asUInt8Array)
+        firstChunkData.append(contentsOf: x.asUInt8Array)
+        firstChunkData.append(contentsOf: y.asUInt8Array)
+        firstChunkData.append(imgStreamFmt.rawValue)
+    
+        sendCommand(id: .imgStream, withData: firstChunkData)
+        let chunkedImageData = imageData.data.chunked(into: chunkSize) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+                
+        for chunk in chunkedImageData {
+            sendCommand(id: .imgStream, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
         }
     }
     
@@ -1059,7 +1124,7 @@ public class Glasses {
 
         sendCommand(id: .fontSave, withData: firstChunkData)
         
-        let chunkedCommandData = fontData.data.chunked(into: 505) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
+        let chunkedCommandData = fontData.data.chunked(into: chunkSize) // 512 - ( Header + CmdID + CmdFormat + QueryId + Length on 2 bytes + Footer)
 
         for chunk in chunkedCommandData {
             sendCommand(id: .fontSave, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
@@ -1158,6 +1223,23 @@ public class Glasses {
         
         sendCommand(id: .layoutDisplayExtended, withData: data)
     }
+    
+    /// Display the specified layout at the specified position with the specified value. Position is not saved
+    /// - Parameters:
+    ///   - id: The id of the layout to display
+    ///   - x: The x coordinate of the position of the layout
+    ///   - y: The y coordinate of the position of the layout
+    ///   - text: The text value of the layout
+    ///   - ExtraCmd: extra commands with the same format as used to save addtional command to a layout.
+    public func layoutDisplayExtended(id: UInt8, x: UInt16, y: UInt8, text: String, extraCmd: LayoutExtraCmd) {
+        var data: [UInt8] = [id]
+        data.append(contentsOf: x.asUInt8Array)
+        data.append(y) // y is only encoded on 1 byte
+        data.append(contentsOf: text.asNullTerminatedUInt8Array)
+        data.append(contentsOf: extraCmd.toCommandData())
+        
+        sendCommand(id: .layoutDisplayExtended, withData: data)
+    }
 
     /// Get a layout
     /// - Parameters:
@@ -1203,6 +1285,24 @@ public class Glasses {
         data.append(contentsOf: x.asUInt8Array)
         data.append(y) // y is only encoded on 1 byte
         data.append(contentsOf: text.asNullTerminatedUInt8Array)
+        
+        sendCommand(id: .layoutClearAndDisplayExtended, withData: data)
+    }
+    
+    /// Clear area and display text with layout id at position x y. The position is not saved
+    /// - Parameters:
+    ///   - id: The id of the layout to display
+    ///   - x: The x coordinate of the position of the layout
+    ///   - y: The y coordinate of the position of the layout
+    ///   - text: The text value of the layout
+    ///   - ExtraCmd: extra commands with the same format as used to save addtional command to a layout.
+    public func layoutClearAndDisplayExtended(id: UInt8, x: UInt16, y: UInt8, text: String, extraCmd: LayoutExtraCmd) {
+        var data: [UInt8] = [id]
+        data.append(contentsOf: x.asUInt8Array)
+        data.append(y) // y is only encoded on 1 byte
+        data.append(contentsOf: text.asNullTerminatedUInt8Array)
+        data.append(contentsOf: extraCmd.toCommandData())
+
         
         sendCommand(id: .layoutClearAndDisplayExtended, withData: data)
     }
@@ -1339,7 +1439,47 @@ public class Glasses {
         sendCommand(id: .pageClearAndDisplay, withData: withData)
     }
     
+    // MARK: - Animation commands
     
+    // TODO animeSave
+    //public func animeSave(){}
+    
+    /// Delete the specified animation
+    /// - Parameter id: The id of the animation to delete
+    public func animDelete(id: UInt8) {
+        sendCommand(id: .animDelete, withValue: id)
+    }
+    
+    /// Display the specified animation at the corresponding coordinates
+    /// - Parameters:
+    ///   - handlerId: The value is specified by the user and used to stop the animation
+    ///   - id: The id of the animation to display
+    ///   - delay: Set the inter-frame duration in ms
+    ///   - repeatAnim: is for the repeat count or 0xFF for infinite repetition
+    ///   - x: The x coordinate
+    ///   - y: The y coordinate
+    public func animDisplay(handlerId: UInt8, id: UInt8, delay: UInt16, repeatAnim: UInt8, x: Int16, y: Int16){
+        var data: [UInt8] = []
+        
+        data.append(handlerId)
+        data.append(id)
+        data.append(contentsOf: delay.asUInt8Array)
+        data.append(repeatAnim)
+        data.append(contentsOf: x.asUInt8Array)
+        data.append(contentsOf: y.asUInt8Array)
+    
+        sendCommand(id: .animDisplay, withData: data)
+    }
+    
+    /// Stop and clear the screen of the corresponding animation
+    /// - Parameter handlerId: The handlerId of the animation to stop, if the value is set to 0xFF, clear & stop all animations
+    public func animClear(handlerId: UInt8) {
+        sendCommand(id: .animClear, withValue: handlerId)
+    }
+    
+    // TODO animList
+    //public func animList(){}
+
     // MARK: - Statistics commands
     /// Get number of pixel activated on display
     /// - Parameter callback: A callback called asynchronously when the device answers
@@ -1453,8 +1593,240 @@ public class Glasses {
             callback(Int(commandResponseData[0]))
         }
     }
+    
+    // MARK: - Widget commands
 
-
+    /// Draw an "Open Gauge" Widget
+    /// - Parameters:
+    ///   - size: The widget's size
+    ///   - x: The x coordinate of the bottom right corner of the widget
+    ///   - y The y coordinate of the bottom right corner of the widget
+    ///   - value: The cursor (icon) position on the gauge
+    ///   - imgId: The image id for the icon
+    ///   - valueType: The type of formatting to be applied to the shown value
+    ///   - unit: The unit string to be displayed
+    ///   - shownValue: The shown value displayed and formatted according to valueType
+    public func widgetOpenGauge(size: WidgetSize, x: Int16, y: Int16, value: UInt8, imgId: UInt8, valueType: WidgetValueType, unit: String, shownValue: String){
+        let type : UInt8 = 0
+        
+        var data: [UInt8] = []
+        
+        data.append(type)
+        data.append(size.rawValue)
+        data.append(contentsOf: x.asUInt8Array)
+        data.append(contentsOf: y.asUInt8Array)
+        data.append(value)
+        data.append(imgId)
+        data.append(valueType.rawValue)
+        data.append(contentsOf: unit.asNullTerminatedUInt8Array)
+        data.append(contentsOf: shownValue.asNullTerminatedUInt8Array)
+        
+        sendCommand(id: .widget, withData: data)
+    }
+    
+    /// Draw an "Range Gauge" Widget
+    /// - Parameters:
+    ///   - size: The widget's size
+    ///   - x: The x coordinate of the bottom right corner of the widget
+    ///   - y The y coordinate of the bottom right corner of the widget
+    ///   - value: The cursor (icon) position on the gauge
+    ///   - imgId: The image id for the icon
+    ///   - valueType: The type of formatting to be applied to the shown value
+    ///   - unit: The unit string to be displayed
+    ///   - shownValue: The shown value displayed and formatted according to valueType
+    ///   - min: The string displayed at the beginning of the gauge
+    ///   - max: The string displayed at the end of the gauge
+    public func widgetRangeGauge(size: WidgetSize, x: Int16, y: Int16, value: UInt8, imgId: UInt8, valueType: WidgetValueType, unit: String, shownValue: String, min: String, max: String){
+        let type : UInt8 = 1
+        
+        var data: [UInt8] = []
+        
+        data.append(type)
+        data.append(size.rawValue)
+        data.append(contentsOf: x.asUInt8Array)
+        data.append(contentsOf: y.asUInt8Array)
+        data.append(value)
+        data.append(imgId)
+        data.append(valueType.rawValue)
+        data.append(contentsOf: unit.asNullTerminatedUInt8Array)
+        data.append(contentsOf: shownValue.asNullTerminatedUInt8Array)
+        data.append(contentsOf: min.asNullTerminatedUInt8Array)
+        data.append(contentsOf: max.asNullTerminatedUInt8Array)
+        
+        sendCommand(id: .widget, withData: data)
+    }
+    
+    /// Draw an "Zone Gauge" Widget
+    /// - Parameters:
+    ///   - size: The widget's size
+    ///   - x: The x coordinate of the bottom right corner of the widget
+    ///   - y The y coordinate of the bottom right corner of the widget
+    ///   - value: The cursor (icon) position on the gauge
+    ///   - imgId: The image id for the icon
+    ///   - valueType: The type of formatting to be applied to the shown value
+    ///   - unit: The unit string to be displayed
+    ///   - shownValue: The shown value displayed and formatted according to valueType
+    ///   - chosenZone: The selected zone which is widened
+    ///   - zoneNb: The number of zones
+    public func widgetGaugeZone(size: WidgetSize, x: Int16, y: Int16, value: UInt8, imgId: UInt8, valueType: WidgetValueType, unit: String, shownValue: String, chosenZone: UInt8, zoneNb: UInt8){
+        let type : UInt8 = 2
+        
+        var data: [UInt8] = []
+        
+        data.append(type)
+        data.append(size.rawValue)
+        data.append(contentsOf: x.asUInt8Array)
+        data.append(contentsOf: y.asUInt8Array)
+        data.append(value)
+        data.append(imgId)
+        data.append(valueType.rawValue)
+        data.append(contentsOf: unit.asNullTerminatedUInt8Array)
+        data.append(contentsOf: shownValue.asNullTerminatedUInt8Array)
+        data.append(chosenZone)
+        data.append(zoneNb)
+        
+        sendCommand(id: .widget, withData: data)
+    }
+    
+    /// Draw an "Target" Widget
+    /// - Parameters:
+    ///   - size: The widget's size
+    ///   - x: The x coordinate of the bottom right corner of the widget
+    ///   - y The y coordinate of the bottom right corner of the widget
+    ///   - value: The cursor (icon) position on the gauge
+    ///   - imgId: The image id for the icon
+    ///   - valueType: The type of formatting to be applied to the shown value
+    ///   - unit: The unit string to be displayed
+    ///   - shownValue: The shown value displayed and formatted according to valueType
+    ///   - goal: The goal string displayed at the end of the progress bar
+    public func widgetTarget(size: WidgetSize, x: Int16, y: Int16, value: UInt8, imgId: UInt8, valueType: WidgetValueType, unit: String, shownValue: String, goal: String){
+        let type : UInt8 = 3
+        
+        var data: [UInt8] = []
+        
+        data.append(type)
+        data.append(size.rawValue)
+        data.append(contentsOf: x.asUInt8Array)
+        data.append(contentsOf: y.asUInt8Array)
+        data.append(value)
+        data.append(imgId)
+        data.append(valueType.rawValue)
+        data.append(contentsOf: unit.asNullTerminatedUInt8Array)
+        data.append(contentsOf: shownValue.asNullTerminatedUInt8Array)
+        data.append(contentsOf: goal.asNullTerminatedUInt8Array)
+        
+        sendCommand(id: .widget, withData: data)
+    }
+    
+    /// Draw an "Target Left" Widget
+    /// - Parameters:
+    ///   - size: The widget's size
+    ///   - x: The x coordinate of the bottom right corner of the widget
+    ///   - y The y coordinate of the bottom right corner of the widget
+    ///   - value: The cursor (icon) position on the gauge
+    ///   - imgId: The image id for the icon
+    ///   - valueType: The type of formatting to be applied to the shown value
+    ///   - unit: The unit string to be displayed
+    ///   - shownValue: The shown value displayed and formatted according to valueType
+    ///   - goal: The goal string displayed at the end of the progress bar
+    public func widgetTargetLeft(size: WidgetSize, x: Int16, y: Int16, value: UInt8, imgId: UInt8, valueType: WidgetValueType, unit: String, shownValue: String, goal: String){
+        let type : UInt8 = 4
+        
+        var data: [UInt8] = []
+        
+        data.append(type)
+        data.append(size.rawValue)
+        data.append(contentsOf: x.asUInt8Array)
+        data.append(contentsOf: y.asUInt8Array)
+        data.append(value < 16 ? 16 : value > 237 ? 237 : value)
+        data.append(imgId)
+        data.append(valueType.rawValue)
+        data.append(contentsOf: unit.asNullTerminatedUInt8Array)
+        data.append(contentsOf: shownValue.asNullTerminatedUInt8Array)
+        data.append(contentsOf: goal.asNullTerminatedUInt8Array)
+        
+        sendCommand(id: .widget, withData: data)
+    }
+    
+    /// Draw an "Bar chart" Widget
+    /// - Parameters:
+    ///   - size: The widget's size
+    ///   - x: The x coordinate of the bottom right corner of the widget
+    ///   - y The y coordinate of the bottom right corner of the widget
+    ///   - imgId: The image id for the icon
+    ///   - valueType: The type of formatting to be applied to the shown value
+    ///   - unit: The unit string to be displayed
+    ///   - shownValue: The shown value displayed and formatted according to valueType
+    ///   - chosenZone: The selected zone which is widened
+    ///   - zoneNb: The number of zones
+    ///   - zoneNbValue: The values for each bar
+    public func widgetBarChart(size: WidgetSize, x: Int16, y: Int16, imgId: UInt8, valueType: WidgetValueType, unit: String, shownValue: String, chosenZone: UInt8, zoneNb: UInt8, zoneNbValue: [UInt8]){
+        let type : UInt8 = 5
+        
+        var data: [UInt8] = []
+        
+        data.append(type)
+        data.append(size.rawValue)
+        data.append(contentsOf: x.asUInt8Array)
+        data.append(contentsOf: y.asUInt8Array)
+        data.append(imgId)
+        data.append(valueType.rawValue)
+        data.append(contentsOf: unit.asNullTerminatedUInt8Array)
+        data.append(contentsOf: shownValue.asNullTerminatedUInt8Array)
+        data.append(chosenZone)
+        data.append(zoneNb)
+        
+        zoneNbValue.forEach { zoneValue in
+            data.append(zoneValue)
+        }
+        
+        sendCommand(id: .widget, withData: data)
+    }
+    
+    /// Draw an "Data" Widget
+    /// - Parameters:
+    ///   - size: The widget's size
+    ///   - x: The x coordinate of the bottom right corner of the widget
+    ///   - y The y coordinate of the bottom right corner of the widget
+    ///   - imgId: The image id for the icon
+    ///   - valueType: The type of formatting to be applied to the shown value
+    ///   - unit: The unit string to be displayed
+    ///   - shownValue: The shown value displayed and formatted according to valueType
+    public func widgetData(size: WidgetSize, x: Int16, y: Int16, imgId: UInt8, valueType: WidgetValueType, unit: String, shownValue: String){
+        let type : UInt8 = 6
+        var value : UInt8 = 0
+        var data: [UInt8] = []
+        
+        data.append(type)
+        data.append(size.rawValue)
+        data.append(contentsOf: x.asUInt8Array)
+        data.append(contentsOf: y.asUInt8Array)
+        data.append(value)
+        data.append(imgId)
+        data.append(valueType.rawValue)
+        data.append(contentsOf: unit.asNullTerminatedUInt8Array)
+        data.append(contentsOf: shownValue.asNullTerminatedUInt8Array)
+        
+        sendCommand(id: .widget, withData: data)
+    }
+    // MARK: - Glasses Commands
+    
+    //erase QSPI flash sectors
+    public func qspi_erase(part: UInt8, addr: Int, length: Int){
+        var data: [UInt8] = []
+        data.append(part)
+        data.append(contentsOf: addr.asUInt8Array)
+        data.append(contentsOf: length.asUInt8Array)
+        sendCommand(id: .qspiErase, withData: data, withoutQueryId: true)
+    }
+    //write QSPI flash
+    public  func qspi_write(part: UInt8, addr: Int, values: [UInt8]){
+        var data: [UInt8] = [part]
+        data.append(contentsOf: addr.asUInt8Array)
+        data.append(contentsOf: values)
+        sendCommand(id: .qspiWrite, withData: data, withoutQueryId: true)
+    }
+    
     // MARK: - Device Commands
     
     /// Shutdown the device
@@ -1462,7 +1834,12 @@ public class Glasses {
     public func shutdown() {
         sendCommand(id: .shutdown, withData: [0x6F, 0x7F, 0xC4, 0xEE])
     }
-
+    
+    /// Reset the device
+    /// Reset is allowed while USB powered.
+    internal func reset() {
+        sendCommand(id: .reset, withData: [0x5C, 0x1E, 0x2D, 0xE9], withoutQueryId: true)
+    }
 
     // MARK: - Notifications
     
@@ -1641,7 +2018,9 @@ public class Glasses {
                 let comps = file.components(separatedBy: "\n")
 
                 for line in comps {
-                    tempQueue.append(line.hexaData)
+                    if !line.isEmpty{
+                        tempQueue.append(line.hexaData)
+                    }
                 }
 
                 if isUpdating
@@ -1667,12 +2046,14 @@ public class Glasses {
                     if first.count <= remaining {
                         cmdStack.append(contentsOf: first)
                         if first.count == remaining || self.elements.isEmpty {
+                            parent?.isLastCommandWrittenComplete = true
                             return cmdStack
                         }
                     } else {
                         cmdStack.append(contentsOf: Data(first[0...remaining-1]))
                         let firstTail = Data(first[remaining...first.count-1])
                         self.elements.insert(firstTail, at: 0)
+                        parent?.isLastCommandWrittenComplete = false
                         return cmdStack
                     }
                 }

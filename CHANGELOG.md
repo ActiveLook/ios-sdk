@@ -1,5 +1,36 @@
 # CHANGELOG
 
+## Version 4.5.3
+
+### Fixes
+
+- Dispatch firmware & config download error closure on main thread
+
+## Version 4.5.2
+
+### Fixes
+- Check battery level before glasses update
+- Block config update if battery level < 10%
+- Empty config line are not anymore queued
+- Fix `cancelConnection` on `DiscoveredGlasses` & `serializedGlasses`
+  
+## Version 4.5.1
+
+### Fixes
+- `addSubCommandText` : add Null Terminated char to string length
+- `widgetTargetLeft`: workaround to fix bmp position outside of the widget
+- change FW API URL
+  
+## Version 4.5.0
+
+### New features
+- New commands :
+  - `holdFlush` : When held, new display commands are stored in memory and are displayed when the graphic engine is flushed.
+  - `layoutDisplayExtended`  & `layoutClearAndDisplayExtended` with `ExtraCmd`:  Extra commands allow you to add elements to an existing layout without saving the modification.
+  - `anim` : delete, clear, display saved animations
+  - `ImgSaveFmt`: new image save format `4bpp HeatShrink Save Comp`
+  - `widget` : still under development, for debugging purpose (requirement : FW >= 4.11)
+  
 ## Version 4.4.2
 
 ### Fixes

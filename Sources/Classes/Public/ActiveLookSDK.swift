@@ -100,7 +100,7 @@ public class ActiveLookSDK {
     ///     if the function is called more than once during the application's lifetime, with all the parameters correctly set.
     ///
     /// - parameters:
-    ///     - token:  token used for authenticating with the update server.
+    ///     - reserved: reserved for development purpose
     ///     - onUpdateStart:  callback asynchronously called when an update starts.
     ///     - onUpdateAvailableCallback: callback asynchronously called when an update is available.
     ///         Together with a GlassesUpdate object, an anonymous function is transmited.
@@ -112,9 +112,8 @@ public class ActiveLookSDK {
     ///
     ///  - returns: the `ActiveLookSDK`'s singleton
     ///
-    ///  - important: if the token is invalid, the glasses will not be connected.
     ///
-    public static func shared(token: String? = nil,
+    public static func shared(reserved: String? = "",
                               onUpdateStartCallback: StartClosureSignature? = nil,
                               onUpdateAvailableCallback: UpdateAvailableClosureSignature? = nil,
                               onUpdateProgressCallback: ProgressClosureSignature? = nil,
@@ -124,14 +123,14 @@ public class ActiveLookSDK {
 
         var updateParameters: GlassesUpdateParameters? = nil
 
-        if token != nil,
+        if reserved != nil,
            onUpdateStartCallback != nil,
            onUpdateAvailableCallback != nil,
            onUpdateProgressCallback != nil,
            onUpdateSuccessCallback != nil,
            onUpdateFailureCallback != nil
         {
-            updateParameters = GlassesUpdateParameters(token!,
+            updateParameters = GlassesUpdateParameters(reserved!,
                                                        onUpdateStartCallback!,
                                                        onUpdateAvailableCallback!,
                                                        onUpdateProgressCallback!,
@@ -325,7 +324,10 @@ public class ActiveLookSDK {
         if nil != connectedDevices.first(where: { $0.identifier == dgUUID }) {
             throw ActiveLookError.alreadyConnected
         }
-
+        if let glasses = self.connectedGlasses(fromPeripheral: discoveredGlasses.peripheral) {
+            print("Intentional Discovered Glasses disconnection")
+            glasses.isIntentionalDisconnect = true
+        }
         centralManager.cancelPeripheralConnection(discoveredGlasses.peripheral)
     }
 
@@ -367,7 +369,12 @@ public class ActiveLookSDK {
         else {
             throw ActiveLookError.cannotRetrieveGlasses
         }
-
+        
+        if let glasses = self.connectedGlasses(fromPeripheral: rp) {
+            print("Intentional Serialized Glasses disconnection")
+            glasses.isIntentionalDisconnect = true
+        }
+        
         centralManager.cancelPeripheralConnection(rp)
     }
 
@@ -468,6 +475,7 @@ public class ActiveLookSDK {
                         self.centralManager.connect(glasses.peripheral)
 
                     default:
+                        print("Error while updating: \(error)")
                         discoveredGlasses.connectionErrorCallback?(ActiveLookError.sdkUpdateFailed)
                         self.updateParameters.notify(.updateFailed)
                     }
@@ -632,21 +640,19 @@ public class ActiveLookSDK {
 
             print("central manager did disconnect from glasses \(glasses.name)")
 
-            if parent.updateParameters.isUpdating()
-            {
+            if parent.updateParameters.isUpdating(){
                 parent.updater?.abort()
                 parent.updateParameters.notify(.updateFailed)
                 parent.updateParameters.reset()
             } else if parent.updateParameters.isRebooting() {
                 parent.updateParameters.notify(.rebooting, 101)
                 glasses.disconnectionCallback?()
-            } else {
+            } else if !glasses.isIntentionalDisconnect {
                 glasses.disconnectionCallback?()
-            }
-
-            if !glasses.isIntentionalDisconnect {
                 print("unwanted disconnect: reconnecting as soon as possible")
                 central.connect(peripheral)
+            } else {
+                print("wanted disconnect: not reconnecting")
             }
         }
 

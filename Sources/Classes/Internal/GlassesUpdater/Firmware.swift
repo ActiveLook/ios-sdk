@@ -107,4 +107,12 @@ internal struct Firmware {
     func description() -> String {
         return String("firmware: \(bytes[0...5]) of size: \(bytes.count)")
     }
+    
+    func size() -> Int{
+        return bytes.count
+    }
+    
+    func getBytes() -> [UInt8]{
+        return bytes
+    }
 }

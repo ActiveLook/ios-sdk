@@ -44,6 +44,12 @@ internal enum CommandID: UInt8 {
     case circf = 0x36
     case txt = 0x37
     case polyline = 0x38
+    case holdFlush = 0x39
+
+    case widget = 0x3A
+    
+    case qspiErase = 0x0D
+    case qspiWrite = 0x0E
 
     case imgSave = 0x41
     case imgDisplay = 0x42
@@ -83,6 +89,12 @@ internal enum CommandID: UInt8 {
     case pageList = 0x85
     case pageClearAndDisplay = 0x86
 
+    case animSave = 0x95
+    case animDelete = 0x96
+    case animDisplay = 0x97
+    case animClear = 0x98
+    case animList = 0x99
+    
     case pixelCount = 0xA5
     case getChargingCounter = 0xA7
     case getChargingTime = 0xA8
@@ -103,4 +115,5 @@ internal enum CommandID: UInt8 {
     case cfgGetNb = 0xD8
 
     case shutdown = 0xE0
+    case reset = 0xE1
 }
