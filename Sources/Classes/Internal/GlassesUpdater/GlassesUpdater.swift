@@ -295,8 +295,13 @@ internal class GlassesUpdater {
             failed(with: GlassesUpdateError.glassesUpdater(message: "Glasses NOT connected"))
             return
         }
-
-        firmwareUpdater?.update(glasses!, with: firmware)
+        
+        guard let glassesFWVersion = versionChecker?.glassesFWVersion?.minVersion else{
+            failed(with: GlassesUpdateError.glassesUpdater(message: "Can't retrieve Glasses FW version"))
+            return
+        }
+        
+        firmwareUpdater?.update(glasses!, with: firmware, glassesFwVersion: glassesFWVersion)
     }
 
 

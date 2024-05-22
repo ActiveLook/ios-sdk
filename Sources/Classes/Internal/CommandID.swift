@@ -47,6 +47,9 @@ internal enum CommandID: UInt8 {
     case holdFlush = 0x39
 
     case widget = 0x3A
+    
+    case qspiErase = 0x0D
+    case qspiWrite = 0x0E
 
     case imgSave = 0x41
     case imgDisplay = 0x42
@@ -112,4 +115,5 @@ internal enum CommandID: UInt8 {
     case cfgGetNb = 0xD8
 
     case shutdown = 0xE0
+    case reset = 0xE1
 }

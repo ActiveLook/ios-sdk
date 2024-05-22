@@ -46,6 +46,11 @@ public final class FirmwareUpdater: NSObject {
             enableNotifications()
         }
     }
+    
+    private enum QSPIUpdateState: Int {
+        case erase
+        case write
+    }
 
     private var blocks: Blocks = []
 
@@ -69,6 +74,15 @@ public final class FirmwareUpdater: NSObject {
     private var currentProgress: Double = 0
     private var successClosure: () -> (Void)
     private var errorClosure: ( GlassesUpdateError ) -> (Void)
+    
+    private let CMD_OVERHEAD: Int = 5
+    private let DATA_SIZE_MAX: Int = 512
+    private let FLASH_SECTOR_SIZE: Int = 1024 * 4
+    private let QSPI_PART_FW_UPDATE: UInt8 = 7
+    private var qspiState: QSPIUpdateState = QSPIUpdateState.erase;
+    private var currentAddr: Int?
+    private var eraseSize: Int?
+    private var writeSize: Int?
 
     
     // MARK: - Life cycle
@@ -89,7 +103,7 @@ public final class FirmwareUpdater: NSObject {
 
     // MARK: - Internal Methods
 
-    func update(_ glasses: Glasses, with firmware: Firmware)
+    func update(_ glasses: Glasses, with firmware: Firmware, glassesFwVersion: String)
     {
         // We're setting ourselves as the peripheral delegate in order update the firmware.
         // If the update succeeds, the device reboots.
@@ -101,10 +115,83 @@ public final class FirmwareUpdater: NSObject {
         self.firmware = firmware
 
         sdk?.updateParameters.notify(.updatingFw)
-
-        peripheral?.discoverServices([CBUUID.SpotaService])
+        
+        if(glassesFwVersion == "4.12.0"){
+            peripheral?.discoverServices([CBUUID.ActiveLookCommandsInterfaceService])
+        }
+        else{
+            peripheral?.discoverServices([CBUUID.SpotaService])
+        }
     }
+    
+    private func FW4120_erase(_ glasses: Glasses, with firmware: Firmware) {
+        if qspiState != QSPIUpdateState.erase { return }
+        
+        let size: Int = firmware.size()
+        
+        if (self.eraseSize == nil) {
+            print("Deleting current partition ...")
+            self.eraseSize = size
+        }
+        
+        if (self.currentAddr == nil) {
+            self.currentAddr = 0
+        }
+        
+        if let eraseSize = self.eraseSize, let currentAddr = self.currentAddr {
+            var block_size = eraseSize
+            if block_size > FLASH_SECTOR_SIZE{
+                block_size = FLASH_SECTOR_SIZE
+            }
+            
+            self.glasses?.qspi_erase(part: self.QSPI_PART_FW_UPDATE, addr: currentAddr, length: block_size)
+                
+            self.eraseSize! -= block_size
+            self.currentAddr! += block_size
+            
+            let progress: Double = (1.0 - (Double(self.eraseSize!) / Double(size))) * 50
+            print("Remaining erase size: \(self.eraseSize!)")
+            sdk?.updateParameters.notify(.updatingFw, progress)
+        }
+    }
+    
+    private func FW4120_write(_ glasses: Glasses, with firmware: Firmware) {
+        if qspiState != QSPIUpdateState.write { return }
 
+        let firmwareBytes: [UInt8] = firmware.getBytes()
+        let size: Int = firmware.size()
+        
+        if (self.writeSize == nil) {
+            print("Writting new partition ...\n")
+            self.writeSize = size
+        }
+        
+        if (self.currentAddr == nil) {
+            self.currentAddr = 0
+        }
+        
+        if let writeSize = writeSize, let currentAddr = currentAddr {
+            var sub_len: Int = size
+
+            if writeSize > (DATA_SIZE_MAX - CMD_OVERHEAD){
+                sub_len = DATA_SIZE_MAX - CMD_OVERHEAD
+            } else {
+                sub_len = writeSize
+            }
+
+            let slice: ArraySlice = firmwareBytes[currentAddr..<currentAddr + sub_len]
+            let dataToWrite = Array(slice)
+            
+            self.glasses?.qspi_write(part: self.QSPI_PART_FW_UPDATE, addr: currentAddr, values: dataToWrite)
+                
+            self.currentAddr! += sub_len
+            self.writeSize! -= sub_len
+            
+            let progress: Double = (1.0 - (Double(self.writeSize!) / Double(size))) * 50 + 50
+            print("Writing size remaining : \(self.writeSize!)")
+            sdk?.updateParameters.notify(.updatingFw, progress)
+        }
+    }
 
     // MARK: - Private methods
 
@@ -428,6 +515,17 @@ public final class FirmwareUpdater: NSObject {
                                type: .withResponse)
         rebooting()
     }
+    
+    private func sendQSPIResetSignal()
+    {
+        self.glasses?.isIntentionalDisconnect = true
+
+        sdk?.updateParameters.notify(.rebooting)
+        
+        glasses?.reset()
+
+        rebooting()
+    }
 }
 
 
@@ -441,6 +539,11 @@ extension FirmwareUpdater: CBPeripheralDelegate
     {
         guard let services = peripheral.services else {
             fatalError("NO SERVICES FOUND")
+        }
+        
+        if let activelookCommandsService = services.first(where: {$0.uuid == CBUUID.ActiveLookCommandsInterfaceService}) {
+            peripheral.discoverCharacteristics([CBUUID.ActiveLookRxCharacteristic], for: activelookCommandsService)
+            return
         }
 
         guard let spotaService = services.first(where: {$0.uuid == CBUUID.SpotaService}) else {
@@ -461,6 +564,21 @@ extension FirmwareUpdater: CBPeripheralDelegate
                     format: "error \(error!) while discovering characteristics for service: \(service)@",
                     #line)))
             return
+        }
+        
+        if service.uuid == CBUUID.ActiveLookCommandsInterfaceService {
+            if let characteristics = service.characteristics {
+                if characteristics.contains(where: { c in
+                    c.uuid == CBUUID.ActiveLookRxCharacteristic
+                }) {
+                    glasses?.clear()
+                    glasses?.layoutDisplay(id: 0x09, text: "")
+                    
+                    qspiState = .erase
+                    FW4120_erase(self.glasses!, with: self.firmware!)
+                    return
+                }
+            }
         }
 
         guard let _ = service.characteristics else {
@@ -492,6 +610,10 @@ extension FirmwareUpdater: CBPeripheralDelegate
 
         switch characteristic.uuid
         {
+        case CBUUID.ActiveLookFlowControlCharacteristic:
+            if let flowControlState = FlowControlState(rawValue: characteristic.valueAsInt) {
+                glasses?.notifyFlowControl(state: flowControlState)
+            }
         case CBUUID.SUOTA_VERSION_UUID :
             suotaVersion = Int(value.withUnsafeBytes( { $0.load(as: UInt8.self ) }))
 
@@ -573,6 +695,42 @@ extension FirmwareUpdater: CBPeripheralDelegate
         }
 
         switch characteristic.uuid {
+        case CBUUID.ActiveLookRxCharacteristic :
+            guard let glasses = glasses, let firmware = firmware else {
+                print("Failed to retrieve glasses & firmware info")
+                return
+            }
+
+            // TODO: Soucis avec CBATTError.Code.writeNotPermitted, probalement du à la longueur envoyé qui est trop grande
+            glasses.setRxCharacteristicAvailable()
+            
+            if glasses.isLastCommandWrittenComplete {
+                switch qspiState {
+                    case .erase:
+                        if self.eraseSize == 0 {
+                            print("QSPI Erase done !")
+                            
+                            self.eraseSize = nil
+                            self.currentAddr = nil
+                            qspiState = .write
+                            self.FW4120_write(glasses, with: firmware)
+                        } else {
+                            self.FW4120_erase(glasses, with: firmware)
+                        }
+                    case .write:
+                        if self.writeSize == 0 {
+                            print("QSPI Update done !")
+                            
+                            self.writeSize = nil
+                            self.currentAddr = nil
+                            sendQSPIResetSignal()
+                        } else {
+                            self.FW4120_write(glasses, with: firmware)
+                        }
+                }
+            }
+            
+            
         case CBUUID.SPOTA_MEM_DEV_UUID :
             if !spotaServiceStatusCharacteristic!.isNotifying {
                 dlog(message: "Did WRITE END SIGNAL",

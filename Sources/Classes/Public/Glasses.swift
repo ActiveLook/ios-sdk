@@ -84,6 +84,7 @@ public class Glasses {
             }
         }
     }
+    internal var isLastCommandWrittenComplete: Bool = true
 
     // The battery level of the glasses.
     private var batteryLevel: Int?
@@ -241,7 +242,15 @@ public class Glasses {
         return self.peripheral.state == .connected
     }
 
-
+    internal func setRxCharacteristicAvailable() {
+        if (rxCharacteristicState == .available) { return }
+        rxCharacteristicState = .available
+    }
+    
+    internal func notifyFlowControl(state: FlowControlState) {
+        flowControlState = state
+    }
+    
     // MARK: - Private methods
     
     private func getNextQueryId() -> UInt8
@@ -252,7 +261,8 @@ public class Glasses {
 
     private func sendCommand(id commandId: CommandID,
                              withData data: [UInt8]? = [],
-                             callback: ((CommandResponseData) -> Void)? = nil )
+                             callback: ((CommandResponseData) -> Void)? = nil,
+                             withoutQueryId: Bool = false)
     {
         let header: UInt8 = 0xFF, footer: UInt8 = 0xAA
         let queryId = getNextQueryId()
@@ -260,13 +270,13 @@ public class Glasses {
         let defaultLength: Int = 5 // Header + CommandId + CommandFormat + Command length (one byte) + Footer
         let queryLength: Int = 1 // Query ID is used internally and always encoded on 1 byte
         let dataLength: Int = data?.count ?? 0
-        var totalLength: Int = defaultLength + queryLength + dataLength
+        var totalLength: Int = withoutQueryId ? defaultLength + dataLength : defaultLength + queryLength + dataLength
         
         if totalLength > 255 {
             totalLength += 1 // We must add one byte to encode length on 2 bytes
         }
     
-        let commandFormat: UInt8 = UInt8((totalLength > 255 ? 0x10 : 0x00) | queryLength)
+        let commandFormat: UInt8 = withoutQueryId ? UInt8((totalLength > 255 ? 0x10 : 0x00)) : UInt8((totalLength > 255 ? 0x10 : 0x00) | queryLength)
 
         var bytes = [header, commandId.rawValue, commandFormat]
         
@@ -276,7 +286,10 @@ public class Glasses {
             bytes.append(UInt8(totalLength))
         }
         
-        bytes.append(queryId)
+        if !withoutQueryId {
+            bytes.append(queryId)
+        }
+                
         if (data != nil) { bytes.append(contentsOf: data!) }
         bytes.append(footer)
         
@@ -1796,6 +1809,23 @@ public class Glasses {
         
         sendCommand(id: .widget, withData: data)
     }
+    // MARK: - Glasses Commands
+    
+    //erase QSPI flash sectors
+    public func qspi_erase(part: UInt8, addr: Int, length: Int){
+        var data: [UInt8] = []
+        data.append(part)
+        data.append(contentsOf: addr.asUInt8Array)
+        data.append(contentsOf: length.asUInt8Array)
+        sendCommand(id: .qspiErase, withData: data, withoutQueryId: true)
+    }
+    //write QSPI flash
+    public  func qspi_write(part: UInt8, addr: Int, values: [UInt8]){
+        var data: [UInt8] = [part]
+        data.append(contentsOf: addr.asUInt8Array)
+        data.append(contentsOf: values)
+        sendCommand(id: .qspiWrite, withData: data, withoutQueryId: true)
+    }
     
     // MARK: - Device Commands
     
@@ -1804,7 +1834,12 @@ public class Glasses {
     public func shutdown() {
         sendCommand(id: .shutdown, withData: [0x6F, 0x7F, 0xC4, 0xEE])
     }
-
+    
+    /// Reset the device
+    /// Reset is allowed while USB powered.
+    internal func reset() {
+        sendCommand(id: .reset, withData: [0x5C, 0x1E, 0x2D, 0xE9], withoutQueryId: true)
+    }
 
     // MARK: - Notifications
     
@@ -2011,12 +2046,14 @@ public class Glasses {
                     if first.count <= remaining {
                         cmdStack.append(contentsOf: first)
                         if first.count == remaining || self.elements.isEmpty {
+                            parent?.isLastCommandWrittenComplete = true
                             return cmdStack
                         }
                     } else {
                         cmdStack.append(contentsOf: Data(first[0...remaining-1]))
                         let firstTail = Data(first[remaining...first.count-1])
                         self.elements.insert(firstTail, at: 0)
+                        parent?.isLastCommandWrittenComplete = false
                         return cmdStack
                     }
                 }
