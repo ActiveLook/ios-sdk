@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Version 4.5.3
+
+### Fixes
+
+- Dispatch firmware & config download error closure on main thread
+
 ## Version 4.5.2
 
 ### Fixes
