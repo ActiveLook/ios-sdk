@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## Version 4.5.4
+
+### Breaking Change
+
+- SDK init token parameter changed
+  
+### Fixes
+
+- FW update issue
+  
 ## Version 4.5.3
 
 ### Fixes
