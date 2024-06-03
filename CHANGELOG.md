@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Version 4.5.5
+
+### Fixes
+
+- Skip update if we can assume local network without internet
+  
 ## Version 4.5.4
 
 ### Breaking Change
