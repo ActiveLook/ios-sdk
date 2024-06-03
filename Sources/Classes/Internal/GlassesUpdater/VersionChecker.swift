@@ -327,8 +327,15 @@ internal final class VersionChecker: NSObject {
         let task = URLSession.shared.dataTask( with: url ) { data, response, error in
             guard error == nil
             else {
-//                self.failed(with: GlassesUpdateError.versionChecker(
-//                    message: String(format: "Client error @", #line)))
+                // If error is related to `NSURLErrorDomain`, we can assume a local network and thus
+                // completety skip the update due to network unavailability
+                if let error = error as? NSError, error.domain == NSURLErrorDomain {
+                    DispatchQueue.main.async {
+                        self.failed(with: GlassesUpdateError.networkUnavailable)
+                    }
+                    return
+                }
+                self.failed(with: GlassesUpdateError.versionChecker(message: String(format: "Client error @", #line)))
                 return
             }
 
