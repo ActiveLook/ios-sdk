@@ -340,7 +340,9 @@ public class Glasses {
             }
         }
 
-        peripheral.writeValue(value, for: rxCharacteristic!, type: .withResponse)
+        if let rxCharacteristic = rxCharacteristic {
+            peripheral.writeValue(value, for: rxCharacteristic, type: .withResponse)
+        }
 
         rxCharacteristicState = .busy
     }
