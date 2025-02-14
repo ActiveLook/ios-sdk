@@ -10,6 +10,9 @@
 xcuserdata/
 DerivedData/
 
+## Build generated
+.build/
+
 ### Xcode Patch ###
 *.xcodeproj/*
 !*.xcodeproj/project.pbxproj

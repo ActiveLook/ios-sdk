@@ -24,4 +24,6 @@ a firmware >= 4.0.0  and send various commands
 
   s.ios.deployment_target       = '12.0'
   s.watchos.deployment_target   = '6.0'
+
+  s.dependency "iOSMcuManagerLibrary", "1.9.0"
 end

@@ -1,0 +1,34 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "iOSMcuManagerLibrary",
+        "repositoryURL": "https://github.com/NordicSemiconductor/IOS-nRF-Connect-Device-Manager",
+        "state": {
+          "branch": null,
+          "revision": "458d7361c248ce5ec87b9662cc45d445c631d2e4",
+          "version": "1.9.0"
+        }
+      },
+      {
+        "package": "SwiftCBOR",
+        "repositoryURL": "https://github.com/valpackett/SwiftCBOR.git",
+        "state": {
+          "branch": null,
+          "revision": "418dab41b09a5da0d45d7b788c59085979ff4dae",
+          "version": "0.4.7"
+        }
+      },
+      {
+        "package": "ZIPFoundation",
+        "repositoryURL": "https://github.com/weichsel/ZIPFoundation.git",
+        "state": {
+          "branch": null,
+          "revision": "02b6abe5f6eef7e3cbd5f247c5cc24e246efcfe0",
+          "version": "0.9.19"
+        }
+      }
+    ]
+  },
+  "version": 1
+}
