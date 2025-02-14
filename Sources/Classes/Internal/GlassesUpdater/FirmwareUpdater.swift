@@ -19,7 +19,54 @@ import iOSMcuManagerLibrary
 
 // MARK: - Definition
 
-public final class FirmwareUpdater: NSObject {
+public final class FirmwareUpdater: NSObject, FirmwareUpgradeDelegate {
+    public func upgradeDidStart(controller: any iOSMcuManagerLibrary.FirmwareUpgradeController) {
+        print("upgradeDidStart")
+        glasses?.clear()
+        glasses?.layoutDisplay(id: 0x09, text: "")
+        
+        currentImgSize = 0
+        sdk?.updateParameters.notify(.updatingFw, 0)
+    }
+    
+    public func upgradeStateDidChange(from previousState: iOSMcuManagerLibrary.FirmwareUpgradeState, to newState: iOSMcuManagerLibrary.FirmwareUpgradeState) {
+        print("upgradeStateDidChange \(previousState) \(newState)")
+        
+        if( newState == .reset){
+            firmware?.deleteTempFile()
+            
+            self.glasses?.isIntentionalDisconnect = true
+            sdk?.updateParameters.notify(.rebooting)
+            rebooting()
+        }
+    }
+    
+    public func upgradeDidComplete() {
+        print("upgradeDidComplete")
+    }
+    
+    public func upgradeDidFail(inState state: iOSMcuManagerLibrary.FirmwareUpgradeState, with error: any Error) {
+        print("upgradeDidFail")
+        firmware?.deleteTempFile()
+    }
+    
+    public func upgradeDidCancel(state: iOSMcuManagerLibrary.FirmwareUpgradeState) {
+        print("upgradeDidCancel")
+        firmware?.deleteTempFile()
+    }
+    
+    public func uploadProgressDidChange(bytesSent: Int, imageSize: Int, timestamp: Date) {
+        print("uploadProgressDidChange", bytesSent, imageSize, timestamp)
+        var progress: Double = 0
+        currentImgSize = currentImgSize == 0 ? imageSize : currentImgSize;
+        progress = currentImgSize == imageSize ? (Double(bytesSent) / Double(imageSize)) * 50 :(Double(bytesSent) / Double(imageSize)) * 50 + 50
+        if ( progress > currentProgress ) {
+            currentProgress = progress
+            print("Progress: \(self.currentProgress)")
+            sdk?.updateParameters.notify(.updatingFw, progress)
+        }
+    }
+
 
 
     // MARK: - Private properties
@@ -72,6 +119,7 @@ public final class FirmwareUpdater: NSObject {
     private var spotaServiceStatusCharacteristic: CBCharacteristic?
 
     private var currentProgress: Double = 0
+    private var currentImgSize: Int = 0
     private var successClosure: () -> (Void)
     private var errorClosure: ( GlassesUpdateError ) -> (Void)
     
@@ -132,7 +180,7 @@ public final class FirmwareUpdater: NSObject {
             let bleTransport = McuMgrBleTransport(glasses.peripheral)
 
             // Initialize the FirmwareUpgradeManager using the transport and a delegate
-            let dfuManager = FirmwareUpgradeManager(transport: bleTransport, delegate: nil)
+            let dfuManager = FirmwareUpgradeManager(transport: bleTransport, delegate: self)
 
             let packageURL = firmware.getFilePath()
             let package = try McuMgrPackage(from: packageURL)
@@ -143,7 +191,7 @@ public final class FirmwareUpdater: NSObject {
             sdk?.updateParameters.notify(.updatingFw, 0)
         } catch {
             // Package initialisation errors here.
-            print("Oupsi crash")
+            print("Crash during McuManger Upgrade")
         }
     }
     
