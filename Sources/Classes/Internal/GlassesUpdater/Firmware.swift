@@ -42,14 +42,17 @@ internal struct Firmware {
     // MARK: - Internal Properties
 
     internal var blocks: Blocks
-
+    internal var tempFileURL: URL
 
     // MARK: - Life Cycle
 
     init(with content : Data) {
         bytes = []
         blocks = []
-
+        
+        // Créer un chemin unique pour le fichier temporaire
+        self.tempFileURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathExtension("zip")
+        
         content.forEach( { byte in
             bytes.append(byte)
         } )
@@ -65,6 +68,8 @@ internal struct Firmware {
         for index in 0 ..< content.count  {
             bytes[content.count] ^= bytes[index]
         }
+        
+        self.saveTempFile(with: content)
     }
 
 
@@ -114,5 +119,25 @@ internal struct Firmware {
     
     func getBytes() -> [UInt8]{
         return bytes
+    }
+    
+    func getFilePath() -> URL{
+        return tempFileURL
+    }
+    
+    mutating func saveTempFile(with content: Data){
+        do {
+            try content.write(to: tempFileURL)
+        } catch {
+            print("Erreur can't save update file: \(error.localizedDescription)")
+        }
+    }
+    
+    func deleteTempFile(){
+        do{
+            try FileManager.default.removeItem(at: self.tempFileURL)
+        }catch {
+            print("Erreur can't delete update file : \(error.localizedDescription)")
+        }
     }
 }

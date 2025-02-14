@@ -15,7 +15,7 @@
 
 import Foundation
 import CoreBluetooth
-
+import iOSMcuManagerLibrary
 
 // MARK: - Definition
 
@@ -103,7 +103,7 @@ public final class FirmwareUpdater: NSObject {
 
     // MARK: - Internal Methods
 
-    func update(_ glasses: Glasses, with firmware: Firmware, glassesFwVersion: String)
+    func update(_ glasses: Glasses, with firmware: Firmware, glassesFwVersion: String, glassesHWVersion: String)
     {
         // We're setting ourselves as the peripheral delegate in order update the firmware.
         // If the update succeeds, the device reboots.
@@ -115,12 +115,35 @@ public final class FirmwareUpdater: NSObject {
         self.firmware = firmware
 
         sdk?.updateParameters.notify(.updatingFw)
-        
-        if(glassesFwVersion == "4.12.0"){
+        //TODO: Remove before merge
+        if(true){
+            McuManager(self.glasses!, with: self.firmware!)
+        }else if(glassesFwVersion == "4.12.0"){
             peripheral?.discoverServices([CBUUID.ActiveLookCommandsInterfaceService])
         }
         else{
             peripheral?.discoverServices([CBUUID.SpotaService])
+        }
+        //firmware.deleteTempFile()
+    }
+    private func McuManager(_ glasses: Glasses, with firmware: Firmware) {
+        do {
+            // Initialize the BLE transport using a scanned peripheral
+            let bleTransport = McuMgrBleTransport(glasses.peripheral)
+
+            // Initialize the FirmwareUpgradeManager using the transport and a delegate
+            let dfuManager = FirmwareUpgradeManager(transport: bleTransport, delegate: nil)
+
+            let packageURL = firmware.getFilePath()
+            let package = try McuMgrPackage(from: packageURL)
+
+            // Start the firmware upgrade with the given package
+            try dfuManager.start(package: package)
+
+            sdk?.updateParameters.notify(.updatingFw, 0)
+        } catch {
+            // Package initialisation errors here.
+            print("Oupsi crash")
         }
     }
     
