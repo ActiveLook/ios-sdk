@@ -108,16 +108,14 @@ internal final class GlassesUpdaterURL {
 
     private func generateURL(for firmwareVersion: FirmwareVersion) -> URL
     {
-        //ToDo : Change to let before merge
-        guard var hardware = sdk?.updateParameters.hardware else {
+
+        guard let hardware = sdk?.updateParameters.hardware else {
             fatalError("NO HARDWARE SET")
         }
 
         guard let token = sdk?.updateParameters.token else {
             fatalError("NO TOKEN SET")
         }
-        //ToDo : Remove before merge
-        hardware = "ALK03A-MDP05"
         
         let pathComponents = [
             apiVersion,
@@ -157,8 +155,7 @@ internal final class GlassesUpdaterURL {
     
     private func generateDownloadURL(for version: String) -> URL
     {
-        //TODO: Change to let before merge
-        guard var hardware = sdk?.updateParameters.hardware else {
+        guard let hardware = sdk?.updateParameters.hardware else {
             fatalError("NO HARDWARE SET")
         }
 
@@ -173,9 +170,6 @@ internal final class GlassesUpdaterURL {
         if ( version.first == separator ) {
             _ = version.removeFirst()
         }
-
-        //TODO: Remove before merge
-        hardware = "ALK03A-MDP05"
         
         let pathComponents = [
             self.apiVersion,

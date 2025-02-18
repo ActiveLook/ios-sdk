@@ -32,17 +32,18 @@ public final class FirmwareUpdater: NSObject, FirmwareUpgradeDelegate {
     public func upgradeStateDidChange(from previousState: iOSMcuManagerLibrary.FirmwareUpgradeState, to newState: iOSMcuManagerLibrary.FirmwareUpgradeState) {
         print("upgradeStateDidChange \(previousState) \(newState)")
         
-        if( newState == .reset){
-            firmware?.deleteTempFile()
-            
+        if(newState == .reset){
+            print("resetGlasses")
             self.glasses?.isIntentionalDisconnect = true
             sdk?.updateParameters.notify(.rebooting)
-            rebooting()
         }
     }
     
     public func upgradeDidComplete() {
         print("upgradeDidComplete")
+        
+        firmware?.deleteTempFile()
+        rebooting()
     }
     
     public func upgradeDidFail(inState state: iOSMcuManagerLibrary.FirmwareUpgradeState, with error: any Error) {
@@ -163,17 +164,16 @@ public final class FirmwareUpdater: NSObject, FirmwareUpgradeDelegate {
         self.firmware = firmware
 
         sdk?.updateParameters.notify(.updatingFw)
-        //TODO: Remove before merge
-        if(true){
-            McuManager(self.glasses!, with: self.firmware!)
-        }else if(glassesFwVersion == "4.12.0"){
+        
+        if(glassesFwVersion == "4.12.0"){
             peripheral?.discoverServices([CBUUID.ActiveLookCommandsInterfaceService])
-        }
-        else{
+        }else if(glassesHWVersion.contains("ALK03")){
+                McuManager(self.glasses!, with: self.firmware!)
+        }else{
             peripheral?.discoverServices([CBUUID.SpotaService])
         }
-        //firmware.deleteTempFile()
     }
+    
     private func McuManager(_ glasses: Glasses, with firmware: Firmware) {
         do {
             // Initialize the BLE transport using a scanned peripheral
@@ -187,8 +187,6 @@ public final class FirmwareUpdater: NSObject, FirmwareUpgradeDelegate {
 
             // Start the firmware upgrade with the given package
             try dfuManager.start(package: package)
-
-            sdk?.updateParameters.notify(.updatingFw, 0)
         } catch {
             // Package initialisation errors here.
             print("Crash during McuManger Upgrade")
@@ -576,6 +574,7 @@ public final class FirmwareUpdater: NSObject, FirmwareUpgradeDelegate {
                 message: String(format: "no SPOTA_MEM_DEV_UUID characteristic discovered@", #line)))
             return
         }
+        firmware?.deleteTempFile()
 
         self.glasses?.isIntentionalDisconnect = true
 
@@ -590,6 +589,7 @@ public final class FirmwareUpdater: NSObject, FirmwareUpgradeDelegate {
     private func sendQSPIResetSignal()
     {
         self.glasses?.isIntentionalDisconnect = true
+        firmware?.deleteTempFile()
 
         sdk?.updateParameters.notify(.rebooting)
         
