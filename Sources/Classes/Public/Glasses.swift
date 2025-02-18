@@ -342,9 +342,8 @@ public class Glasses {
 
         if let rxCharacteristic = rxCharacteristic {
             peripheral.writeValue(value, for: rxCharacteristic, type: .withResponse)
+            rxCharacteristicState = .busy
         }
-
-        rxCharacteristicState = .busy
     }
     
     private func handleTxNotification(withData data: Data) {
