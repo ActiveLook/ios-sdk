@@ -108,7 +108,6 @@ internal final class GlassesUpdaterURL {
 
     private func generateURL(for firmwareVersion: FirmwareVersion) -> URL
     {
-
         guard let hardware = sdk?.updateParameters.hardware else {
             fatalError("NO HARDWARE SET")
         }
@@ -116,7 +115,7 @@ internal final class GlassesUpdaterURL {
         guard let token = sdk?.updateParameters.token else {
             fatalError("NO TOKEN SET")
         }
-        
+
         let pathComponents = [
             apiVersion,
             softwareClass.rawValue,
@@ -170,7 +169,7 @@ internal final class GlassesUpdaterURL {
         if ( version.first == separator ) {
             _ = version.removeFirst()
         }
-        
+
         let pathComponents = [
             self.apiVersion,
             self.softwareClass.rawValue,

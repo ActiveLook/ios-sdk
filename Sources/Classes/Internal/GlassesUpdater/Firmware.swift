@@ -50,7 +50,7 @@ internal struct Firmware {
         bytes = []
         blocks = []
         
-        // Créer un chemin unique pour le fichier temporaire
+        // used for the McuManager
         self.tempFileURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathExtension("zip")
         
         content.forEach( { byte in
