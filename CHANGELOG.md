@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## Version 4.5.5
+
+### Fixes
+
+- Skip update if we can assume local network without internet
+  
+## Version 4.5.4
+
+### Breaking Change
+
+- SDK init token parameter changed
+  
+### Fixes
+
+- FW update issue
+  
 ## Version 4.5.3
 
 ### Fixes

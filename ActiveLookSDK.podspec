@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'ActiveLookSDK'
-  s.version          = '4.5.3'
+  s.version          = '4.5.5'
   s.summary          = 'An iOS library to interact with ActiveLook eyewear'
   s.description      = <<-DESC
 This CocoaPod provides the ability to connect to ActiveLook eyewear running
@@ -24,4 +24,6 @@ a firmware >= 4.0.0  and send various commands
 
   s.ios.deployment_target       = '12.0'
   s.watchos.deployment_target   = '6.0'
+
+  s.dependency "iOSMcuManagerLibrary", "1.9.0"
 end

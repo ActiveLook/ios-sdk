@@ -301,7 +301,12 @@ internal class GlassesUpdater {
             return
         }
         
-        firmwareUpdater?.update(glasses!, with: firmware, glassesFwVersion: glassesFWVersion)
+        guard let glassesHWVersion = glasses!.getDeviceInformation().hardwareVersion else{
+            failed(with: GlassesUpdateError.glassesUpdater(message: "Can't retrieve Glasses HW version"))
+            return
+        }
+        
+        firmwareUpdater?.update(glasses!, with: firmware, glassesFwVersion: glassesFWVersion, glassesHWVersion: glassesHWVersion)
     }
 
 
