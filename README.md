@@ -200,6 +200,33 @@ When done interacting with ActiveLook glasses, simply call the `disconnect()` me
 glasses.disconnect()
 ```
 
+## Reconnecting to Previously Connected Glasses
+
+You can save a [SerializedGlasses](https://github.com/ActiveLook/ios-sdk/blob/main/Sources/Classes/Internal/SerializedGlasses.swift) object after connecting to a pair of glasses for future reconnection.
+
+```swift
+var storedGlasses: SerializedGlasses?
+ 
+private func onGlassesConnected(_ glasses: Glasses) {
+    storedGlasses = try? glasses.getSerializedGlasses()
+}
+```
+
+To reconnect using the saved `SerializedGlasses`, use the following method:
+
+```swift
+private func reconnect(using serializedGlasses: SerializedGlasses) {
+    sdk.connect(
+        using: serializedGlasses,
+        onGlassesConnected: onGlassesConnected,
+        onGlassesDisconnected: reset,
+        onConnectionError: reset(onError:)
+    )
+}
+```
+
+The SDK also supports automatic reconnection in case of an unexpected disconnection after the initial connection.
+
 ## Acknolegment
 
 We are currently using code from [nobre84/heatshrink-objc](https://github.com/nobre84/heatshrink-objc) (thanks to him). We did'nt find a easiest way to use it than add it to our code.
