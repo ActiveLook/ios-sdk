@@ -58,20 +58,8 @@ internal class GlassesUpdater {
     // If the batteryLevel is less than 10, the update will not proceed.
     private var batteryLevel: Int? {
         didSet {
-            guard let bl = batteryLevel else {
-                return
-            }
-
-            // TODO: NC Question: Are you sure about this ? It seams that a low battery notification if triggered
-            // TODO: NC Question: even if the update process has not been started.
-            // TODO: NC Question: In this class, the battery level is set first before checking anything
-            // TODO: Check if remove ok : if bl < 10 {
-            // TODO: Check if remove ok :    sdk?.updateParameters.notify(.lowBattery, 0, bl)
-            // TODO: Check if remove ok : } else {
-                if let vcr = vcResult {
-                    process(vcr)
-                }
-            // }
+            guard batteryLevel != nil, let vcResult else { return }
+            process(vcResult)
         }
     }
 
