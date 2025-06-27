@@ -18,25 +18,27 @@ import XCTest
 
 final class ActiveLookSDKTests: XCTestCase {
 
-    let token = "invalid token"
     var sut: ActiveLookSDK!
     var onUpdateStart: StartClosureSignature = { update in }
-    var onUpdateAvailable: UpdateAvailableClosureSignature = { update in return true }
+    var onUpdateAvailable: UpdateAvailableClosureSignature = { update, _ in }
     var onUpdateProgress: ProgressClosureSignature = { update in }
     var onUpdateSuccess: SuccessClosureSignature = { update in }
     var onUpdateFailure: FailureClosureSignature = { update in }
 
     override func setUpWithError() throws {
-        sut = try ActiveLookSDK.shared(token: token,
-                                       onUpdateStartCallback: onUpdateStart,
-                                       onUpdateAvailableCallback: onUpdateAvailable,
-                                       onUpdateProgressCallback: onUpdateProgress,
-                                       onUpdateSuccessCallback: onUpdateSuccess,
-                                       onUpdateFailureCallback: onUpdateFailure)
+        try super.setUpWithError()
+        sut = try ActiveLookSDK.shared(
+            onUpdateStartCallback: onUpdateStart,
+            onUpdateAvailableCallback: onUpdateAvailable,
+            onUpdateProgressCallback: onUpdateProgress,
+            onUpdateSuccessCallback: onUpdateSuccess,
+            onUpdateFailureCallback: onUpdateFailure
+        )
     }
 
     override func tearDownWithError() throws {
-        sut = nil
+        sut = .none
+        try super.tearDownWithError()
     }
 
     func test_SDK_takesOnUpdateAvailableCallback() throws {
