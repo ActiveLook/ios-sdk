@@ -35,7 +35,7 @@ var activeLookSDK: ActiveLookSDK?
 
 do {
     // swiftlint:disable:next multiline_arguments
-    activeLookSDK = try ActiveLookSDK.shared(token: "") { _ in
+    activeLookSDK = try ActiveLookSDK.shared { _ in
         // TODO (Pierre Rougeot) 01/03/2022 Implement Firmware Update
     } onUpdateProgressCallback: { _ in
         // TODO (Pierre Rougeot) 01/03/2022 Implement Firmware Update

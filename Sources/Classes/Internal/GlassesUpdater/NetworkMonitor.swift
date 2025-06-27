@@ -21,7 +21,17 @@ extension Notification.Name {
     static let connectivityStatus = Notification.Name(rawValue: "connectivityStatusChanged")
 }
 
+#if hasFeature(RetroactiveAttribute)
+extension NWInterface.InterfaceType: @retroactive CaseIterable {
+    // Intentionally empty: Iterate on `allCases`.
+}
+#else
 extension NWInterface.InterfaceType: CaseIterable {
+    // Intentionally empty: Iterate on `allCases`.
+}
+#endif
+
+extension NWInterface.InterfaceType {
     public static var allCases: [NWInterface.InterfaceType] = [
         .other,
         .wifi,

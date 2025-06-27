@@ -39,7 +39,7 @@ internal class Pixel {
     }
     
     internal func rgbTo8bitGrayDirectConvertion() -> Int{
-        var grayPixel : Double = (Double(self.r) + Double(self.g) + Double(self.b)) / 3
+        let grayPixel: Double = (Double(self.r) + Double(self.g) + Double(self.b)) / 3
         return Int(grayPixel.rounded())
     }
 }

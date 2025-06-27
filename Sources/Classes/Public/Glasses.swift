@@ -1794,8 +1794,8 @@ public class Glasses {
     ///   - unit: The unit string to be displayed
     ///   - shownValue: The shown value displayed and formatted according to valueType
     public func widgetData(size: WidgetSize, x: Int16, y: Int16, imgId: UInt8, valueType: WidgetValueType, unit: String, shownValue: String){
-        let type : UInt8 = 6
-        var value : UInt8 = 0
+        let type: UInt8 = 6
+        let value: UInt8 = 0
         var data: [UInt8] = []
         
         data.append(type)
