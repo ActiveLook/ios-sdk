@@ -28,7 +28,10 @@ let package = Package(
                 .product(name: "iOSMcuManagerLibrary", package: "IOS-nRF-Connect-Device-Manager")
             ],
             path: "Sources",
-            exclude: ["Heatshrink"]
+            exclude: ["Heatshrink"],
+            plugins: [
+                .plugin(name: "ProtobufSwiftGenerator")
+            ]
         ),
         .target(
             name: "Heatshrink",
@@ -37,6 +40,16 @@ let package = Package(
         .testTarget(
             name: "ActiveLookSDKTests",
             dependencies: ["ActiveLookSDK"]
+        ),
+        .executableTarget(
+          name: "ProtobufSwiftGeneratorExec",
+          path: "Executables/ProtobufSwiftGeneratorExec"
+        ),
+        .plugin(
+          name: "ProtobufSwiftGenerator",
+          capability: .buildTool(),
+          dependencies: ["ProtobufSwiftGeneratorExec"],
+          path: "Plugins/ProtobufSwiftGenerator"
         )
     ]
 )

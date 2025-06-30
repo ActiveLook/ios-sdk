@@ -1,0 +1,59 @@
+// Editions version of proto3 file
+
+syntax = "proto3";
+
+package alookprotobuf;
+
+// Enum for widget type
+enum WidgetType {
+  METRIC = 0;
+  ZONES = 1;
+  RANGE = 2;
+  THRESHOLD = 3;
+  COMPLETION = 4;
+  TEXT = 5;
+  IMAGE = 6;
+  ANIMATION = 7;
+}
+
+// Enum for widget shape
+enum WidgetShape {
+  LARGE = 0;
+  THIN = 1;
+  HALF = 2;
+}
+
+// Generic key-value pair
+message MapEntry {
+  string key = 1;
+  string value = 2;
+}
+
+// Message for individual Widget
+message Widget {
+  int32 id = 1;
+  WidgetType type = 2;
+  WidgetShape shape = 3;
+  int32 width = 4;
+  int32 height = 5;
+  int32 layoutPosition = 6;
+  int32 x = 7;
+  int32 y = 8;
+
+  // Generic config as key-value pairs
+  repeated MapEntry config = 9;
+}
+
+// Main request message for setWidgets
+message SetWidgetsRequest {
+  int32 screenId = 1;
+  repeated Widget widgets = 2;
+}
+
+
+message Wrapper{
+  oneof msg {
+    SetWidgetsRequest setWidget = 1;
+    SetWidgetsRequest setWidget2 = 2;
+  }
+}
