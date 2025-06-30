@@ -12,28 +12,31 @@ let package = Package(
     products: [
         .library(
             name: "ActiveLookSDK",
-            targets: ["ActiveLookSDK","Heatshrink"])
+            targets: ["ActiveLookSDK", "Heatshrink"]
+        )
     ],
     dependencies: [
-        .package(
-            url: "https://github.com/NordicSemiconductor/IOS-nRF-Connect-Device-Manager.git",
-            .exact("1.9.0")
-        )
+        .package(url: "https://github.com/apple/swift-protobuf.git", from: "1.25.0"),
+        .package(url: "https://github.com/NordicSemiconductor/IOS-nRF-Connect-Device-Manager.git", from: "1.9.0")
     ],
     targets: [
         .target(
             name: "ActiveLookSDK",
             dependencies: [
                 "Heatshrink",
+                .product(name: "SwiftProtobuf", package: "swift-protobuf"),
                 .product(name: "iOSMcuManagerLibrary", package: "IOS-nRF-Connect-Device-Manager")
             ],
             path: "Sources",
-            exclude: ["Heatshrink"]),
+            exclude: ["Heatshrink"]
+        ),
         .target(
             name: "Heatshrink",
-            path: "Sources/Heatshrink"),
+            path: "Sources/Heatshrink"
+        ),
         .testTarget(
             name: "ActiveLookSDKTests",
-            dependencies: ["ActiveLookSDK"]),
+            dependencies: ["ActiveLookSDK"]
+        )
     ]
 )
