@@ -1,4 +1,4 @@
-// swift-tools-version:5.5
+// swift-tools-version:5.10
 
 import PackageDescription
 
@@ -12,13 +12,11 @@ let package = Package(
     products: [
         .library(
             name: "ActiveLookSDK",
-            targets: ["ActiveLookSDK","Heatshrink"])
+            targets: ["ActiveLookSDK","Heatshrink"]
+        )
     ],
     dependencies: [
-        .package(
-            url: "https://github.com/NordicSemiconductor/IOS-nRF-Connect-Device-Manager.git",
-            .exact("1.9.0")
-        )
+        .package(url: "https://github.com/NordicSemiconductor/IOS-nRF-Connect-Device-Manager.git", exact: "1.9.0")
     ],
     targets: [
         .target(
@@ -28,12 +26,15 @@ let package = Package(
                 .product(name: "iOSMcuManagerLibrary", package: "IOS-nRF-Connect-Device-Manager")
             ],
             path: "Sources",
-            exclude: ["Heatshrink"]),
+            exclude: ["Heatshrink"]
+        ),
         .target(
             name: "Heatshrink",
-            path: "Sources/Heatshrink"),
+            path: "Sources/Heatshrink"
+        ),
         .testTarget(
             name: "ActiveLookSDKTests",
-            dependencies: ["ActiveLookSDK"]),
+            dependencies: ["ActiveLookSDK"]
+        )
     ]
 )
