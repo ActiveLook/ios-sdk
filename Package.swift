@@ -12,7 +12,7 @@ let package = Package(
     products: [
         .library(
             name: "ActiveLookSDK",
-            targets: ["ActiveLookSDK","Heatshrink"]
+            targets: ["ActiveLookSDK", "Heatshrink"]
         )
     ],
     dependencies: [
@@ -26,7 +26,8 @@ let package = Package(
                 .product(name: "iOSMcuManagerLibrary", package: "IOS-nRF-Connect-Device-Manager")
             ],
             path: "Sources",
-            exclude: ["Heatshrink"]
+            exclude: ["Heatshrink"],
+            swiftSettings: swiftSettings
         ),
         .target(
             name: "Heatshrink",
@@ -38,3 +39,24 @@ let package = Package(
         )
     ]
 )
+
+let swiftSettings: [SwiftSetting] = [
+    .enableUpcomingFeature("BareSlashRegexLiterals"),
+    .enableUpcomingFeature("ConciseMagicFile"),
+    .enableUpcomingFeature("DeprecateApplicationMain"),
+    .enableUpcomingFeature("DisableOutwardActorInference"),
+    .enableUpcomingFeature("DynamicActorIsolation"),
+    .enableUpcomingFeature("ForwardTrailingClosures"),
+    .enableUpcomingFeature("GlobalActorIsolation"),
+    .enableUpcomingFeature("ImplicitlyOpenedExistentials"),
+    .enableUpcomingFeature("ImportObjCForwardDeclarations"),
+    .enableUpcomingFeature("InferSendableFromMethodsAndKeyPaths"),
+    .enableUpcomingFeature("IsolatedDefaultValues"),
+    .enableUpcomingFeature("IsolatedGlobals"),
+    .enableUpcomingFeature("NonFrozenEnumExhaustivity"),
+    .enableUpcomingFeature("RegionBasedIsolation"),
+    .enableUpcomingFeature("RequireExplicitAny"),
+    .enableUpcomingFeature("MemberImportVisibility"),
+    .enableUpcomingFeature("DefaultInternalImports"),
+    .enableUpcomingFeature("StrictConcurrency")
+]
