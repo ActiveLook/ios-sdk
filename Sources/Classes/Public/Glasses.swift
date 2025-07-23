@@ -57,6 +57,8 @@ public class Glasses {
     internal var isIntentionalDisconnect: Bool = false
     
     internal let chunkSize: Int = 505
+    
+    internal let sendQueue = DispatchQueue(label: "com.activelook.sendBytes")
 
     // MARK: - Fileprivate properties
 
@@ -80,7 +82,7 @@ public class Glasses {
     private var commandQueue: ConcurrentDataQueue {
         didSet {
             if (oldValue.count < commandQueue.count) {
-                self.sendBytes()
+                sendQueue.async { [weak self] in self?.sendBytes() }
             }
         }
     }
@@ -95,7 +97,7 @@ public class Glasses {
     private var flowControlState: FlowControlState {
         didSet {
             if (flowControlState == .on) {
-                self.sendBytes()
+                sendQueue.async { [weak self] in self?.sendBytes() }
             }
         }
     }
@@ -109,7 +111,7 @@ public class Glasses {
     private var rxCharacteristicState: RXCharacteristicState {
         didSet {
             if (rxCharacteristicState == .available) {
-                self.sendBytes()
+                sendQueue.async { [weak self] in self?.sendBytes() }
             }
         }
     }
@@ -340,7 +342,7 @@ public class Glasses {
             }
         }
 
-        if let rxCharacteristic = rxCharacteristic {
+        if let rxCharacteristic, peripheral.state == .connected {
             peripheral.writeValue(value, for: rxCharacteristic, type: .withResponse)
             rxCharacteristicState = .busy
         }
