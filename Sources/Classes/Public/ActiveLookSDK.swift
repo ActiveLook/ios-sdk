@@ -432,7 +432,8 @@ public class ActiveLookSDK {
 
         guard let discoveredGlasses = discoveredGlasses(fromPeripheral: glasses.peripheral)
         else {
-            fatalError("discoveredGlasses not found")
+            print("discoveredGlasses not found")
+            return
         }
 
         updater?.update(
@@ -495,7 +496,8 @@ public class ActiveLookSDK {
             print("central manager did update state: ", central.state.rawValue)
 
             guard let parent = parent else {
-                fatalError("cannot retrieve parent instance")
+                print("cannot retrieve parent instance")
+                return
             }
 
             if central.state == .poweredOff {
@@ -544,7 +546,8 @@ public class ActiveLookSDK {
                                    rssi RSSI: NSNumber)
         {
             guard let parent = parent else {
-                fatalError("cannot retrieve parent instance")
+                print("cannot retrieve parent instance")
+                return
             }
             guard parent.peripheralIsActiveLookGlasses(peripheral: peripheral,
                                                        advertisementData: advertisementData)
@@ -572,7 +575,8 @@ public class ActiveLookSDK {
                                    didConnect peripheral: CBPeripheral)
         {
             guard let parent = parent else {
-                fatalError("cannot retrieve parent instance")
+                print("cannot retrieve parent instance")
+                return
             }
 
             guard let discoveredGlasses: DiscoveredGlasses = parent.discoveredGlasses(fromPeripheral: peripheral)
@@ -616,7 +620,8 @@ public class ActiveLookSDK {
                                    error: Error?)
         {
             guard let parent = parent else {
-                fatalError("cannot retrieve parent instance")
+                print("cannot retrieve parent instance")
+                return
             }
 
             guard let glasses = parent.connectedGlasses(fromPeripheral: peripheral) else {
