@@ -313,9 +313,7 @@ public class Glasses {
     /// sends the bytes queued in commandQueue
     private func sendBytes()
     {
-        if flowControlState != FlowControlState.on { return }
-
-        if rxCharacteristicState == .busy { return }
+        guard flowControlState == .on, let rxCharacteristic, rxCharacteristicState != .busy else { return }
         
         guard let value = commandQueue.dequeue() else {
             if isUpdating {
@@ -340,7 +338,7 @@ public class Glasses {
             }
         }
 
-        peripheral.writeValue(value, for: rxCharacteristic!, type: .withResponse)
+        peripheral.writeValue(value, for: rxCharacteristic, type: .withResponse)
 
         rxCharacteristicState = .busy
     }
