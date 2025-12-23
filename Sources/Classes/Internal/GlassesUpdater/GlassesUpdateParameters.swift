@@ -126,7 +126,7 @@ internal class GlassesUpdateParameters {
 
     // MARK: - Internal Functions
 
-    func notify(_ stateUpdate: UpdateState, _ progress: Double = 0, _ batteryLevel: Int? = nil)
+    func notify(_ stateUpdate: UpdateState, _ progress: Double = 0, _ batteryLevel: Int? = nil, glasses: Glasses?)
     {
         dlog(message: "progress update to \(stateUpdate) – \(progress)",
              line: #line, function: #function, file: #fileID)
@@ -177,11 +177,11 @@ internal class GlassesUpdateParameters {
             return
         }
 
-        closureToSummon!(createSDKGU(state!))
+        closureToSummon!(createSDKGU(state!, glasses: glasses))
     }
 
 
-    func createSDKGU(_ state: UpdateState) -> SdkGlassesUpdate
+    func createSDKGU(_ state: UpdateState, glasses: Glasses?) -> SdkGlassesUpdate
     {
         return SdkGlassesUpdate(for: nil,
                                 state: retrieveState(from: state)!,
@@ -190,7 +190,8 @@ internal class GlassesUpdateParameters {
                                 sourceFirmwareVersion: self.getVersion(for: .device, softwareClass: .firmwares),
                                 targetFirmwareVersion: self.getVersion(for: .remote, softwareClass: .firmwares),
                                 sourceConfigurationVersion: self.getVersion(for: .device, softwareClass: .configurations),
-                                targetConfigurationVersion: self.getVersion(for: .remote, softwareClass: .configurations))
+                                targetConfigurationVersion: self.getVersion(for: .remote, softwareClass: .configurations),
+        glasses: glasses)
     }
 
 

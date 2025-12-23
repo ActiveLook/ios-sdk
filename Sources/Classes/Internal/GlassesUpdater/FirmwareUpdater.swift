@@ -114,7 +114,7 @@ public final class FirmwareUpdater: NSObject {
 
         self.firmware = firmware
 
-        sdk?.updateParameters.notify(.updatingFw)
+        sdk?.updateParameters.notify(.updatingFw, glasses: self.glasses)
         
         if(glassesFwVersion == "4.12.0"){
             peripheral?.discoverServices([CBUUID.ActiveLookCommandsInterfaceService])
@@ -151,7 +151,7 @@ public final class FirmwareUpdater: NSObject {
             
             let progress: Double = (1.0 - (Double(self.eraseSize!) / Double(size))) * 50
             print("Remaining erase size: \(self.eraseSize!)")
-            sdk?.updateParameters.notify(.updatingFw, progress)
+            sdk?.updateParameters.notify(.updatingFw, progress, glasses: self.glasses)
         }
     }
     
@@ -189,7 +189,7 @@ public final class FirmwareUpdater: NSObject {
             
             let progress: Double = (1.0 - (Double(self.writeSize!) / Double(size))) * 50 + 50
             print("Writing size remaining : \(self.writeSize!)")
-            sdk?.updateParameters.notify(.updatingFw, progress)
+            sdk?.updateParameters.notify(.updatingFw, progress, glasses: self.glasses)
         }
     }
 
@@ -470,7 +470,7 @@ public final class FirmwareUpdater: NSObject {
                 let progress: Double = Double(blockId * 100) / Double(firmware.blocks.count)
                 if ( progress > currentProgress ) {
                     currentProgress = progress
-                    sdk?.updateParameters.notify(.updatingFw, progress)
+                    sdk?.updateParameters.notify(.updatingFw, progress, glasses: self.glasses)
                 }
                 
                 chunkId += 1
@@ -508,7 +508,7 @@ public final class FirmwareUpdater: NSObject {
 
         self.glasses?.isIntentionalDisconnect = true
 
-        sdk?.updateParameters.notify(.rebooting)
+        sdk?.updateParameters.notify(.rebooting, glasses: self.glasses)
 
         peripheral?.writeValue( Data( UInt32(0xfd000000).byteArray ),
                                for: characteristic,
@@ -520,7 +520,7 @@ public final class FirmwareUpdater: NSObject {
     {
         self.glasses?.isIntentionalDisconnect = true
 
-        sdk?.updateParameters.notify(.rebooting)
+        sdk?.updateParameters.notify(.rebooting, glasses: self.glasses)
         
         glasses?.reset()
 

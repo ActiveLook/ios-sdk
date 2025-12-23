@@ -49,6 +49,7 @@ public class SdkGlassesUpdate: GlassesUpdate {
     private var targetFirmwareVersion: String
     private var sourceConfigurationVersion: String
     private var targetConfigurationVersion: String
+    private let glasses: Glasses?
 
     internal init(for discoveredGlasses: DiscoveredGlasses?,
                   state : State = .DOWNLOADING_FIRMWARE,
@@ -57,7 +58,8 @@ public class SdkGlassesUpdate: GlassesUpdate {
                   sourceFirmwareVersion: String = "",
                   targetFirmwareVersion: String = "",
                   sourceConfigurationVersion: String = "",
-                  targetConfigurationVersion: String = ""
+                  targetConfigurationVersion: String = "",
+                  glasses: Glasses? = nil
     ) {
         self.discoveredGlasses = discoveredGlasses
         self.state = state
@@ -67,10 +69,15 @@ public class SdkGlassesUpdate: GlassesUpdate {
         self.targetFirmwareVersion = targetFirmwareVersion
         self.sourceConfigurationVersion = sourceConfigurationVersion
         self.targetConfigurationVersion = targetConfigurationVersion
+        self.glasses = glasses
     }
 
     public func getDiscoveredGlasses() -> DiscoveredGlasses {
         return discoveredGlasses!
+    }
+    
+    public func getGlasses() -> Glasses? {
+        return glasses
     }
 
     public func getState() -> State {

@@ -455,7 +455,7 @@ public class ActiveLookSDK {
                          line: #line, function: #function, file: #fileID)
 
                     discoveredGlasses.connectionCallback?(glasses)
-                    self.updateParameters.notify(.upToDate)
+                    self.updateParameters.notify(.upToDate, glasses: glasses)
                     self.updateParameters.reset()   // FIXME: can trigger warning '[connection] nw_resolver_start_query_timer_block_invoke [C1] Query fired: did not receive all answers in time for... in Downloader.swift'
                 },
             onError:
@@ -468,7 +468,7 @@ public class ActiveLookSDK {
                         // network not available. Update not possible, but glasses are still usable.
 
                         discoveredGlasses.connectionCallback?(glasses)
-                        self.updateParameters.notify(.updateFailed)
+                        self.updateParameters.notify(.updateFailed, glasses: glasses)
 
                     case .connectionLost:
                         // connection lost while updating -> reconnect asap
@@ -477,7 +477,7 @@ public class ActiveLookSDK {
                     default:
                         print("Error while updating: \(error)")
                         discoveredGlasses.connectionErrorCallback?(ActiveLookError.sdkUpdateFailed)
-                        self.updateParameters.notify(.updateFailed)
+                        self.updateParameters.notify(.updateFailed, glasses: glasses)
                     }
                     self.updateParameters.reset()   // FIXME: can trigger warning '[connection] nw_resolver_start_query_timer_block_invoke [C1] Query fired: did not receive all answers in time for... in Downloader.swift'
                 })
@@ -623,7 +623,7 @@ public class ActiveLookSDK {
                 print("disconnected from unknown glasses")
                 if parent.updateParameters.isUpdating() {
                     parent.updater?.abort()
-                    parent.updateParameters.notify(.updateFailed)
+                    parent.updateParameters.notify(.updateFailed, glasses: nil)
                     parent.updateParameters.reset()
                 }
                 return
@@ -642,10 +642,10 @@ public class ActiveLookSDK {
 
             if parent.updateParameters.isUpdating(){
                 parent.updater?.abort()
-                parent.updateParameters.notify(.updateFailed)
+                parent.updateParameters.notify(.updateFailed, glasses: glasses)
                 parent.updateParameters.reset()
             } else if parent.updateParameters.isRebooting() {
-                parent.updateParameters.notify(.rebooting, 101)
+                parent.updateParameters.notify(.rebooting, 101, glasses: glasses)
                 glasses.disconnectionCallback?()
             } else if !glasses.isIntentionalDisconnect {
                 glasses.disconnectionCallback?()

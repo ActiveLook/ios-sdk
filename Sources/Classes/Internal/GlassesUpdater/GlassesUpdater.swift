@@ -102,7 +102,7 @@ internal class GlassesUpdater {
             }
 
             guard decision else {
-                sdk?.updateParameters.notify(.updateFailed)
+                sdk?.updateParameters.notify(.updateFailed, glasses: self.glasses)
                 return
             }
 
@@ -146,7 +146,7 @@ internal class GlassesUpdater {
 
         // TODO: ASANA task "Check glasses FW version <= SDK version" – https://app.asana.com/0/1201639829815358/1202209982822311 – 220504
 
-        sdk?.updateParameters.notify(.startingUpdate)
+        sdk?.updateParameters.notify(.startingUpdate, glasses: self.glasses)
 
         // get battery level
         glasses.battery({ b in
@@ -178,7 +178,7 @@ internal class GlassesUpdater {
             break
 
         default:
-            sdk?.updateParameters.notify(.updateFailed)
+            sdk?.updateParameters.notify(.updateFailed, glasses: self.glasses)
             break
         }
         
@@ -203,7 +203,7 @@ internal class GlassesUpdater {
 
     private func checkFirmwareRecency()
     {
-        sdk?.updateParameters.notify(.checkingFwVersion)
+        sdk?.updateParameters.notify(.checkingFwVersion, glasses: self.glasses)
 
         guard NetworkMonitor.shared.isConnected else {
             failed(with: GlassesUpdateError.networkUnavailable)
@@ -233,12 +233,12 @@ internal class GlassesUpdater {
             guard let bl = batteryLevel, bl >= 10 else {
                 glasses?.subscribeToBatteryLevelNotifications(onBatteryLevelUpdate: {
                     if $0 < 10 {
-                        self.sdk?.updateParameters.notify(.lowBattery, 0, $0)
+                        self.sdk?.updateParameters.notify(.lowBattery, 0, $0, glasses: self.glasses)
                     }
                     self.batteryLevel = $0
                 })
                 vcResult = result
-                sdk?.updateParameters.notify(.lowBattery, 0, batteryLevel)
+                sdk?.updateParameters.notify(.lowBattery, 0, batteryLevel, glasses: self.glasses)
                 return
             }
 
@@ -249,7 +249,7 @@ internal class GlassesUpdater {
                 return
             }
 
-            sdk?.updateParameters.notify(.downloadingFw)
+            sdk?.updateParameters.notify(.downloadingFw, glasses: self.glasses)
 
             downloader = Downloader()
             downloader?.downloadFirmware(at: url,
@@ -266,7 +266,7 @@ internal class GlassesUpdater {
 
     private func askUpdateAuthorization(for firmware: Firmware)
     {
-        guard let sdkGU = sdk?.updateParameters.createSDKGU(.updatingFw) else {
+        guard let sdkGU = sdk?.updateParameters.createSDKGU(.updatingFw, glasses: self.glasses) else {
             fatalError("cannot create SDKGlassesUpdate from .updatingFW")
         }
 
@@ -279,7 +279,7 @@ internal class GlassesUpdater {
 
     private func updateFirmware(using firmware: Firmware)
     {
-        sdk?.updateParameters.notify(.updatingFw)
+        sdk?.updateParameters.notify(.updatingFw, glasses: glasses)
 
         downloader = nil
 
@@ -324,7 +324,7 @@ internal class GlassesUpdater {
 
     private func checkConfigurationRecency()
     {
-        sdk?.updateParameters.notify(.checkingConfigVersion)
+        sdk?.updateParameters.notify(.checkingConfigVersion, glasses: glasses)
 
         guard NetworkMonitor.shared.isConnected else {
             failed(with: GlassesUpdateError.networkUnavailable)
@@ -360,12 +360,12 @@ internal class GlassesUpdater {
                 glasses?.subscribeToBatteryLevelNotifications(onBatteryLevelUpdate: {
                     print("Battery level from notify: \($0)")
                     if $0 < 10 {
-                        self.sdk?.updateParameters.notify(.lowBattery, 0, $0)
+                        self.sdk?.updateParameters.notify(.lowBattery, 0, $0, glasses: self.glasses)
                     }
                     self.batteryLevel = $0
                 })
                 vcResult = result
-                sdk?.updateParameters.notify(.lowBattery, 0, batteryLevel)
+                sdk?.updateParameters.notify(.lowBattery, 0, batteryLevel, glasses: self.glasses)
                 return
             }
 
@@ -376,7 +376,7 @@ internal class GlassesUpdater {
                 return
             }
             
-            sdk?.updateParameters.notify(.downloadingConfig)
+            sdk?.updateParameters.notify(.downloadingConfig, glasses: self.glasses)
 
             downloader = Downloader()
             downloader?.downloadConfiguration(at: url,
@@ -394,7 +394,7 @@ internal class GlassesUpdater {
 
     private func askUpdateAuthorization(for configuration: String)
     {
-        guard let sdkGU = sdk?.updateParameters.createSDKGU(.updatingConfig) else {
+        guard let sdkGU = sdk?.updateParameters.createSDKGU(.updatingConfig, glasses: self.glasses) else {
             fatalError("cannot create SDKGlassesUpdate from .updatingConfig")
         }
         // the decision is processed via an observer on `self.authorisation`
@@ -407,11 +407,11 @@ internal class GlassesUpdater {
 
     private func updateConfiguration(with configuration: String)
     {
-        sdk?.updateParameters.notify(.updatingConfig)
+        sdk?.updateParameters.notify(.updatingConfig, glasses: self.glasses!)
 
         downloader = nil
 
-        sdk?.updateParameters.notify(.updatingConfig)
+        sdk?.updateParameters.notify(.updatingConfig, glasses: self.glasses)
 
         guard glasses!.areConnected() else {
             failed(with: GlassesUpdateError.glassesUpdater(message: "Glasses NOT connected"))
