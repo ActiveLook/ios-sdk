@@ -20,7 +20,7 @@ import CoreBluetooth
 // MARK: -  Type Alias
 
 public typealias StartClosureSignature = (SdkGlassesUpdate) -> Void
-public typealias UpdateAvailableClosureSignature = (SdkGlassesUpdate, () -> Void) -> Void
+public typealias UpdateAvailableClosureSignature = (SdkGlassesUpdate, @escaping () -> Void) -> Void
 public typealias ProgressClosureSignature = (SdkGlassesUpdate) -> Void
 public typealias SuccessClosureSignature = (SdkGlassesUpdate) -> Void
 public typealias FailureClosureSignature = (SdkGlassesUpdate) -> Void
