@@ -47,6 +47,17 @@ public struct FirmwareVersion: SoftwareClassProtocol, Equatable {
     var extra: String?
     var path: String?
     var error: Error?
+    let recoveryMode: Bool
+    
+    init(major: Int, minor: Int, patch: Int, extra: String? = nil, path: String? = nil, error: Error? = nil, recoveryMode: Bool = false) {
+        self.major = major
+        self.minor = minor
+        self.patch = patch
+        self.extra = extra
+        self.path = path
+        self.error = error
+        self.recoveryMode = recoveryMode
+    }
 
     public var description: String {
         get {
@@ -62,7 +73,11 @@ public struct FirmwareVersion: SoftwareClassProtocol, Equatable {
 
     public var minVersion: String {
         get {
-            return "\(major).\(minor).\(patch)"
+            if recoveryMode {
+                return "\(major).\(0).\(0)"
+            } else {
+                return "\(major).\(minor).\(patch)"
+            }
         }
     }
 

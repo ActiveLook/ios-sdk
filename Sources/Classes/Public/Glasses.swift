@@ -87,7 +87,7 @@ public class Glasses {
     internal var isLastCommandWrittenComplete: Bool = true
 
     // The battery level of the glasses.
-    private var batteryLevel: Int?
+    private(set) var batteryLevel: Int?
 
     // closure to call when batteryLevel updated?
     internal var batteryLevelUpdateClosure: ((Int) -> Void)?
@@ -1858,7 +1858,7 @@ public class Glasses {
     /// Subscribe to sensor interface notifications. The specified callback will be called whenever a gesture has been detected.
     /// - Parameter sensorInterfaceTriggeredCallback: A callback called asynchronously when the device detects a gesture.
     public func subscribeToSensorInterfaceNotifications(onSensorInterfaceTriggered sensorInterfaceTriggeredCallback: @escaping () -> (Void)) {
-        peripheral.setNotifyValue(true, for: sensorInterfaceCharacteristic!)
+//        peripheral.setNotifyValue(true, for: sensorInterfaceCharacteristic!)
         self.sensorInterfaceTriggeredCallback = sensorInterfaceTriggeredCallback
     }
     
@@ -1891,7 +1891,15 @@ public class Glasses {
                 print("error while updating notification state : \(error!.localizedDescription) for characteristic: \(characteristic.uuid)")
                 return
             }
+            
+            switch characteristic.uuid {
+            case CBUUID.BatteryLevelCharacteristic:
+                parent?.batteryLevel = characteristic.valueAsInt
+                parent?.batteryLevelUpdateCallback?(characteristic.valueAsInt)
 
+            default:
+                break
+            }
             print("peripheral did update notification state for characteristic: \(characteristic) in: \(#fileID)")
         }
 

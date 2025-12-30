@@ -15,6 +15,7 @@
 
 import Foundation
 import CoreBluetooth
+import iOSMcuManagerLibrary
 
 
 // MARK: - Definition
@@ -116,11 +117,29 @@ public final class FirmwareUpdater: NSObject {
 
         sdk?.updateParameters.notify(.updatingFw, glasses: self.glasses)
         
+        if let hardware = sdk?.updateParameters.hardware, hardware.contains("ALK03A-") {
+            self.updateNordic(glasses: glasses, firmware: firmware)
+            return
+        }
+        
         if(glassesFwVersion == "4.12.0"){
             peripheral?.discoverServices([CBUUID.ActiveLookCommandsInterfaceService])
         }
         else{
             peripheral?.discoverServices([CBUUID.SpotaService])
+        }
+    }
+    
+    private func updateNordic(glasses: Glasses, firmware: Firmware) {
+        do {
+            let bleTransport = McuMgrBleTransport(glasses.peripheral)
+            let dfuManager = FirmwareUpgradeManager(transport: bleTransport, delegate: self)
+            guard let packageURL = firmware.url else { throw URLError(.unknown) }
+            let package = try McuMgrPackage(from: packageURL)
+            
+            dfuManager.start(package: package)
+        } catch {
+            self.errorClosure(.firmwareUpdater(message: error.localizedDescription))
         }
     }
     
@@ -525,6 +544,39 @@ public final class FirmwareUpdater: NSObject {
         glasses?.reset()
 
         rebooting()
+    }
+}
+
+extension FirmwareUpdater: FirmwareUpgradeDelegate {
+    public func upgradeDidStart(controller: any iOSMcuManagerLibrary.FirmwareUpgradeController) {
+        sdk?.updateParameters.notify(.startingUpdate, glasses: self.glasses)
+    }
+    
+    public func upgradeStateDidChange(from previousState: iOSMcuManagerLibrary.FirmwareUpgradeState, to newState: iOSMcuManagerLibrary.FirmwareUpgradeState) {
+        switch newState {
+        case .reset:
+            sdk?.updateParameters.notify(.rebooting, glasses: self.glasses)
+        default:
+            print("--> Nordic upgradeStateDidChange: \(newState)")
+        }
+    }
+    
+    public func upgradeDidComplete() {
+        self.successClosure()
+    }
+    
+    public func upgradeDidFail(inState state: iOSMcuManagerLibrary.FirmwareUpgradeState, with error: any Error) {
+        self.errorClosure(.firmwareUpdater(message: error.localizedDescription))
+    }
+    
+    public func upgradeDidCancel(state: iOSMcuManagerLibrary.FirmwareUpgradeState) {
+        self.errorClosure(.firmwareUpdater(message: "Upgrade was cancelled"))
+    }
+    
+    public func uploadProgressDidChange(bytesSent: Int, imageSize: Int, timestamp: Date) {
+        let percentageProgress: Double = (Double(bytesSent) / Double(imageSize)) * 100.00
+        let battery = self.glasses?.batteryLevel
+        sdk?.updateParameters.notify(.updatingFw, percentageProgress, battery, glasses: self.glasses)
     }
 }
 

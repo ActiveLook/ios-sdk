@@ -605,8 +605,12 @@ public class ActiveLookSDK {
                                             { (error) in
                 dlog(message: "INITIALIZER ERROR",
                      line: #line, function: #function, file: #fileID)
-
-                discoveredGlasses.connectionErrorCallback?(error)
+                
+                if let activeLookError = error as? ActiveLookError, activeLookError == .recoveryMode {
+                    parent.updateInitializedGlasses(glasses)
+                } else {
+                    discoveredGlasses.connectionErrorCallback?(error)
+                }
             } )
         }
 
@@ -644,9 +648,9 @@ public class ActiveLookSDK {
                 parent.updater?.abort()
                 parent.updateParameters.notify(.updateFailed, glasses: glasses)
                 parent.updateParameters.reset()
+                glasses.disconnectionCallback?()
             } else if parent.updateParameters.isRebooting() {
                 parent.updateParameters.notify(.rebooting, 101, glasses: glasses)
-                glasses.disconnectionCallback?()
             } else if !glasses.isIntentionalDisconnect {
                 glasses.disconnectionCallback?()
                 print("unwanted disconnect: reconnecting as soon as possible")

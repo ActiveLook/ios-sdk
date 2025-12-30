@@ -101,6 +101,15 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
 
         return true
     }
+    
+    private func isInRecoveryMode() -> Bool {
+        let di = glasses.getDeviceInformation()
+        guard di.firmwareVersion?.contains("recovery") == true else {
+            return false
+        }
+        updateParameters?.hardware = di.hardwareVersion!
+        return di.firmwareVersion?.contains("recovery") == true
+    }
 
 
     private func isDone()
@@ -149,7 +158,13 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
 
         // We're 'polling', or checking regularly that we've received all needed information about the glasses
         initPollTimer = Timer.scheduledTimer(withTimeInterval: initPollInterval, repeats: true) { (timer) in
-            if self.isReady() {
+            if self.isInRecoveryMode() {
+                self.initErrorClosure?(ActiveLookError.recoveryMode)
+                self.initErrorClosure = nil
+                self.initPollTimer?.invalidate()
+                self.glasses.resetPeripheralDelegate()
+                
+            } else if self.isReady() {
                 self.isDone()
                 timer.invalidate()
             }

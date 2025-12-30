@@ -142,19 +142,23 @@ internal class GlassesUpdater {
         self.successClosure = successClosure
         self.errorClosure = errorClosure
 
-        versionChecker = VersionChecker()
+        versionChecker = VersionChecker(glasses: glasses)
 
         // TODO: ASANA task "Check glasses FW version <= SDK version" – https://app.asana.com/0/1201639829815358/1202209982822311 – 220504
 
         sdk?.updateParameters.notify(.startingUpdate, glasses: self.glasses)
-
-        // get battery level
-        glasses.battery({ b in
-                self.batteryLevel = b
-                // Start update process
-                self.checkFirmwareRecency()
+        
+        if versionChecker?.readDeviceFWVersion()?.recoveryMode == true {
+            glasses.subscribeToBatteryLevelNotifications { [weak self] batteryLevel in
+                self?.batteryLevel = batteryLevel
+                self?.checkFirmwareRecency()
             }
-        )
+        } else {
+            glasses.battery {[weak self] batteryLevel in
+                self?.batteryLevel = batteryLevel
+                self?.checkFirmwareRecency()
+            }
+        }
     }
 
     func abort() -> Void {
@@ -253,7 +257,7 @@ internal class GlassesUpdater {
 
             downloader = Downloader()
             downloader?.downloadFirmware(at: url,
-                                         onSuccess: {( data ) in self.askUpdateAuthorization(for: Firmware( with: data))},
+                                         onSuccess: {( data, localUrl ) in self.askUpdateAuthorization(for: Firmware( with: data, url: localUrl))},
                                          onError: {( error ) in self.failed(with: error )})
 
         case .isUpToDate, .noUpdateAvailable:
@@ -314,7 +318,7 @@ internal class GlassesUpdater {
             return
         }
 
-        let delay: Int = sdk.updateParameters.needDelayAfterReboot() ? 3000 : 500
+        let delay: Int = sdk.updateParameters.needDelayAfterReboot() ? 1000 : 500
 
         rebootClosure?(delay)
     }

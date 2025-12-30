@@ -18,7 +18,7 @@ import CoreBluetooth
 
 // MARK: - Internal Enum
 
-internal enum UpdateState : String {
+internal enum UpdateState: String {
     case NOT_INITIALIZED
     case startingUpdate
     case retrievingDeviceInformations
@@ -83,13 +83,14 @@ internal class GlassesUpdateParameters {
     private var updateStateToGlassesUpdate: [[UpdateState]]
 
     private let downloadingFW: [UpdateState] = [.downloadingFw]
-    private let updatingFW: [UpdateState] = [.updatingFw, .rebooting]
+    private let updatingFW: [UpdateState] = [.updatingFw]
     private let downloadingCfg: [UpdateState] = [.downloadingConfig]
     private let updatingCfg: [UpdateState] = [.updatingConfig, .upToDate]
     private let updateFailed: [UpdateState] = [.updateFailed]
     private let updateFailedLowBattery: [UpdateState] = [.lowBattery]
     private let updateForbidden: [UpdateState] = [.updateForbidden] // TODO: ASANA task "Check glasses FW version <= SDK version" – https://app.asana.com/0/1201639829815358/1202209982822311 – 220504
     private let downgradeForbidden: [UpdateState] = [.downgradeForbidden] // TODO: ASANA task "Check glasses FW version <= SDK version" – https://app.asana.com/0/1201639829815358/1202209982822311 – 220504
+    private let rebootingGlasses: [UpdateState] = [.rebooting]
 
     // FIXME: ^^^ RELATED TO GlassesUpdate ^^^
     
@@ -117,7 +118,7 @@ internal class GlassesUpdateParameters {
         self.updateStateToGlassesUpdate = [downloadingFW, updatingFW,
                                            downloadingCfg, updatingCfg,
                                            updateFailed, updateFailedLowBattery,
-                                           updateForbidden, downgradeForbidden]
+                                           updateForbidden, downgradeForbidden, rebootingGlasses]
         
         self.softwareVersions = [ .device: nil, .remote: nil ]
         // FIXME: ^^^ RELATED TO GlassesUpdate ^^^

@@ -42,13 +42,15 @@ internal struct Firmware {
     // MARK: - Internal Properties
 
     internal var blocks: Blocks
+    public let url: URL?
 
 
     // MARK: - Life Cycle
 
-    init(with content : Data) {
+    init(with content : Data, url: URL? = nil) {
         bytes = []
         blocks = []
+        self.url = url
 
         content.forEach( { byte in
             bytes.append(byte)

@@ -33,6 +33,7 @@ public enum ActiveLookError: Error {
     case alreadyConnected
     case cannotRetrieveGlasses
     case connectUsingAlreadyCalled
+    case recoveryMode
 }
 
 extension ActiveLookError: LocalizedError {
@@ -70,6 +71,8 @@ extension ActiveLookError: LocalizedError {
             return "cannot retrieve glasses from SerializedGlasses"
         case .connectUsingAlreadyCalled:
             return "connect(using: ...) has already been called"
+        case .recoveryMode:
+            return "Recovery mode"
         }
     }
 

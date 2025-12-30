@@ -118,7 +118,7 @@ internal final class VersionChecker: NSObject {
 
     // MARK: - Initializers
     
-    override init()
+    init(glasses: Glasses)
     {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
@@ -128,6 +128,7 @@ internal final class VersionChecker: NSObject {
             fatalError(String(format: "Cannot retrieve SDK Singleton @ ", #line))
         }
         self.sdk = sdk
+        self.glasses = glasses
         
         super.init()
     }
@@ -405,7 +406,7 @@ internal final class VersionChecker: NSObject {
             return
         }
 
-        if rfw > gfw {
+        if rfw > gfw || gfw.recoveryMode {
             // need to update
             guard let apiPath = rfw.path else {
 //                failed(with: GlassesUpdateError.versionChecker(
@@ -430,16 +431,16 @@ internal final class VersionChecker: NSObject {
         }
     }
 
-    private func readDeviceFWVersion()
+    internal func readDeviceFWVersion() -> FirmwareVersion?
     {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
         guard let di = glasses?.peripheral.getService(withUUID: CBUUID.DeviceInformationService) else {
-            return
+            return nil
         }
 
         guard let characteristic = di.getCharacteristic(forUUID: CBUUID.FirmwareVersionCharateristic) else {
-            return
+            return nil
         }
 
         let fwString = characteristic.valueAsUTF8
@@ -456,13 +457,15 @@ internal final class VersionChecker: NSObject {
         dlog(message: "firmware Vers: \(major).\(minor).\(patch)",
              line: #line, function: #function, file: #fileID)
 
+        let recoveryMode = fwString.contains("recovery") ? true : false
         let fwVers = FirmwareVersion(major: major,
                                      minor: minor,
                                      patch: patch,
-                                     extra: nil, path: nil, error: nil)
+                                     extra: nil, path: nil, error: nil, recoveryMode: recoveryMode)
 
         sdk.updateParameters.set(version: fwVers, for: .device)
 
         glassesFWVersion = fwVers
+        return fwVers
     }
 }

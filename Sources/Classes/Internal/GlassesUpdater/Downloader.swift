@@ -55,7 +55,7 @@ internal class Downloader: NSObject {
     }
 
     internal func downloadFirmware(at url: URL,
-                               onSuccess successClosure: @escaping ( Data ) -> (Void),
+                               onSuccess successClosure: @escaping ( Data, URL ) -> (Void),
                                onError errorClosure: @escaping ( GlassesUpdateError ) -> (Void))
     {
         dlog(message: "",line: #line, function: #function, file: #fileID)
@@ -101,9 +101,19 @@ internal class Downloader: NSObject {
                 }
                 return
             }
+            
+            let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+            let fileName = documentsURL.lastPathComponent
+            let destinationURL = documentsURL.appendingPathComponent("\(fileName).zip")
+            do {
+                try data.write(to: destinationURL, options: [.atomic])
+            } catch {
+                print("--> error saving to localDocument \(error)")
+            }
+            
 
             DispatchQueue.main.async {
-                successClosure( Data(data) )
+                successClosure( Data(data), destinationURL )
             }
 
         }

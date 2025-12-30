@@ -36,6 +36,7 @@ public protocol GlassesUpdate {
     case ERROR_UPDATE_FAIL_LOW_BATTERY
     case ERROR_UPDATE_FORBIDDEN
     case ERROR_DOWNGRADE_FORBIDDEN  // TODO: ASANA task "Check glasses FW version <= SDK version" – https://app.asana.com/0/1201639829815358/1202209982822311 – 220504
+    case REBOOTING
 }
 
 

@@ -14,11 +14,11 @@ let package = Package(
             name: "ActiveLookSDK",
             targets: ["ActiveLookSDK","Heatshrink"])
     ],
-    dependencies: [],
+    dependencies: [.package(url: "https://github.com/NordicSemiconductor/IOS-nRF-Connect-Device-Manager", from: "1.0.0")],
     targets: [
         .target(
             name: "ActiveLookSDK",
-            dependencies: ["Heatshrink"],
+            dependencies: ["Heatshrink", .product(name: "iOSMcuManagerLibrary", package: "IOS-nRF-Connect-Device-Manager")],
             path: "Sources",
             exclude: ["Heatshrink"]),
         .target(
