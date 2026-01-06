@@ -276,7 +276,7 @@ internal class GlassesUpdater {
 
         // the decision is processed via an observer on `self.authorisation`
         self.authorization = Authorization(.firmware(firmware))
-        sdk?.updateParameters.updateAvailableClosure(sdkGU, {
+        sdk?.updateParameters.updateAvailableClosure(sdkGU, .firmware, {
             self.authorization?.decision = true
         })
     }
@@ -403,7 +403,7 @@ internal class GlassesUpdater {
         }
         // the decision is processed via an observer on `self.authorisation`
         self.authorization = Authorization(.configuration(configuration))
-        sdk?.updateParameters.updateAvailableClosure(sdkGU, {
+        sdk?.updateParameters.updateAvailableClosure(sdkGU, .configuration, {
             self.authorization?.decision = true
         })
     }

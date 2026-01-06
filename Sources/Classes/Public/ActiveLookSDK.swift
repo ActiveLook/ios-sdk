@@ -20,7 +20,7 @@ import CoreBluetooth
 // MARK: -  Type Alias
 
 public typealias StartClosureSignature = (SdkGlassesUpdate) -> Void
-public typealias UpdateAvailableClosureSignature = (SdkGlassesUpdate, @escaping () -> Void) -> Void
+public typealias UpdateAvailableClosureSignature = (SdkGlassesUpdate, UpdateType, @escaping () -> Void) -> Void
 public typealias ProgressClosureSignature = (SdkGlassesUpdate) -> Void
 public typealias SuccessClosureSignature = (SdkGlassesUpdate) -> Void
 public typealias FailureClosureSignature = (SdkGlassesUpdate) -> Void
@@ -656,6 +656,7 @@ public class ActiveLookSDK {
                 print("unwanted disconnect: reconnecting as soon as possible")
                 central.connect(peripheral)
             } else {
+                glasses.disconnectionCallback?()
                 print("wanted disconnect: not reconnecting")
             }
         }

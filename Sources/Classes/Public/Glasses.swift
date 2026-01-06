@@ -314,7 +314,7 @@ public class Glasses {
     private func sendBytes()
     {
         if flowControlState != FlowControlState.on { return }
-
+        guard self.rxCharacteristic != nil else { return }
         if rxCharacteristicState == .busy { return }
         
         guard let value = commandQueue.dequeue() else {

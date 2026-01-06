@@ -72,3 +72,8 @@ internal typealias CommandResponseData = [UInt8]
     case HOLD = 0  
     case FLUSH = 1  
 }
+
+public enum UpdateType: String {
+    case configuration
+    case firmware
+}
