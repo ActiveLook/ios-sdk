@@ -151,7 +151,7 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
         initErrorClosure = errorClosure
         
         print("initializing glasses")
-
+  
         glasses.peripheral.discoverServices([CBUUID.DeviceInformationService,
                                              CBUUID.BatteryService,
                                              CBUUID.ActiveLookCommandsInterfaceService])

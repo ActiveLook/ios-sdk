@@ -16,7 +16,7 @@ limitations under the License.
 import Foundation
 import CoreBluetooth
 import UIKit
-
+import Combine
 /// A representation of connected ActiveLook® glasses.
 ///
 /// Commands can be sent directly using the corresponding method.
@@ -66,6 +66,7 @@ public class Glasses {
     // MARK: - Private properties
 
     private var batteryLevelUpdateCallback: ((Int) -> Void)?
+    private var _batteryLevelUpdatePublisher: PassthroughSubject<Int, Never> = .init()
     private var flowControlUpdateCallback: ((FlowControlState) -> Void)?
     private var sensorInterfaceTriggeredCallback: (() -> Void)?
     
@@ -264,8 +265,10 @@ public class Glasses {
                              callback: ((CommandResponseData) -> Void)? = nil,
                              withoutQueryId: Bool = false)
     {
+        print("--> sendCommand: \(commandId)")
         let header: UInt8 = 0xFF, footer: UInt8 = 0xAA
         let queryId = getNextQueryId()
+        print("--> queryID: \(queryId)")
         
         let defaultLength: Int = 5 // Header + CommandId + CommandFormat + Command length (one byte) + Footer
         let queryLength: Int = 1 // Query ID is used internally and always encoded on 1 byte
@@ -361,13 +364,16 @@ public class Glasses {
             CommandID.battery, CommandID.vers, CommandID.settings, CommandID.imgList,
             CommandID.pixelCount, CommandID.getChargingCounter, CommandID.getChargingTime,
             CommandID.rConfigID, CommandID.cfgRead, CommandID.cfgList, CommandID.cfgGetNb,
-            CommandID.cfgFreeSpace, CommandID.fontList, CommandID.pageGet, CommandID.pageList
+            CommandID.cfgFreeSpace, CommandID.fontList, CommandID.pageGet, CommandID.pageList, CommandID.protobuff, CommandID.protobuffPrivate
         ].map({$0.rawValue})
         
         let commandId = bytes[1]
         let commandFormat = bytes[2]
 
-        guard handledCommandIDs.contains(commandId) else { return } // TODO Log
+        guard handledCommandIDs.contains(commandId) else {
+            print("--> Received unknown command ID: \(commandId)")
+            return
+        } // TODO Log
         guard commandFormat == 0x01 || commandFormat == 0x11 else { return } // TODO Log
         
         let totalLength: Int = commandFormat == 0x01 ? Int(bytes[3]) : Int.fromUInt16ByteArray(bytes: [bytes[3], bytes[4]])
@@ -392,6 +398,7 @@ public class Glasses {
 
         let commandFormat = data[2]
         let queryId = commandFormat == 0x01 ? data[4] : data[5]
+        print("--> Received response for commandId: \(data[1]), queryId: \(queryId)")
         
         var commandData: [UInt8] = []
         let commandDataStartIndex = commandFormat == 0x01 ? 5 : 6
@@ -450,6 +457,11 @@ public class Glasses {
     /// - Parameter disconnectionCallback: A callback called asynchronously when the device is disconnected.
     public func onDisconnect(_ disconnectionCallback: (() -> Void)?) {
         self.disconnectionCallback = disconnectionCallback
+    }
+    
+    public func sendProtoBuffCommand(_ command: Data, responseCallback: (([UInt8]) -> Void)? = nil, isPrivate: Bool = false) {
+        let dataBytes = [UInt8](command)
+        sendCommand(id: isPrivate ? .protobuffPrivate : .protobuff , withData: dataBytes, callback: responseCallback)
     }
 
 
@@ -1849,6 +1861,10 @@ public class Glasses {
         self.batteryLevelUpdateCallback = batteryLevelUpdateCallback
     }
     
+    public func subscribeToBatteryLevelNotificationsPublisher() -> AnyPublisher<Int, Never> {
+        self._batteryLevelUpdatePublisher.eraseToAnyPublisher()
+    }
+    
     /// Subscribe to flow control notifications. The specified callback will be called whenever the flow control state changes.
     /// - Parameter flowControlUpdateCallback: A callback called asynchronously when the device sends a flow control update.
     public func subscribeToFlowControlNotifications(onFlowControlUpdate flowControlUpdateCallback: @escaping (FlowControlState) -> (Void)) {
@@ -1857,8 +1873,11 @@ public class Glasses {
     
     /// Subscribe to sensor interface notifications. The specified callback will be called whenever a gesture has been detected.
     /// - Parameter sensorInterfaceTriggeredCallback: A callback called asynchronously when the device detects a gesture.
-    public func subscribeToSensorInterfaceNotifications(onSensorInterfaceTriggered sensorInterfaceTriggeredCallback: @escaping () -> (Void)) {
-//        peripheral.setNotifyValue(true, for: sensorInterfaceCharacteristic!)
+    public func subscribeToSensorInterfaceNotifications(onSensorInterfaceTriggered sensorInterfaceTriggeredCallback: @escaping () -> (Void)) throws {
+        guard let sensorInterfaceCharacteristic = self.sensorInterfaceCharacteristic else {
+            throw ActiveLookError.missingSensorCharacteristic
+        }
+        peripheral.setNotifyValue(true, for: sensorInterfaceCharacteristic)
         self.sensorInterfaceTriggeredCallback = sensorInterfaceTriggeredCallback
     }
     
@@ -1873,8 +1892,11 @@ public class Glasses {
     }
     
     /// Unsubscribe from sensor interface notifications.
-    public func unsubscribeFromSensorInterfaceNotifications() {
-        peripheral.setNotifyValue(false, for: sensorInterfaceCharacteristic!)
+    public func unsubscribeFromSensorInterfaceNotifications() throws {
+        guard let sensorInterfaceCharacteristic = self.sensorInterfaceCharacteristic else {
+            throw ActiveLookError.missingSensorCharacteristic
+        }
+        peripheral.setNotifyValue(false, for: sensorInterfaceCharacteristic)
         sensorInterfaceTriggeredCallback = nil
     }
 
@@ -1896,6 +1918,7 @@ public class Glasses {
             case CBUUID.BatteryLevelCharacteristic:
                 parent?.batteryLevel = characteristic.valueAsInt
                 parent?.batteryLevelUpdateCallback?(characteristic.valueAsInt)
+                parent?._batteryLevelUpdatePublisher.send(characteristic.valueAsInt)
 
             default:
                 break
@@ -1942,6 +1965,7 @@ public class Glasses {
             case CBUUID.BatteryLevelCharacteristic:
                 parent.batteryLevel = characteristic.valueAsInt
                 parent.batteryLevelUpdateCallback?(characteristic.valueAsInt)
+                parent._batteryLevelUpdatePublisher.send(characteristic.valueAsInt)
 
             default:
                 break

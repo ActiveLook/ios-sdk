@@ -34,6 +34,8 @@ public enum ActiveLookError: Error {
     case cannotRetrieveGlasses
     case connectUsingAlreadyCalled
     case recoveryMode
+    case missingSensorCharacteristic
+    
 }
 
 extension ActiveLookError: LocalizedError {
@@ -73,6 +75,8 @@ extension ActiveLookError: LocalizedError {
             return "connect(using: ...) has already been called"
         case .recoveryMode:
             return "Recovery mode"
+        case .missingSensorCharacteristic:
+            return "Missing sensor characteristic, probably because the glasses are in recovery mode"
         }
     }
 

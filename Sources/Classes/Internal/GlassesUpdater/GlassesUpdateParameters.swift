@@ -47,6 +47,7 @@ internal enum UpdateState: String {
     //  -> calling failurexClosure(GlassesUpdate)
     case updateFailed
     case lowBattery
+    case noConnectionAvailableToCheckUpdates
     // -> calling failureClosure(.gu(ERROR_UPDATE_FAIL_LOW_BATTERY))
 }
 
@@ -91,6 +92,7 @@ internal class GlassesUpdateParameters {
     private let updateForbidden: [UpdateState] = [.updateForbidden] // TODO: ASANA task "Check glasses FW version <= SDK version" – https://app.asana.com/0/1201639829815358/1202209982822311 – 220504
     private let downgradeForbidden: [UpdateState] = [.downgradeForbidden] // TODO: ASANA task "Check glasses FW version <= SDK version" – https://app.asana.com/0/1201639829815358/1202209982822311 – 220504
     private let rebootingGlasses: [UpdateState] = [.rebooting]
+    private let failedToCheckForUpdates: [UpdateState] = [.noConnectionAvailableToCheckUpdates]
 
     // FIXME: ^^^ RELATED TO GlassesUpdate ^^^
     
@@ -118,7 +120,7 @@ internal class GlassesUpdateParameters {
         self.updateStateToGlassesUpdate = [downloadingFW, updatingFW,
                                            downloadingCfg, updatingCfg,
                                            updateFailed, updateFailedLowBattery,
-                                           updateForbidden, downgradeForbidden, rebootingGlasses]
+                                           updateForbidden, downgradeForbidden, rebootingGlasses, failedToCheckForUpdates]
         
         self.softwareVersions = [ .device: nil, .remote: nil ]
         // FIXME: ^^^ RELATED TO GlassesUpdate ^^^
@@ -140,8 +142,16 @@ internal class GlassesUpdateParameters {
         {
         case .downloadingFw, .downloadingConfig:
             // start closure
-            self.progress = 0
-            closureToSummon = startClosure
+            self.progress = progress
+            if progress == 0 {
+                closureToSummon = startClosure
+            } else if progress == 100 {
+                closureToSummon = progressClosure
+                self.progress = 0
+            } else {
+                closureToSummon = progressClosure
+            }
+            
 
         case .updatingFw, .updatingConfig:
             // progress closure

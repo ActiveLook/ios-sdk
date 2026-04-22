@@ -113,6 +113,9 @@ internal enum CommandID: UInt8 {
     case cfgDeleteLessUsed = 0xD6
     case cfgFreeSpace = 0xD7
     case cfgGetNb = 0xD8
+    
+    case protobuff = 0xB3
+    case protobuffPrivate = 0xBC
 
     case shutdown = 0xE0
     case reset = 0xE1

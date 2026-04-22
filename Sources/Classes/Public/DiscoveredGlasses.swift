@@ -50,6 +50,7 @@ public class DiscoveredGlasses {
     internal var connectionCallback: ((Glasses) -> Void)?
     internal var disconnectionCallback: (() -> Void)?
     internal var connectionErrorCallback: ((Error) -> Void)?
+    internal var onGlassesConnectedBeforeUpdateCallback: ((Glasses) -> Void)?
 
     // MARK: - Initializers
 
@@ -115,11 +116,13 @@ public class DiscoveredGlasses {
     public func connect(
         onGlassesConnected connectionCallback: @escaping (Glasses) -> Void,
         onGlassesDisconnected disconnectionCallback: @escaping () -> Void,
-        onConnectionError connectionErrorCallback: @escaping (Error) -> Void
+        onConnectionError connectionErrorCallback: @escaping (Error) -> Void,
+        onGlassesConnectedBeforeUpdate glassesConnectedBeforeUpdate: ((Glasses) -> Void)? = nil
     ) {
         self.connectionCallback = connectionCallback
         self.disconnectionCallback = disconnectionCallback
         self.connectionErrorCallback = connectionErrorCallback
+        self.onGlassesConnectedBeforeUpdateCallback = glassesConnectedBeforeUpdate
 
         guard self.centralManager.state == .poweredOn else {
             connectionErrorCallback(ActiveLookError.bluetoothErrorFromState(state: centralManager.state))

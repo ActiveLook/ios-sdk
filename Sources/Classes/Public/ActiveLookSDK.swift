@@ -10,7 +10,6 @@ distributed under the License is distributed on an “AS IS” BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- 
 */
 
 import Foundation
@@ -421,7 +420,7 @@ public class ActiveLookSDK {
     }
 
 
-    private func updateInitializedGlasses(_ glasses: Glasses)
+    private func updateInitializedGlasses(_ glasses: Glasses, discoveredGlasses: DiscoveredGlasses)
     {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
@@ -429,11 +428,8 @@ public class ActiveLookSDK {
         connectedGlassesArray.removeAll()
 
         connectedGlassesArray.append(glasses)
-
-        guard let discoveredGlasses = discoveredGlasses(fromPeripheral: glasses.peripheral)
-        else {
-            fatalError("discoveredGlasses not found")
-        }
+        
+        discoveredGlasses.onGlassesConnectedBeforeUpdateCallback?(glasses)
 
         updater?.update(
             glasses,
@@ -468,7 +464,7 @@ public class ActiveLookSDK {
                         // network not available. Update not possible, but glasses are still usable.
 
                         discoveredGlasses.connectionCallback?(glasses)
-                        self.updateParameters.notify(.updateFailed, glasses: glasses)
+                        self.updateParameters.notify(.noConnectionAvailableToCheckUpdates, glasses: glasses)
 
                     case .connectionLost:
                         // connection lost while updating -> reconnect asap
@@ -562,7 +558,6 @@ public class ActiveLookSDK {
                 print("glasses already discovered")
                 return
             }
-
             parent.discoveredGlassesArray.append(discoveredGlasses)
             parent.glassesDiscoveredCallback?(discoveredGlasses)
         }
@@ -582,8 +577,6 @@ public class ActiveLookSDK {
                 return
             }
 
-            central.stopScan()
-
             // FIXME: / TODO DOES USING `retrievePeripheral(with: [])` DISPENSE US FROM RE-INITIALIZING THE PERIPHERAL ?
             // retrievedPeripheral has all the services cached, exact?
             // -> create another `glassesInitializer.initialize()` to reconstruct the object from cache
@@ -598,7 +591,8 @@ public class ActiveLookSDK {
                 print("central manager did connect to glasses \(discoveredGlasses.name)")
                 //glasses.fixInDeviceCmdStack {
                     glasses.cfgSet(name: "ALooK")
-                    parent.updateInitializedGlasses(glasses)
+                parent.updateInitializedGlasses(glasses, discoveredGlasses: discoveredGlasses)
+                central.stopScan()
                 //}
             },
                                            onError:
@@ -607,10 +601,11 @@ public class ActiveLookSDK {
                      line: #line, function: #function, file: #fileID)
                 
                 if let activeLookError = error as? ActiveLookError, activeLookError == .recoveryMode {
-                    parent.updateInitializedGlasses(glasses)
+                    parent.updateInitializedGlasses(glasses, discoveredGlasses: discoveredGlasses)
                 } else {
                     discoveredGlasses.connectionErrorCallback?(error)
                 }
+                central.stopScan()
             } )
         }
 

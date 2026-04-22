@@ -29,6 +29,7 @@ internal class Downloader: NSObject {
 
     // MARK: - Private Variables
     private var task: URLSessionDataTask?
+    private var observation: NSKeyValueObservation?
 
     private var cancelOperations: Bool = false {
         didSet {
@@ -41,7 +42,7 @@ internal class Downloader: NSObject {
 
     // MARK: - Life Cycle
     
-    override init() { }
+    override init() {}
 
     deinit {
         task = nil
@@ -56,7 +57,8 @@ internal class Downloader: NSObject {
 
     internal func downloadFirmware(at url: URL,
                                onSuccess successClosure: @escaping ( Data, URL ) -> (Void),
-                               onError errorClosure: @escaping ( GlassesUpdateError ) -> (Void))
+                               onError errorClosure: @escaping ( GlassesUpdateError ) -> (Void),
+                                   onProgress progressClosure: @escaping ( Double ) -> (Void))
     {
         dlog(message: "",line: #line, function: #function, file: #fileID)
         
@@ -117,12 +119,17 @@ internal class Downloader: NSObject {
             }
 
         }
+        
+        self.observation = task?.progress.observe(\.fractionCompleted) { (progress, _) in
+            progressClosure(progress.fractionCompleted * 100)
+        }
         task?.resume()
     }
 
     internal func downloadConfiguration(at url: URL,
                                         onSuccess successClosure: @escaping ( String ) -> (Void),
-                                        onError errorClosure: @escaping ( GlassesUpdateError ) -> (Void))
+                                        onError errorClosure: @escaping ( GlassesUpdateError ) -> (Void),
+                                        onProgress progressClosure: @escaping ( Double ) -> (Void))
     {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
@@ -157,6 +164,9 @@ internal class Downloader: NSObject {
                 successClosure( String(decoding: data, as: UTF8.self) )
             }
 
+        }
+        self.observation = task?.progress.observe(\.fractionCompleted) { (progress, _) in
+            progressClosure(progress.fractionCompleted * 100)
         }
         task?.resume()
     }

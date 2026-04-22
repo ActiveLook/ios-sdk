@@ -117,7 +117,7 @@ public final class FirmwareUpdater: NSObject {
 
         sdk?.updateParameters.notify(.updatingFw, glasses: self.glasses)
         
-        if let hardware = sdk?.updateParameters.hardware, hardware.contains("ALK03A-") {
+        if let hardware = sdk?.updateParameters.hardware, hardware.contains("ALK03") {
             self.updateNordic(glasses: glasses, firmware: firmware)
             return
         }

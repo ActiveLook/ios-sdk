@@ -258,7 +258,9 @@ internal class GlassesUpdater {
             downloader = Downloader()
             downloader?.downloadFirmware(at: url,
                                          onSuccess: {( data, localUrl ) in self.askUpdateAuthorization(for: Firmware( with: data, url: localUrl))},
-                                         onError: {( error ) in self.failed(with: error )})
+                                         onError: {( error ) in self.failed(with: error )}, onProgress: { [weak self] progress in
+                guard let self else { return }
+                self.sdk?.updateParameters.notify(.downloadingFw, progress, glasses: self.glasses)})
 
         case .isUpToDate, .noUpdateAvailable:
             dlog(message: "Firmware is up-to-date",
@@ -363,9 +365,9 @@ internal class GlassesUpdater {
             guard let bl = batteryLevel, bl >= 10 else {
                 glasses?.subscribeToBatteryLevelNotifications(onBatteryLevelUpdate: {
                     print("Battery level from notify: \($0)")
-                    if $0 < 10 {
-                        self.sdk?.updateParameters.notify(.lowBattery, 0, $0, glasses: self.glasses)
-                    }
+//                    if $0 < 28 {
+//                        self.sdk?.updateParameters.notify(.lowBattery, 0, $0, glasses: self.glasses)
+//                    }
                     self.batteryLevel = $0
                 })
                 vcResult = result
@@ -384,8 +386,12 @@ internal class GlassesUpdater {
 
             downloader = Downloader()
             downloader?.downloadConfiguration(at: url,
-                                             onSuccess: { ( cfg ) in self.askUpdateAuthorization(for: cfg) },
-                                              onError: { ( error ) in self.failed(with: error ) })
+                                              onSuccess: { ( cfg ) in self.askUpdateAuthorization(for: cfg) },
+                                              onError: { ( error ) in self.failed(with: error ) },
+                                              onProgress: { [weak self] progress in
+                guard let self else { return }
+                self.sdk?.updateParameters.notify(.downloadingConfig, progress, glasses: self.glasses)}
+            )
 
         case .isUpToDate, .noUpdateAvailable:
             dlog(message: "Configuration is up-to-date!",
@@ -422,8 +428,6 @@ internal class GlassesUpdater {
             return
         }
 
-        glasses?.clear()
-        glasses?.layoutDisplay(id: 0x09, text: "")
         glasses?.loadConfigurationWithClosures(cfg: configuration,
                                                onSuccess: {
                                                     self.glasses?.clear()
