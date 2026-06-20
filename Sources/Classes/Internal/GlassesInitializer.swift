@@ -62,7 +62,8 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
         super.init()
         
         guard let sdk = try? ActiveLookSDK.shared() else {
-            fatalError(String(format: "SDK Singleton NOT AVAILABLE @  %i", #line))
+            print("GlassesInitializer: SDK singleton not available")
+            return
         }
 
         updateParameters = sdk.updateParameters
