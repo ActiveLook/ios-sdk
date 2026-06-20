@@ -47,7 +47,8 @@ internal final class GlassesUpdaterURL {
         GlassesUpdaterURL._shared = self
 
         guard let sdk = try? ActiveLookSDK.shared() else {
-            fatalError(String(format: "SDK Singleton NOT AVAILABLE @  %i", #line))
+            print("GlassesUpdaterURL: SDK singleton not available")
+            return
         }
 
         self.sdk = sdk
@@ -68,7 +69,7 @@ internal final class GlassesUpdaterURL {
     }
 
 
-    func configurationHistoryURL(for firmwareVersion: FirmwareVersion) -> URL {
+    func configurationHistoryURL(for firmwareVersion: FirmwareVersion) -> URL? {
 
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
@@ -77,16 +78,16 @@ internal final class GlassesUpdaterURL {
     }
 
 
-    func configurationDownloadURL(using apiPathString: String) -> URL {
+    func configurationDownloadURL(using apiPathString: String) -> URL? {
 
         dlog(message: "",line: #line, function: #function, file: #fileID)
-        
+
         softwareClass = .configurations
         return generateDownloadURL(for: apiPathString)
     }
 
 
-    func firmwareHistoryURL(for firmwareVersion: FirmwareVersion) -> URL {
+    func firmwareHistoryURL(for firmwareVersion: FirmwareVersion) -> URL? {
 
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
@@ -95,7 +96,7 @@ internal final class GlassesUpdaterURL {
     }
 
 
-    func firmwareDownloadURL(using apiPathString: String) -> URL {
+    func firmwareDownloadURL(using apiPathString: String) -> URL? {
 
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
@@ -106,14 +107,16 @@ internal final class GlassesUpdaterURL {
 
     // MARK: - Private Methods
 
-    private func generateURL(for firmwareVersion: FirmwareVersion) -> URL
+    private func generateURL(for firmwareVersion: FirmwareVersion) -> URL?
     {
         guard let hardware = sdk?.updateParameters.hardware else {
-            fatalError("NO HARDWARE SET")
+            print("GlassesUpdaterURL: no hardware set")
+            return nil
         }
 
         guard let token = sdk?.updateParameters.token else {
-            fatalError("NO TOKEN SET")
+            print("GlassesUpdaterURL: no token set")
+            return nil
         }
 
         let pathComponents = [
@@ -152,14 +155,16 @@ internal final class GlassesUpdaterURL {
     }
 
     
-    private func generateDownloadURL(for version: String) -> URL
+    private func generateDownloadURL(for version: String) -> URL?
     {
         guard let hardware = sdk?.updateParameters.hardware else {
-            fatalError("NO HARDWARE SET")
+            print("GlassesUpdaterURL: no hardware set")
+            return nil
         }
 
         guard let token = sdk?.updateParameters.token else {
-            fatalError("NO TOKEN SET")
+            print("GlassesUpdaterURL: no token set")
+            return nil
         }
 
         var version = version
