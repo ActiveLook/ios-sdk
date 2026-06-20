@@ -15,7 +15,9 @@
 
 import Foundation
 import CoreBluetooth
+#if canImport(UIKit)
 import UIKit
+#endif
 
 // MARK: - Internal Enumerations
 
