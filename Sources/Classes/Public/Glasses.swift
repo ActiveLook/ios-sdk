@@ -15,7 +15,9 @@ limitations under the License.
 
 import Foundation
 import CoreBluetooth
+#if canImport(UIKit)
 import UIKit
+#endif
 
 /// A representation of connected ActiveLook® glasses.
 ///
@@ -854,6 +856,7 @@ public class Glasses {
         }
     }
     
+    #if canImport(UIKit)
     /// Save an image of the specified width and on a specific format.
     /// - Parameters:
     ///     - id: The id of the image to display
@@ -1102,7 +1105,8 @@ public class Glasses {
             sendCommand(id: .imgStream, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
         }
     }
-    
+    #endif
+
     // MARK: - Font commands
     
     /// WARNING: CALLBACK NOT WORKING as of 3.7.4b
