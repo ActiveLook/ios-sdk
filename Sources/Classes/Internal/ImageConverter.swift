@@ -13,11 +13,14 @@ limitations under the License.
  */
 
 import Foundation
+#if canImport(UIKit)
 import UIKit
+#endif
 #if canImport(Heatshrink)
 import Heatshrink
 #endif
 
+#if canImport(UIKit)
 internal class ImageConverter {
     
     internal func getImageData(img: UIImage, fmt: ImgSaveFmt) -> ImageData{
@@ -199,3 +202,4 @@ internal class ImageConverter {
         return encodedImg
     }
 }
+#endif
