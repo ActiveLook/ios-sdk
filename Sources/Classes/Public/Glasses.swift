@@ -202,7 +202,8 @@ public class Glasses {
         self.peripheral.delegate = self.peripheralDelegate
 
         guard let sdk = try? ActiveLookSDK.shared() else {
-            fatalError("Cannot retrieve SDK Singleton")
+            print("Glasses: SDK singleton not available")
+            return
         }
 
         self.sdk = sdk
@@ -520,7 +521,7 @@ public class Glasses {
     public func compareFirmwareAtLeast(version: String) -> ComparisonResult {
         let version = "v\(version).0b"
         let gVersion = self.getDeviceInformation().firmwareVersion
-        guard let gVersion = gVersion else { fatalError("gVersion not set") }
+        guard let gVersion = gVersion else { return .orderedDescending }
         return version.compare(gVersion, options: .numeric)
     }
     
@@ -1908,7 +1909,8 @@ public class Glasses {
             }
 
             guard let parent = parent else {
-                fatalError("cannot retrieve parent instance")
+                print("Glasses PeripheralDelegate: cannot retrieve parent instance")
+                return
             }
 
             //print("peripheral did update value for characteristic: ", characteristic.uuid)
