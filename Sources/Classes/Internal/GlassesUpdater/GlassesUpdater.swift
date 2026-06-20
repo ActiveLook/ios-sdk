@@ -123,7 +123,8 @@ internal class GlassesUpdater {
     {
         guard let sdk = try? ActiveLookSDK.shared()
         else {
-            fatalError("SDK Singleton NOT AVAILABLE")
+            print("GlassesUpdater: SDK singleton not available")
+            return
         }
 
         self.sdk = sdk
@@ -269,7 +270,8 @@ internal class GlassesUpdater {
     private func askUpdateAuthorization(for firmware: Firmware)
     {
         guard let sdkGU = sdk?.updateParameters.createSDKGU(.updatingFw) else {
-            fatalError("cannot create SDKGlassesUpdate from .updatingFW")
+            print("GlassesUpdater: cannot create SDKGlassesUpdate from .updatingFw")
+            return
         }
 
         // the decision is processed via an observer on `self.authorisation`
@@ -397,7 +399,8 @@ internal class GlassesUpdater {
     private func askUpdateAuthorization(for configuration: String)
     {
         guard let sdkGU = sdk?.updateParameters.createSDKGU(.updatingConfig) else {
-            fatalError("cannot create SDKGlassesUpdate from .updatingConfig")
+            print("GlassesUpdater: cannot create SDKGlassesUpdate from .updatingConfig")
+            return
         }
         // the decision is processed via an observer on `self.authorisation`
         self.authorization = Authorization(.configuration(configuration))
