@@ -15,7 +15,9 @@ limitations under the License.
 
 import Foundation
 import CoreBluetooth
+#if canImport(UIKit)
 import UIKit
+#endif
 
 /// A representation of connected ActiveLook® glasses.
 ///
@@ -200,7 +202,8 @@ public class Glasses {
         self.peripheral.delegate = self.peripheralDelegate
 
         guard let sdk = try? ActiveLookSDK.shared() else {
-            fatalError("Cannot retrieve SDK Singleton")
+            print("Glasses: SDK singleton not available")
+            return
         }
 
         self.sdk = sdk
@@ -518,7 +521,7 @@ public class Glasses {
     public func compareFirmwareAtLeast(version: String) -> ComparisonResult {
         let version = "v\(version).0b"
         let gVersion = self.getDeviceInformation().firmwareVersion
-        guard let gVersion = gVersion else { fatalError("gVersion not set") }
+        guard let gVersion = gVersion else { return .orderedDescending }
         return version.compare(gVersion, options: .numeric)
     }
     
@@ -854,6 +857,7 @@ public class Glasses {
         }
     }
     
+    #if canImport(UIKit)
     /// Save an image of the specified width and on a specific format.
     /// - Parameters:
     ///     - id: The id of the image to display
@@ -1102,7 +1106,8 @@ public class Glasses {
             sendCommand(id: .imgStream, withData: chunk) // TODO This will probably cause unhandled overflow if the image is too big
         }
     }
-    
+    #endif
+
     // MARK: - Font commands
     
     /// WARNING: CALLBACK NOT WORKING as of 3.7.4b
@@ -1904,7 +1909,8 @@ public class Glasses {
             }
 
             guard let parent = parent else {
-                fatalError("cannot retrieve parent instance")
+                print("Glasses PeripheralDelegate: cannot retrieve parent instance")
+                return
             }
 
             //print("peripheral did update value for characteristic: ", characteristic.uuid)

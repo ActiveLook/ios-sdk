@@ -14,6 +14,7 @@ limitations under the License.
 */
 
 import Foundation
+#if canImport(UIKit)
 import UIKit
 
 internal class ImageMDP05{
@@ -63,3 +64,4 @@ internal class ImageMDP05{
         return encodedImg
     }
 }
+#endif

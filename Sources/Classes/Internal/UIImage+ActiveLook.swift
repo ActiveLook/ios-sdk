@@ -13,6 +13,7 @@ limitations under the License.
  */
 
 import Foundation
+#if canImport(UIKit)
 import UIKit
 
 extension UIImage{
@@ -55,3 +56,4 @@ extension UIImage{
         return PixelsArray
     }
 }
+#endif

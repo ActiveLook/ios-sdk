@@ -62,7 +62,8 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
         super.init()
         
         guard let sdk = try? ActiveLookSDK.shared() else {
-            fatalError(String(format: "SDK Singleton NOT AVAILABLE @  %i", #line))
+            print("GlassesInitializer: SDK singleton not available")
+            return
         }
 
         updateParameters = sdk.updateParameters
@@ -148,12 +149,14 @@ internal class GlassesInitializer: NSObject, CBPeripheralDelegate {
                                              CBUUID.ActiveLookCommandsInterfaceService])
 
         // We're 'polling', or checking regularly that we've received all needed information about the glasses
-        initPollTimer = Timer.scheduledTimer(withTimeInterval: initPollInterval, repeats: true) { (timer) in
+        // Added to .common mode so the timer fires on watchOS where the run loop may be in a non-default mode
+        initPollTimer = Timer(timeInterval: initPollInterval, repeats: true) { (timer) in
             if self.isReady() {
                 self.isDone()
                 timer.invalidate()
             }
         }
+        RunLoop.current.add(initPollTimer!, forMode: .common)
 
         // We're failing after an arbitrary timeout duration
         /*initTimeoutTimer = Timer.scheduledTimer(withTimeInterval: initTimeoutDuration, repeats: false) { _ in

@@ -57,7 +57,7 @@ internal final class VersionChecker: NSObject {
 
     // MARK: - Private Variables
 
-    private var sdk: ActiveLookSDK
+    private var sdk: ActiveLookSDK?
     private var glasses: Glasses?
     private var peripheral: CBPeripheral?
 
@@ -123,13 +123,14 @@ internal final class VersionChecker: NSObject {
         dlog(message: "",line: #line, function: #function, file: #fileID)
 
         urlGenerator = GlassesUpdaterURL()
-        
+
+        super.init()
+
         guard let sdk = try? ActiveLookSDK.shared() else {
-            fatalError(String(format: "Cannot retrieve SDK Singleton @ ", #line))
+            print("VersionChecker: SDK singleton not available")
+            return
         }
         self.sdk = sdk
-        
-        super.init()
     }
 
 
@@ -172,7 +173,7 @@ internal final class VersionChecker: NSObject {
         // call to retrieve glasses configuration concurrently with remote configuration
         glasses.cfgRead(name: "ALooK", callback: { (config: ConfigurationElementsInfo) in
             let cfgVers = ConfigurationVersion(major: Int(config.version))
-            self.sdk.updateParameters.set(version: cfgVers, for: .device)
+            self.sdk?.updateParameters.set(version: cfgVers, for: .device)
             self.glassesConfigurationVersion = config.version
         })
 
@@ -216,7 +217,10 @@ internal final class VersionChecker: NSObject {
         }
 
         // format URL string
-        let url = urlGenerator.configurationHistoryURL(for: gfw)
+        guard let url = urlGenerator.configurationHistoryURL(for: gfw) else {
+            failed(with: GlassesUpdateError.versionChecker(message: "could not generate configuration history URL"))
+            return
+        }
 
         task = URLSession.shared.dataTask( with: url ) { data, response, error in
             guard error == nil else {
@@ -263,7 +267,7 @@ internal final class VersionChecker: NSObject {
                                                                         major: vers[3],
                                                                         path: apiPath)
                 
-                self.sdk.updateParameters.set(version: self.remoteConfigurationVersion!, for: .remote)
+                self.sdk?.updateParameters.set(version: self.remoteConfigurationVersion!, for: .remote)
             }
         }
 
@@ -290,7 +294,7 @@ internal final class VersionChecker: NSObject {
                 return
             }
 
-            let apiURL = urlGenerator.configurationDownloadURL(using: apiPath)
+            guard let apiURL = urlGenerator.configurationDownloadURL(using: apiPath) else { return }
             result = VersionCheckResult( software: .configurations, status: .needsUpdate(apiURL: apiURL) )
 
         } else {
@@ -322,7 +326,10 @@ internal final class VersionChecker: NSObject {
         }
 
         // format URL string
-        let url = urlGenerator.firmwareHistoryURL(for: gfw)
+        guard let url = urlGenerator.firmwareHistoryURL(for: gfw) else {
+            failed(with: GlassesUpdateError.versionChecker(message: "could not generate firmware history URL"))
+            return
+        }
 
         let task = URLSession.shared.dataTask( with: url ) { data, response, error in
             guard error == nil
@@ -358,7 +365,7 @@ internal final class VersionChecker: NSObject {
                                         extra: "",
                                         path:
                                           GlassesUpdateError.versionCheckerNoUpdateAvailable.localizedDescription)
-                    self.sdk.updateParameters.set(version: self.remoteFWVersion!, for: .remote)
+                    self.sdk?.updateParameters.set(version: self.remoteFWVersion!, for: .remote)
                 }
                 return
             }
@@ -385,7 +392,7 @@ internal final class VersionChecker: NSObject {
                                              patch: vers[2],
                                              extra: "",
                                              path: "\(vers[0]).\(vers[1]).\(vers[2])")
-                self.sdk.updateParameters.set(version: fwVers, for: .remote)
+                self.sdk?.updateParameters.set(version: fwVers, for: .remote)
                 self.remoteFWVersion = fwVers
             }
 
@@ -412,7 +419,7 @@ internal final class VersionChecker: NSObject {
 //                    message: String(format: "remote FW path NOT SET @", #line)))
                 return
             }
-            let apiURL = urlGenerator.firmwareDownloadURL(using: apiPath)
+            guard let apiURL = urlGenerator.firmwareDownloadURL(using: apiPath) else { return }
             result = VersionCheckResult( software: .firmwares, status: .needsUpdate(apiURL: apiURL) )
         } else {
             // up-to-date
@@ -461,7 +468,7 @@ internal final class VersionChecker: NSObject {
                                      patch: patch,
                                      extra: nil, path: nil, error: nil)
 
-        sdk.updateParameters.set(version: fwVers, for: .device)
+        sdk?.updateParameters.set(version: fwVers, for: .device)
 
         glassesFWVersion = fwVers
     }

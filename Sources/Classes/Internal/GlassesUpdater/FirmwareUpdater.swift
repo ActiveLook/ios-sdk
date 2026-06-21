@@ -94,7 +94,8 @@ public final class FirmwareUpdater: NSObject {
         self.errorClosure = errorClosure
 
         guard let sdk = try? ActiveLookSDK.shared() else {
-            fatalError(String(format: "Cannot retrieve SDK Singleton @ ", #line))
+            print("FirmwareUpdater: SDK singleton not available")
+            return
         }
 
         self.sdk = sdk
@@ -298,7 +299,8 @@ public final class FirmwareUpdater: NSObject {
         guard let characteristic = spotaCharacteristics.first(
             where: { $0.uuid == CBUUID.SPOTA_SERV_STATUS_UUID })
         else {
-            fatalError("SPOTA_SERV_STATUS_UUID NOT RETRIEVED")
+            failed(with: GlassesUpdateError.firmwareUpdater(message: "SPOTA_SERV_STATUS_UUID not retrieved"))
+            return
         }
 
         if !characteristic.isNotifying {
@@ -405,7 +407,8 @@ public final class FirmwareUpdater: NSObject {
     private func setPatchLength() {
 
         guard let firmware = firmware else {
-            fatalError(String(format: "FIRMWARE NOT SET @", #line))
+            failed(with: GlassesUpdateError.firmwareUpdater(message: "firmware not set in setPatchLength"))
+            return
         }
 
         if ( blockId < firmware.blocks.count ) {
@@ -443,7 +446,8 @@ public final class FirmwareUpdater: NSObject {
     private func sendBlock() {
 
         guard let firmware = firmware else {
-            fatalError("FIRMWARE NOT SET")
+            failed(with: GlassesUpdateError.firmwareUpdater(message: "firmware not set in sendBlock"))
+            return
         }
 
         if ( blockId < firmware.blocks.count ) {
@@ -538,7 +542,8 @@ extension FirmwareUpdater: CBPeripheralDelegate
                            didDiscoverServices error: Error?)
     {
         guard let services = peripheral.services else {
-            fatalError("NO SERVICES FOUND")
+            failed(with: GlassesUpdateError.firmwareUpdater(message: "no services found on peripheral"))
+            return
         }
         
         if let activelookCommandsService = services.first(where: {$0.uuid == CBUUID.ActiveLookCommandsInterfaceService}) {
@@ -547,7 +552,8 @@ extension FirmwareUpdater: CBPeripheralDelegate
         }
 
         guard let spotaService = services.first(where: {$0.uuid == CBUUID.SpotaService}) else {
-            fatalError("NO SPOTA SERVICE FOUND")
+            failed(with: GlassesUpdateError.firmwareUpdater(message: "SPOTA service not found"))
+            return
         }
 
         peripheral.discoverCharacteristics(nil, for: spotaService)
@@ -631,7 +637,7 @@ extension FirmwareUpdater: CBPeripheralDelegate
 
         case CBUUID.SPOTA_MEM_DEV_UUID :
             guard let value = characteristic.value else {
-                fatalError("SPOTA_MEM_DEV_UUID is nil")
+                return
             }
 
             if (value.count >= 4 && value[0] == 0x00 && value[1] == 0x00
@@ -669,7 +675,8 @@ extension FirmwareUpdater: CBPeripheralDelegate
             } else {
                 guard let charac = spotaCharacteristics.first(
                     where: { $0.uuid == CBUUID.SPOTA_MEM_DEV_UUID}) else {
-                        fatalError()
+                        failed(with: GlassesUpdateError.firmwareUpdater(message: "SPOTA_MEM_DEV_UUID not found"))
+                        return
                     }
                 peripheral.writeValue( Data( UInt32( 0xfe000000 ).byteArray ),
                                        for: charac,
