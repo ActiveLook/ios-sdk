@@ -218,6 +218,7 @@ internal class GlassesUpdater {
 
         if glasses?.getDeviceInformation().hardwareVersion?.contains("ALK03") == true {
             failed(with: GlassesUpdateError.engo3NotHandled)
+            return
         }
 
         versionChecker?.isFirmwareUpToDate(for: glasses!,
