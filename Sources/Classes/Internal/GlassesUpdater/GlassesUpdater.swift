@@ -33,6 +33,7 @@ internal enum GlassesUpdateError: Error
     case invalidToken                           // 9
     case connectionLost                         // 10
     case abortingUpdate                         // 11
+    case engo3NotHandled                        // 12
 }
 
 
@@ -213,6 +214,10 @@ internal class GlassesUpdater {
         guard glasses!.areConnected() else {
             failed(with: GlassesUpdateError.glassesUpdater(message: "Glasses NOT connected"))
             return
+        }
+
+        if glasses?.getDeviceInformation().hardwareVersion?.contains("ALK03") == true {
+            failed(with: GlassesUpdateError.engo3NotHandled)
         }
 
         versionChecker?.isFirmwareUpToDate(for: glasses!,
