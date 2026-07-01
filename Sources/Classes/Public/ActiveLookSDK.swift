@@ -464,8 +464,8 @@ public class ActiveLookSDK {
                          line: #line, function: #function, file: #fileID)
 
                     switch error {
-                    case .networkUnavailable:
-                        // network not available. Update not possible, but glasses are still usable.
+                    case .networkUnavailable, .engo3NotHandled:
+                        //update not possible but glasses still usable
 
                         discoveredGlasses.connectionCallback?(glasses)
                         self.updateParameters.notify(.updateFailed)
