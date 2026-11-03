@@ -788,7 +788,7 @@ public class Glasses {
 
     /// Draw a multiple connected lines at the corresponding coordinates.
     /// - Parameters:
-    ///  - points: array of uint16 tuples (x, y).
+    ///  - points: array of int16 tuples (x, y).
     @available(*, deprecated, message: "use polyline with thickness instead")
     public func polyline(points: [Point]) {
 
@@ -805,7 +805,7 @@ public class Glasses {
     /// Draw a multiple connected lines at the corresponding coordinates.
     /// - Parameters:
     ///  - thickness: the thickness of all lines.
-    ///  - points: array of uint16 tuples (x, y).
+    ///  - points: array of int16 tuples (x, y).
     public func polyline(thickness: UInt8, points: [Point]) {
         let reserved: UInt8 = 0
         var data: [UInt8] = []
@@ -1353,7 +1353,7 @@ public class Glasses {
     ///   - start: The start segment of the gauge, between 1 and 16
     ///   - end: The end segment of the gauge, between 1 and 16
     ///   - clockwise: Whether the gauge should be drawn clockwise or anti-clockwise
-    public func gaugeSave(id: UInt8, x: UInt16, y: UInt16, externalRadius: UInt16, internalRadius: UInt16, start: UInt8, end: UInt8, clockwise: Bool) {
+    public func gaugeSave(id: UInt8, x: Int16, y: Int16, externalRadius: UInt16, internalRadius: UInt16, start: UInt8, end: UInt8, clockwise: Bool) {
         var data: [UInt8] = [id]
         
         data.append(contentsOf: x.asUInt8Array)
@@ -1401,7 +1401,7 @@ public class Glasses {
     
     // MARK: - Page commands
     /// Save a page
-    public func pageSave(id: UInt8, layoutIds: [UInt8], xs: [Int16], ys: [UInt8]) {
+    public func pageSave(id: UInt8, layoutIds: [UInt8], xs: [UInt16], ys: [UInt8]) {
         let pi = PageInfo(id, layoutIds, xs, ys)
         sendCommand(id: .pageSave, withData: pi.payload)
     }
@@ -1563,7 +1563,7 @@ public class Glasses {
     }
     
     /// Write a new configuration
-    public func cfgWrite(name: String, version: Int, password: UInt32) {
+    public func cfgWrite(name: String, version: UInt32, password: UInt32) {
         let withData = name.asNullTerminatedUInt8Array + version.asUInt8Array + password.asUInt8Array
         sendCommand(id: .cfgWrite, withData: withData)
     }

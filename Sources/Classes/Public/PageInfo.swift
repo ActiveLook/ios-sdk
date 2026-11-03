@@ -24,7 +24,7 @@ public class PageInfo {
     /// The page payload
     public let payload: [UInt8]
 
-    init(_ id: UInt8, _ layoutIds: [UInt8], _ xs: [Int16], _ ys: [UInt8]) {
+    init(_ id: UInt8, _ layoutIds: [UInt8], _ xs: [UInt16], _ ys: [UInt8]) {
         self.id = id
         var payload: [UInt8] = [id]
         for i in (0..<layoutIds.count) {

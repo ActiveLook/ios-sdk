@@ -33,14 +33,14 @@ public class LayoutExtraCmd {
         self.subCommands += y.asUInt8Array
     }
 
-    public func addSubCommandCirc(x: UInt16, y: UInt16, r: UInt16){
+    public func addSubCommandCirc(x: Int16, y: Int16, r: UInt16){
         self.subCommands.append(0x01)
         self.subCommands += x.asUInt8Array
         self.subCommands += y.asUInt8Array
         self.subCommands += r.asUInt8Array
     }
 
-    public func addSubCommandCircf(x: UInt16, y: UInt16, r: UInt16){
+    public func addSubCommandCircf(x: Int16, y: Int16, r: UInt16){
         self.subCommands.append(0x02)
         self.subCommands += x.asUInt8Array
         self.subCommands += y.asUInt8Array
@@ -57,7 +57,7 @@ public class LayoutExtraCmd {
         self.subCommands.append(f)
     }
 
-    public func addSubCommandLine(x1: UInt16, y1: UInt16, x2: UInt16, y2: UInt16){
+    public func addSubCommandLine(x1: Int16, y1: Int16, x2: Int16, y2: Int16){
         self.subCommands.append(0x05)
         self.subCommands += x1.asUInt8Array
         self.subCommands += y1.asUInt8Array
@@ -65,13 +65,13 @@ public class LayoutExtraCmd {
         self.subCommands += y2.asUInt8Array
     }
 
-    public func addSubCommandPoint(x: UInt8, y: UInt16){
+    public func addSubCommandPoint(x: Int16, y: Int16){
         self.subCommands.append(0x06)
-        self.subCommands.append(x)
+        self.subCommands += x.asUInt8Array
         self.subCommands += y.asUInt8Array
     }
 
-    public func addSubCommandRect(x1: UInt16, y1: UInt16, x2: UInt16, y2: UInt16) {
+    public func addSubCommandRect(x1: Int16, y1: Int16, x2: Int16, y2: Int16) {
         self.subCommands.append(0x07)
         self.subCommands += x1.asUInt8Array
         self.subCommands += y1.asUInt8Array
@@ -79,7 +79,7 @@ public class LayoutExtraCmd {
         self.subCommands += y2.asUInt8Array
     }
 
-    public func addSubCommandRectf(x1: UInt16, y1: UInt16, x2: UInt16, y2: UInt16){
+    public func addSubCommandRectf(x1: Int16, y1: Int16, x2: Int16, y2: Int16){
         self.subCommands.append(0x08)
         self.subCommands += x1.asUInt8Array
         self.subCommands += y1.asUInt8Array
@@ -87,7 +87,7 @@ public class LayoutExtraCmd {
         self.subCommands += y2.asUInt8Array
     }
 
-    public func addSubCommandText(x: UInt16, y: UInt16, txt: String) {
+    public func addSubCommandText(x: Int16, y: Int16, txt: String) {
         self.subCommands.append(0x09)
         self.subCommands += x.asUInt8Array
         self.subCommands += y.asUInt8Array
@@ -100,7 +100,7 @@ public class LayoutExtraCmd {
         self.subCommands.append(gaugeId)
     }
 
-    public func addSubCommandAnim(handlerId: UInt8, id: UInt8, delay: Int16, repeatAnim: UInt8, x: Int16, y: Int16) {
+    public func addSubCommandAnim(handlerId: UInt8, id: UInt8, delay: UInt16, repeatAnim: UInt8, x: Int16, y: Int16) {
         self.subCommands.append(0x0B)
         self.subCommands.append(handlerId)
         self.subCommands.append(id)

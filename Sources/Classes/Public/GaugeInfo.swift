@@ -52,8 +52,8 @@ public class GaugeInfo {
     internal static func fromCommandResponseData(_ data: CommandResponseData) -> GaugeInfo {
         guard data.count >= 10 else { return GaugeInfo(0, 0, 0, 0, 0, 0, false) }
 
-        let x = Int.fromUInt16ByteArray(bytes: Array(data[0...1]))
-        let y = Int.fromUInt16ByteArray(bytes: Array(data[2...3]))
+        let x = Int(Int16.fromInt16ByteArray(bytes: Array(data[0...1])))
+        let y = Int(Int16.fromInt16ByteArray(bytes: Array(data[2...3])))
         let r = UInt16.fromUInt16ByteArray(bytes: Array(data[4...5]))
         let rin = UInt16.fromUInt16ByteArray(bytes: Array(data[6...7]))
         let start = data[8]

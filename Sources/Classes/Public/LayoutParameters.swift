@@ -99,7 +99,7 @@ public class LayoutParameters {
         return self
     }
 
-    public func addSubCommandCirc(x: UInt16, y: UInt16, r: UInt16) -> LayoutParameters {
+    public func addSubCommandCirc(x: Int16, y: Int16, r: UInt16) -> LayoutParameters {
         self.subCommands.append(0x01)
         self.subCommands += x.asUInt8Array
         self.subCommands += y.asUInt8Array
@@ -107,7 +107,7 @@ public class LayoutParameters {
         return self
     }
 
-    public func addSubCommandCircf(x: UInt16, y: UInt16, r: UInt16) -> LayoutParameters {
+    public func addSubCommandCircf(x: Int16, y: Int16, r: UInt16) -> LayoutParameters {
         self.subCommands.append(0x02)
         self.subCommands += x.asUInt8Array
         self.subCommands += y.asUInt8Array
@@ -127,7 +127,7 @@ public class LayoutParameters {
         return self
     }
 
-    public func addSubCommandLine(x1: UInt16, y1: UInt16, x2: UInt16, y2: UInt16) -> LayoutParameters {
+    public func addSubCommandLine(x1: Int16, y1: Int16, x2: Int16, y2: Int16) -> LayoutParameters {
         self.subCommands.append(0x05)
         self.subCommands += x1.asUInt8Array
         self.subCommands += y1.asUInt8Array
@@ -136,14 +136,14 @@ public class LayoutParameters {
         return self
     }
 
-    public func addSubCommandPoint(x: UInt8, y: UInt16) -> LayoutParameters {
+    public func addSubCommandPoint(x: Int16, y: Int16) -> LayoutParameters {
         self.subCommands.append(0x06)
-        self.subCommands.append(x)
+        self.subCommands += x.asUInt8Array
         self.subCommands += y.asUInt8Array
         return self
     }
 
-    public func addSubCommandRect(x1: UInt16, y1: UInt16, x2: UInt16, y2: UInt16) -> LayoutParameters {
+    public func addSubCommandRect(x1: Int16, y1: Int16, x2: Int16, y2: Int16) -> LayoutParameters {
         self.subCommands.append(0x07)
         self.subCommands += x1.asUInt8Array
         self.subCommands += y1.asUInt8Array
@@ -152,7 +152,7 @@ public class LayoutParameters {
         return self
     }
 
-    public func addSubCommandRectf(x1: UInt16, y1: UInt16, x2: UInt16, y2: UInt16) -> LayoutParameters {
+    public func addSubCommandRectf(x1: Int16, y1: Int16, x2: Int16, y2: Int16) -> LayoutParameters {
         self.subCommands.append(0x08)
         self.subCommands += x1.asUInt8Array
         self.subCommands += y1.asUInt8Array
@@ -161,7 +161,7 @@ public class LayoutParameters {
         return self
     }
 
-    public func addSubCommandText(x: UInt16, y: UInt16, txt: String) -> LayoutParameters {
+    public func addSubCommandText(x: Int16, y: Int16, txt: String) -> LayoutParameters {
         self.subCommands.append(0x09)
         self.subCommands += x.asUInt8Array
         self.subCommands += y.asUInt8Array

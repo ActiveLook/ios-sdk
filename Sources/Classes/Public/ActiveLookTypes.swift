@@ -63,7 +63,7 @@ public enum TextRotation: UInt8 {
     case missingConfiguration = 6
 }
 
-public typealias Point = (x: UInt16, y: UInt16)
+public typealias Point = (x: Int16, y: Int16)
 
 internal typealias CommandResponseData = [UInt8]
 

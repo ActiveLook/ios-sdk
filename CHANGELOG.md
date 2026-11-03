@@ -6,6 +6,21 @@
 
 - Add arc graphics command (0x3C)
 
+### Breaking Change
+
+- Align command parameter types with the ActiveLook API documentation
+  - Layout sub-commands `circ`, `circf`, `line`, `point`, `rect`, `rectf`, `text`: coordinates are now `Int16`
+  - `LayoutExtraCmd.addSubCommandAnim`: `delay` is now `UInt16`
+  - `gaugeSave`: `x` and `y` are now `Int16`
+  - `Point` (used by `polyline`) is now `(x: Int16, y: Int16)`
+  - `pageSave`: `xs` is now `[UInt16]`
+  - `cfgWrite`: `version` is now `UInt32`
+
+### Fixes
+
+- Layout sub-command `point` sent `x` on 1 byte instead of 2
+- `gaugeGet` decoded negative `x` / `y` as unsigned
+
 ## Version 4.5.5
 
 ### Fixes
